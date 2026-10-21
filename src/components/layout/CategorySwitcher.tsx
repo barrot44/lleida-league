@@ -8,7 +8,7 @@ export function CategorySwitcher({ className }: { className?: string }) {
   const setCategory = useUiStore((s) => s.setCategory);
 
   return (
-    <div role="tablist" aria-label="Categoría" className={cn('glass hide-scrollbar flex items-center gap-1 overflow-x-auto rounded-2xl p-1', className)}>
+    <div role="tablist" aria-label="Categoria" className={cn('glass hide-scrollbar flex items-center gap-1 overflow-x-auto rounded-2xl p-1', className)}>
       {CATEGORIES.map((c) => {
         const active = c.id === category;
         return (

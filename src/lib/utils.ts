@@ -8,6 +8,9 @@ export const uid = (prefix: string) =>
 
 export const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
+/** Number with Catalan decimals (comma): 4,0 · 1,14 */
+export const decimal = (n: number, digits = 1) => n.toLocaleString('ca-ES', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** Local `YYYY-MM-DD` (avoids the UTC shift of `toISOString`). */
@@ -27,13 +30,13 @@ export const initials = (name: string) =>
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('');
 
-const dayFmt = new Intl.DateTimeFormat('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-const longFmt = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const shortFmt = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+const dayFmt = new Intl.DateTimeFormat('ca-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+const longFmt = new Intl.DateTimeFormat('ca-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const shortFmt = new Intl.DateTimeFormat('ca-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 
 const parseDay = (date: string) => new Date(`${date}T12:00:00`);
 
-export const formatDay = (date: string) => dayFmt.format(parseDay(date)).replace('.', '');
+export const formatDay = (date: string) => dayFmt.format(parseDay(date)).replace(/\./g, '');
 export const formatDateLong = (date: string) => longFmt.format(parseDay(date));
 export const formatDateShort = (date: string) => shortFmt.format(parseDay(date)).replace(/\./g, '');
 
@@ -41,9 +44,9 @@ export function relativeDay(date: string, now = new Date()): string {
   const target = parseDay(date);
   const base = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
   const diff = Math.round((target.getTime() - base.getTime()) / 86_400_000);
-  if (diff === 0) return 'Hoy';
-  if (diff === 1) return 'Mañana';
-  if (diff === -1) return 'Ayer';
+  if (diff === 0) return 'Avui';
+  if (diff === 1) return 'Demà';
+  if (diff === -1) return 'Ahir';
   return formatDay(date);
 }
 

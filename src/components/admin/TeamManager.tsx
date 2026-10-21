@@ -29,28 +29,28 @@ function TeamEditor({ initial, isNew, onClose }: { initial: Team; isNew: boolean
   const patch = (p: Partial<Team>) => setT((d) => ({ ...d, ...p }));
 
   const save = () => {
-    if (!t.name.trim()) return toast('El equipo necesita un nombre.', 'error');
+    if (!t.name.trim()) return toast('L’equip necessita un nom.', 'error');
     const shortName = (t.shortName.trim() || t.name.replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 3)).toUpperCase().slice(0, 3);
     upsertTeam({ ...t, name: t.name.trim(), shortName, presidentName: t.presidentName.trim(), logoUrl: t.logoUrl.trim() });
-    toast(isNew ? '¡Equipo creado con éxito!' : '¡Equipo actualizado con éxito!');
+    toast(isNew ? 'Equip creat amb èxit!' : 'Equip actualitzat amb èxit!');
     onClose();
   };
 
   return (
-    <Modal open onOpenChange={(o) => !o && onClose()} title={isNew ? 'Nuevo equipo' : 'Editar equipo'} size="lg">
+    <Modal open onOpenChange={(o) => !o && onClose()} title={isNew ? 'Nou equip' : 'Edita l’equip'} size="lg">
       <div className="grid gap-6 p-5 sm:p-6 md:grid-cols-[auto_1fr]">
         <div className="flex flex-col items-center gap-3">
-          <TeamCrest team={{ ...t, name: t.name || 'Vista previa', shortName: t.shortName || t.name.slice(0, 3) || 'EQP' }} size={120} />
-          <p className="text-xs text-slate-500">Vista previa del escudo</p>
+          <TeamCrest team={{ ...t, name: t.name || 'Previsualització', shortName: t.shortName || t.name.slice(0, 3) || 'EQP' }} size={120} />
+          <p className="text-xs text-slate-500">Previsualització de l’escut</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Nombre" className="sm:col-span-2">
+          <Field label="Nom" className="sm:col-span-2">
             <input className="input" value={t.name} onChange={(e) => patch({ name: e.target.value })} placeholder="Pardinyes Warriors" />
           </Field>
-          <Field label="Siglas (3 letras)">
+          <Field label="Sigles (3 lletres)">
             <input className="input uppercase" maxLength={3} value={t.shortName} onChange={(e) => patch({ shortName: e.target.value.toUpperCase() })} placeholder="PAR" />
           </Field>
-          <Field label="Categoría">
+          <Field label="Categoria">
             <select className="input" value={t.category} onChange={(e) => patch({ category: e.target.value as CategoryId })}>
               {CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -59,29 +59,32 @@ function TeamEditor({ initial, isNew, onClose }: { initial: Team; isNew: boolean
               ))}
             </select>
           </Field>
-          <Field label="Presidente/a" className="sm:col-span-2">
+          <Field label="President/a" className="sm:col-span-2">
             <input className="input" value={t.presidentName} onChange={(e) => patch({ presidentName: e.target.value })} />
+          </Field>
+          <Field label="Saldo inicial de Lleidalitos" hint="El saldo actual suma els moviments registrats a Admin → Lleidalitos. Buit = la competició no els fa servir." className="sm:col-span-2">
+            <input type="number" min={0} className="input" value={t.lleidalitos ?? ''} onChange={(e) => patch({ lleidalitos: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })} />
           </Field>
           <Field label="Color principal">
             <input type="color" className="h-11 w-full cursor-pointer rounded-xl border border-white/10 bg-pitch/70 p-1" value={t.primaryColor} onChange={(e) => patch({ primaryColor: e.target.value })} />
           </Field>
-          <Field label="Color secundario">
+          <Field label="Color secundari">
             <input type="color" className="h-11 w-full cursor-pointer rounded-xl border border-white/10 bg-pitch/70 p-1" value={t.secondaryColor} onChange={(e) => patch({ secondaryColor: e.target.value })} />
           </Field>
-          <Field label="URL del escudo (opcional)" hint="Déjalo vacío para usar el escudo generado con los colores del equipo." className="sm:col-span-2">
+          <Field label="URL de l’escut (opcional)" hint="Deixa-ho buit per usar l’escut generat amb els colors de l’equip." className="sm:col-span-2">
             <input className="input" value={t.logoUrl} onChange={(e) => patch({ logoUrl: e.target.value })} placeholder="https://…/escudo.png" />
           </Field>
-          <Field label="Historia" className="sm:col-span-2">
+          <Field label="Història" className="sm:col-span-2">
             <textarea className="input min-h-[96px]" value={t.history} onChange={(e) => patch({ history: e.target.value })} />
           </Field>
         </div>
       </div>
       <div className="flex justify-end gap-3 border-t border-white/10 p-5">
         <button className="btn-ghost" onClick={onClose}>
-          Cancelar
+          Cancel·la
         </button>
         <button className="btn-gold" onClick={save}>
-          <Save size={16} /> Guardar equipo
+          <Save size={16} /> Desa l’equip
         </button>
       </div>
     </Modal>
@@ -104,7 +107,7 @@ export function TeamManager() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end gap-3">
         <label>
-          <span className="label">Categoría</span>
+          <span className="label">Categoria</span>
           <select className="input !w-auto" value={category} onChange={(e) => setCategory(e.target.value as CategoryId)}>
             {CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
@@ -114,7 +117,7 @@ export function TeamManager() {
           </select>
         </label>
         <button className="btn-gold ml-auto" onClick={() => setEditing({ team: blank(category), isNew: true })}>
-          <Plus size={16} /> Nuevo equipo
+          <Plus size={16} /> Nou equip
         </button>
       </div>
 
@@ -125,36 +128,36 @@ export function TeamManager() {
             <div className="min-w-0 flex-1">
               <p className="truncate font-display text-xl font-black uppercase text-white">{t.name}</p>
               <p className="truncate text-xs text-slate-400">
-                {t.shortName} · {t.presidentName || 'Sin presidente'} · {players.filter((p) => p.teamId === t.id).length} jugadores
+                {t.shortName} · {t.presidentName || 'Sense president'} · {players.filter((p) => p.teamId === t.id).length} jugadors
               </p>
               <div className="mt-1.5 flex gap-1.5">
                 <i className="h-3 w-6 rounded-full" style={{ background: t.primaryColor }} />
                 <i className="h-3 w-6 rounded-full" style={{ background: t.secondaryColor }} />
               </div>
             </div>
-            <button className="btn-ghost !p-2.5" aria-label={`Editar ${t.name}`} onClick={() => setEditing({ team: t, isNew: false })}>
+            <button className="btn-ghost !p-2.5" aria-label={`Edita ${t.name}`} onClick={() => setEditing({ team: t, isNew: false })}>
               <Pencil size={15} />
             </button>
-            <button className="btn-danger !p-2.5" aria-label={`Eliminar ${t.name}`} onClick={() => setRemoving(t)}>
+            <button className="btn-danger !p-2.5" aria-label={`Elimina ${t.name}`} onClick={() => setRemoving(t)}>
               <Trash2 size={15} />
             </button>
           </li>
         ))}
-        {list.length === 0 && <li className="card col-span-full py-12 text-center text-slate-400">Esta categoría aún no tiene equipos.</li>}
+        {list.length === 0 && <li className="card col-span-full py-12 text-center text-slate-400">Aquesta categoria encara no té equips.</li>}
       </ul>
 
       {editing && <TeamEditor key={editing.team.id} initial={editing.team} isNew={editing.isNew} onClose={() => setEditing(null)} />}
 
       <ConfirmDialog
         open={!!removing}
-        title="Eliminar equipo"
-        message={`Se eliminará ${removing?.name ?? 'el equipo'} junto con sus jugadores y todos sus partidos. La clasificación se recalculará. Esta acción no se puede deshacer (salvo restaurando una copia de seguridad).`}
-        confirmLabel="Eliminar equipo"
+        title="Elimina l’equip"
+        message={`S’eliminarà ${removing?.name ?? 'l’equip'} juntament amb els seus jugadors i tots els seus partits. La classificació es recalcularà. Aquesta acció no es pot desfer (tret que restauris una còpia de seguretat).`}
+        confirmLabel="Elimina l’equip"
         onCancel={() => setRemoving(null)}
         onConfirm={() => {
           if (removing) deleteTeam(removing.id);
           setRemoving(null);
-          toast('Equipo eliminado.');
+          toast('Equip eliminat.');
         }}
       />
     </div>

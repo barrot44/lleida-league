@@ -50,16 +50,16 @@ export function StandingsTable({ rows, category, compact, limit }: Props) {
           <thead>
             <tr className="border-b border-white/10 bg-black/30 text-[11px] uppercase tracking-[0.14em] text-slate-400">
               <th className={cn(th, 'w-12 pl-4')}>#</th>
-              <th className={cn(th, 'text-left')}>Equipo</th>
-              <th className={th} title="Partidos jugados">PJ</th>
-              <th className={cn(th, hideCompact)} title="Ganados">PG</th>
-              <th className={cn(th, hideCompact)} title="Empatados">PE</th>
-              <th className={cn(th, hideCompact)} title="Perdidos">PP</th>
-              <th className={cn(th, hideCompact)} title="Goles a favor">GF</th>
-              <th className={cn(th, hideCompact)} title="Goles en contra">GC</th>
-              <th className={th} title="Diferencia de goles">DG</th>
+              <th className={cn(th, 'text-left')}>Equip</th>
+              <th className={th} title="Partits jugats">PJ</th>
+              <th className={cn(th, hideCompact)} title="Guanyats">PG</th>
+              <th className={cn(th, hideCompact)} title="Empatats">PE</th>
+              <th className={cn(th, hideCompact)} title="Perduts">PP</th>
+              <th className={cn(th, hideCompact)} title="Gols a favor">GF</th>
+              <th className={cn(th, hideCompact)} title="Gols en contra">GC</th>
+              <th className={th} title="Diferència de gols">DG</th>
               <th className={cn(th, 'pr-4 text-amber-300')}>PTS</th>
-              {!compact && <th className={cn(th, 'hidden md:table-cell')}>Racha</th>}
+              {!compact && <th className={cn(th, 'hidden md:table-cell')}>Ratxa</th>}
             </tr>
           </thead>
           <tbody>
@@ -87,7 +87,7 @@ export function StandingsTable({ rows, category, compact, limit }: Props) {
                         <p className="truncate font-display text-base font-black uppercase leading-tight text-white sm:text-lg">{compact ? r.team.shortName : r.team.name}</p>
                         {!compact && <p className="hidden truncate text-[11px] text-slate-500 sm:block">Pres. {r.team.presidentName}</p>}
                       </div>
-                      {zone === 'danger' && <AlertTriangle size={14} className="shrink-0 text-red-400" aria-label="Zona de peligro" />}
+                      {zone === 'danger' && <AlertTriangle size={14} className="shrink-0 text-red-400" aria-label="Zona de perill" />}
                     </div>
                   </td>
                   <td className="px-2 text-center font-semibold text-slate-200">{r.played}</td>
@@ -118,10 +118,14 @@ export function StandingsTable({ rows, category, compact, limit }: Props) {
 
       {!compact && (
         <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 bg-black/20 px-4 py-3 text-xs text-slate-400">
-          <span className="inline-flex items-center gap-2"><i className="h-3 w-1 rounded bg-amber-400" /> Líder / campeón</span>
-          <span className="inline-flex items-center gap-2"><i className="h-3 w-1 rounded bg-emerald-500" /> Play-off de ascenso (top {category.playoffSpots})</span>
-          <span className="inline-flex items-center gap-2"><i className="h-3 w-1 rounded bg-red-500" /> Zona de peligro (últimos {category.relegationSpots})</span>
-          <span className="ml-auto hidden text-slate-500 sm:block">Desempate: diferencia de goles → goles a favor</span>
+          <span className="inline-flex items-center gap-2"><i className="h-3 w-1 rounded bg-amber-400" /> Líder / campió</span>
+          {category.playoffSpots > 1 && (
+            <span className="inline-flex items-center gap-2"><i className="h-3 w-1 rounded bg-emerald-500" /> Play-off d’ascens (top {category.playoffSpots})</span>
+          )}
+          {category.relegationSpots > 0 && (
+            <span className="inline-flex items-center gap-2"><i className="h-3 w-1 rounded bg-red-500" /> Zona de perill (darrers {category.relegationSpots})</span>
+          )}
+          <span className="ml-auto hidden text-slate-500 sm:block">Desempat: diferència de gols → gols a favor</span>
         </div>
       )}
     </div>

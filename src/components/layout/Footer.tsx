@@ -14,14 +14,14 @@ export function Footer() {
             <Logo size={56} />
             <div>
               <p className="neon-gold font-display text-2xl font-black uppercase leading-none">Lleida League</p>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Futsal · Since {SITE.since}</p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Futsal · Des del {SITE.since}</p>
             </div>
           </div>
-          <p className="mt-4 max-w-sm font-display text-lg font-bold italic text-slate-300">“{SITE.tagline}”</p>
+          <p className="mt-4 max-w-sm font-display text-lg font-bold italic text-slate-300">«{SITE.tagline}»</p>
         </div>
 
         <div>
-          <p className="label">Navegación</p>
+          <p className="label">Navegació</p>
           <ul className="space-y-2 text-sm">
             {NAV.map((n) => (
               <li key={n.id}>
@@ -34,7 +34,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="label">Síguenos</p>
+          <p className="label">Segueix-nos</p>
           <div className="flex gap-2">
             {SITE.socials.map((s) => {
               const Icon = SOCIAL_ICONS[s.id];
@@ -58,7 +58,7 @@ export function Footer() {
         </div>
       </div>
       <div className="mx-auto mt-10 max-w-7xl border-t border-white/[0.06] px-4 pt-6 text-xs text-slate-500 sm:px-6">
-        © {new Date().getFullYear()} Lleida League. Los datos de equipos, jugadores y resultados incluidos de serie son de demostración: edítalos desde el panel de administración.
+        © {new Date().getFullYear()} Lleida League. Els equips i presidents de la Senior són reals; els partits, resultats i jugadors mostrats són d’exemple i es poden editar des del tauler d’administració.
       </div>
     </footer>
   );

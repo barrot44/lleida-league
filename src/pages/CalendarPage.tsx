@@ -12,10 +12,10 @@ import { cn } from '@/lib/utils';
 type StatusFilter = 'all' | MatchStatus;
 
 const STATUS_TABS: { id: StatusFilter; label: string }[] = [
-  { id: 'all', label: 'Todos' },
-  { id: 'live', label: 'En vivo' },
-  { id: 'finished', label: 'Finalizados' },
-  { id: 'scheduled', label: 'Próximos' },
+  { id: 'all', label: 'Tots' },
+  { id: 'live', label: 'En directe' },
+  { id: 'finished', label: 'Finalitzats' },
+  { id: 'scheduled', label: 'Propers' },
 ];
 
 const chip = (active: boolean) =>
@@ -66,12 +66,12 @@ export default function CalendarPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <PageHeader eyebrow={cat.label} title="Calendario y resultados" description="Filtra por jornada y estado. Abre la ficha de cualquier partido para ver goleadores, tarjetas y MVP." />
+      <PageHeader eyebrow={cat.label} title="Calendari i resultats" description="Filtra per jornada i estat. Obre la fitxa de qualsevol partit per veure els golejadors, les targetes i el MVP." />
 
       <div className="mb-7 space-y-3">
         <div ref={scroller} className="hide-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" role="tablist" aria-label="Jornada">
           <button role="tab" aria-selected={matchday === 'all'} data-active={matchday === 'all'} onClick={() => setMatchday('all')} className={chip(matchday === 'all')}>
-            Todas
+            Totes
           </button>
           {matchdays.map((d) => (
             <button key={d} role="tab" aria-selected={matchday === d} data-active={matchday === d} onClick={() => setMatchday(d)} className={chip(matchday === d)}>
@@ -81,7 +81,7 @@ export default function CalendarPage() {
           ))}
         </div>
 
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Estado del partido">
+        <div className="flex flex-wrap gap-2" role="tablist" aria-label="Estat del partit">
           {STATUS_TABS.map((t) => (
             <button key={t.id} role="tab" aria-selected={status === t.id} onClick={() => setStatus(t.id)} className={chip(status === t.id)}>
               {t.label} <span className="ml-1 opacity-60">{counts[t.id]}</span>
@@ -91,7 +91,7 @@ export default function CalendarPage() {
       </div>
 
       {groups.length === 0 ? (
-        <EmptyState icon={<CalendarX2 />} title="Sin partidos" hint="No hay partidos con estos filtros. Prueba con otra jornada o estado." />
+        <EmptyState icon={<CalendarX2 />} title="Sense partits" hint="No hi ha partits amb aquests filtres. Prova amb una altra jornada o estat." />
       ) : (
         <div className="space-y-10">
           <AnimatePresence mode="popLayout">

@@ -26,7 +26,7 @@ export function Stepper({ value, onChange, min = 0, max = 99, label, big }: Step
   const set = (n: number) => onChange(Math.min(max, Math.max(min, Math.round(Number.isFinite(n) ? n : min))));
   return (
     <div className="flex items-center gap-1.5">
-      <button type="button" onClick={() => set(value - 1)} aria-label={`${label}: restar`} className="btn-ghost !p-2.5">
+      <button type="button" onClick={() => set(value - 1)} aria-label={`${label}: resta`} className="btn-ghost !p-2.5">
         <Minus size={16} />
       </button>
       <input
@@ -39,7 +39,7 @@ export function Stepper({ value, onChange, min = 0, max = 99, label, big }: Step
         aria-label={label}
         className={cn('input !px-2 text-center font-display font-black', big ? '!w-20 !py-3 text-3xl' : '!w-16')}
       />
-      <button type="button" onClick={() => set(value + 1)} aria-label={`${label}: sumar`} className="btn-ghost !p-2.5">
+      <button type="button" onClick={() => set(value + 1)} aria-label={`${label}: suma`} className="btn-ghost !p-2.5">
         <Plus size={16} />
       </button>
     </div>

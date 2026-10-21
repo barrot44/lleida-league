@@ -1,22 +1,17 @@
 import { motion } from 'framer-motion';
-import { Unlock } from 'lucide-react';
-import { ADMIN_NAV, NAV, type RouteId } from '@/config/nav';
+import { NAV, type RouteId } from '@/config/nav';
 import { hrefFor } from '@/hooks/useHashRoute';
-import { useUiStore } from '@/store/useUiStore';
 import { cn } from '@/lib/utils';
 
-/** App-style bottom navigation for phones and small tablets. */
+/** App-style bottom navigation for phones and small tablets (the admin button lives in the header). */
 export function MobileNav({ route }: { route: RouteId }) {
-  const adminUnlocked = useUiStore((s) => s.adminUnlocked);
-  const items = [...NAV, adminUnlocked ? { ...ADMIN_NAV, icon: Unlock } : ADMIN_NAV];
-
   return (
     <nav
-      aria-label="Navegación móvil"
+      aria-label="Navegació mòbil"
       className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-pitch/90 backdrop-blur-xl lg:hidden"
     >
       <ul className="mx-auto grid max-w-xl grid-cols-6">
-        {items.map((item) => {
+        {NAV.map((item) => {
           const active = route === item.id;
           const Icon = item.icon;
           return (

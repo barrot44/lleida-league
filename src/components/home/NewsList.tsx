@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/ui/Section';
 import { formatDateShort } from '@/lib/utils';
 
 export function NewsList({ items }: { items: NewsItem[] }) {
-  if (items.length === 0) return <EmptyState icon={<Newspaper />} title="Sin comunicados" hint="Los comunicados presidenciales aparecerán aquí." />;
+  if (items.length === 0) return <EmptyState icon={<Newspaper />} title="Sense comunicats" hint="Els comunicats presidencials apareixeran aquí." />;
   return (
     <ul className="space-y-3">
       {items.map((n, i) => (

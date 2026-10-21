@@ -11,7 +11,7 @@ interface Props {
   onCancel: () => void;
 }
 
-export function ConfirmDialog({ open, title, message, confirmLabel = 'Confirmar', danger = true, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, message, confirmLabel = 'Confirma', danger = true, onConfirm, onCancel }: Props) {
   return (
     <Modal open={open} onOpenChange={(o) => !o && onCancel()} title={title} size="sm">
       <div className="space-y-6 p-6">
@@ -23,7 +23,7 @@ export function ConfirmDialog({ open, title, message, confirmLabel = 'Confirmar'
         </div>
         <div className="flex justify-end gap-3">
           <button className="btn-ghost" onClick={onCancel}>
-            Cancelar
+            Cancel·la
           </button>
           <button className={danger ? 'btn-danger' : 'btn-gold'} onClick={onConfirm}>
             {confirmLabel}

@@ -1,9 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { VideoItem } from '@/types';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
 import { NewsList } from '@/components/home/NewsList';
 import { MatchCard } from '@/components/calendar/MatchCard';
+import { SponsorGrid } from '@/components/club/SponsorGrid';
+import { VideoCard } from '@/components/gallery/VideoCard';
+import { VideoModal } from '@/components/gallery/VideoModal';
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { CATEGORY_BY_ID } from '@/config/site';
@@ -30,6 +34,10 @@ export default function HomePage() {
   const view = useLeagueView(category);
   const news = useLeagueStore((s) => s.news);
   const gallery = useLeagueStore((s) => s.gallery);
+  const sponsors = useLeagueStore((s) => s.sponsors);
+  const videos = useLeagueStore((s) => s.videos);
+  const [playing, setPlaying] = useState<VideoItem | null>(null);
+  const latestVideos = useMemo(() => [...videos].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3), [videos]);
   const cat = CATEGORY_BY_ID[category];
 
   const fixtures = useMemo(() => {
@@ -54,7 +62,7 @@ export default function HomePage() {
       <Hero />
       <div className="mx-auto max-w-7xl space-y-16 px-4 pt-14 sm:px-6">
         <section>
-          <SectionHead title="La jornada" to="calendar" label="Calendario completo" />
+          <SectionHead title="La jornada" to="calendar" label="Calendari complet" />
           <div className="grid gap-4 md:grid-cols-2">
             {fixtures.map((m, i) => {
               const home = view.teamMap.get(m.homeTeamId);
@@ -66,17 +74,36 @@ export default function HomePage() {
 
         <section className="grid gap-10 lg:grid-cols-[1.25fr_1fr]">
           <div className="min-w-0">
-            <SectionHead title={`Clasificación ${cat.short}`} to="standings" label="Tabla completa" />
+            <SectionHead title={`Classificació ${cat.short}`} to="standings" label="Taula completa" />
             <StandingsTable rows={view.standings} category={cat} compact limit={6} />
           </div>
           <div className="min-w-0">
-            <SectionHead title="Comunicados" />
+            <SectionHead title="Comunicats" />
             <NewsList items={latestNews} />
           </div>
         </section>
 
+        {latestVideos.length > 0 && (
+          <section>
+            <SectionHead title="Últims resums" to="gallery" label="Tots els vídeos" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {latestVideos.map((v, i) => (
+                <VideoCard key={v.id} video={v} index={i} onOpen={setPlaying} />
+              ))}
+            </div>
+            {playing && <VideoModal video={playing} open onClose={() => setPlaying(null)} />}
+          </section>
+        )}
+
+        {sponsors.length > 0 && (
+          <section>
+            <SectionHead title="Col·laboradors oficials" to="club" label="Descobreix-nos" />
+            <SponsorGrid sponsors={sponsors} compact />
+          </section>
+        )}
+
         <section>
-          <SectionHead title="Galería" to="gallery" label="Ver todas" />
+          <SectionHead title="Galeria" to="gallery" label="Veure-les totes" />
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {photos.map((p, i) => (
               <motion.a

@@ -47,7 +47,7 @@ export function MatchManager() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end gap-3">
         <label>
-          <span className="label">Categoría</span>
+          <span className="label">Categoria</span>
           <select className="input !w-auto" value={category} onChange={(e) => { setCategory(e.target.value as typeof category); setMatchday(null); }}>
             {CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
@@ -59,7 +59,7 @@ export function MatchManager() {
         <label>
           <span className="label">Jornada</span>
           <select className="input !w-auto" value={matchday} onChange={(e) => setMatchday(e.target.value === 'all' ? 'all' : Number(e.target.value))}>
-            <option value="all">Todas</option>
+            <option value="all">Totes</option>
             {matchdays.map((d) => (
               <option key={d} value={d}>
                 Jornada {d}
@@ -68,16 +68,16 @@ export function MatchManager() {
           </select>
         </label>
         <label>
-          <span className="label">Estado</span>
+          <span className="label">Estat</span>
           <select className="input !w-auto" value={status} onChange={(e) => setStatus(e.target.value as MatchStatus | 'all')}>
-            <option value="all">Todos</option>
-            <option value="live">En vivo</option>
-            <option value="scheduled">Próximos</option>
-            <option value="finished">Finalizados</option>
+            <option value="all">Tots</option>
+            <option value="live">En directe</option>
+            <option value="scheduled">Propers</option>
+            <option value="finished">Finalitzats</option>
           </select>
         </label>
         <button className="btn-gold ml-auto" onClick={() => setEditing({ match: newMatchDraft(category, matchday === 'all' ? currentMatchday : matchday), isNew: true })}>
-          <Plus size={16} /> Nuevo partido
+          <Plus size={16} /> Nou partit
         </button>
       </div>
 
@@ -109,8 +109,8 @@ export function MatchManager() {
 
               <div className="ml-auto flex flex-wrap items-center gap-2">
                 {m.status === 'scheduled' && (
-                  <button className="btn-ghost !px-3 !py-1.5 text-xs" onClick={() => quick(m, { status: 'live', homeScore: 0, awayScore: 0, liveMinute: 1 }, 'Partido en directo.')}>
-                    <Play size={13} /> Iniciar
+                  <button className="btn-ghost !px-3 !py-1.5 text-xs" onClick={() => quick(m, { status: 'live', homeScore: 0, awayScore: 0, liveMinute: 1 }, 'Partit en directe.')}>
+                    <Play size={13} /> Inicia
                   </button>
                 )}
                 {m.status === 'live' && (
@@ -121,36 +121,36 @@ export function MatchManager() {
                     <button className="btn-ghost !px-3 !py-1.5 text-xs" onClick={() => quick(m, { awayScore: (m.awayScore ?? 0) + 1 }, `Gol de ${away.shortName}.`)}>
                       +1 {away.shortName}
                     </button>
-                    <button className="btn-gold !px-3 !py-1.5 text-xs" onClick={() => quick(m, { status: 'finished' }, '¡Resultado actualizado con éxito!')}>
-                      <Flag size={13} /> Finalizar
+                    <button className="btn-gold !px-3 !py-1.5 text-xs" onClick={() => quick(m, { status: 'finished' }, 'Resultat actualitzat amb èxit!')}>
+                      <Flag size={13} /> Finalitza
                     </button>
                   </>
                 )}
-                <button className="btn-ghost !p-2.5" aria-label="Editar partido" onClick={() => setEditing({ match: m, isNew: false })}>
+                <button className="btn-ghost !p-2.5" aria-label="Edita el partit" onClick={() => setEditing({ match: m, isNew: false })}>
                   <Pencil size={15} />
                 </button>
-                <button className="btn-danger !p-2.5" aria-label="Eliminar partido" onClick={() => setRemoving(m)}>
+                <button className="btn-danger !p-2.5" aria-label="Elimina el partit" onClick={() => setRemoving(m)}>
                   <Trash2 size={15} />
                 </button>
               </div>
             </li>
           );
         })}
-        {visible.length === 0 && <li className="card py-12 text-center text-slate-400">No hay partidos con estos filtros.</li>}
+        {visible.length === 0 && <li className="card py-12 text-center text-slate-400">No hi ha partits amb aquests filtres.</li>}
       </ul>
 
       {editing && <MatchEditor key={editing.match.id} initial={editing.match} isNew={editing.isNew} onClose={() => setEditing(null)} />}
 
       <ConfirmDialog
         open={!!removing}
-        title="Eliminar partido"
-        message="Se eliminará el partido y sus eventos. La clasificación y las estadísticas se recalcularán automáticamente."
-        confirmLabel="Eliminar"
+        title="Elimina el partit"
+        message="S’eliminarà el partit i els seus esdeveniments. La classificació i les estadístiques es recalcularan automàticament."
+        confirmLabel="Elimina"
         onCancel={() => setRemoving(null)}
         onConfirm={() => {
           if (removing) deleteMatch(removing.id);
           setRemoving(null);
-          toast('Partido eliminado.');
+          toast('Partit eliminat.');
         }}
       />
     </div>

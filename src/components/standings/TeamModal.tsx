@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { CalendarClock, Crown, Users } from 'lucide-react';
+import { CalendarClock, Coins, Crown, Users } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { FormDots, PositionTag } from '@/components/ui/Badges';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
@@ -9,6 +9,7 @@ import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLeagueView } from '@/hooks/useLeagueView';
 import { teamResults } from '@/lib/standings';
+import { KIND_LABEL, balances, newestFirst, signed } from '@/lib/lleidalitos';
 import { cn, formatDay, matchTimestamp } from '@/lib/utils';
 import type { Position } from '@/types';
 
@@ -16,6 +17,8 @@ const ORDER: Record<Position, number> = { Portero: 0, Cierre: 1, Ala: 2, Pívot:
 
 export function TeamModal({ id, open, onClose }: { id: string; open: boolean; onClose: () => void }) {
   const team = useLeagueStore((s) => s.teams.find((t) => t.id === id));
+  const allTeams = useLeagueStore((s) => s.teams);
+  const txs = useLeagueStore((s) => s.lleidalitoTx);
   const view = useLeagueView(team?.category ?? 'senior');
   const openModal = useUiStore((s) => s.openModal);
 
@@ -35,9 +38,11 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
   if (!team || !data) return null;
   const { row, roster, results, next } = data;
   const cat = CATEGORY_BY_ID[team.category];
+  const balance = balances(allTeams, txs).get(team.id);
+  const myTx = txs.filter((t) => t.teamId === team.id).sort(newestFirst).slice(0, 5);
 
   return (
-    <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Equipo ${team.name}`} hideHeader size="lg">
+    <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Equip ${team.name}`} hideHeader size="lg">
       <div
         className="relative overflow-hidden px-6 pb-8 pt-12 sm:px-8"
         style={{ background: `radial-gradient(80% 140% at 15% 0%, ${team.primaryColor}66, transparent 62%), linear-gradient(180deg, ${team.secondaryColor}88, transparent)` }}
@@ -52,8 +57,13 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
             </p>
             <h2 className="mt-1 text-4xl leading-none sm:text-5xl">{team.name}</h2>
             <p className="mt-3 inline-flex items-center gap-2 text-sm text-slate-300">
-              <Crown size={15} className="text-amber-400" /> Presidente: <strong className="text-white">{team.presidentName}</strong>
+              <Crown size={15} className="text-amber-400" /> President: <strong className="text-white">{team.presidentName}</strong>
             </p>
+            {team.lleidalitos !== undefined && (
+              <p className="mt-2 inline-flex items-center gap-2 text-sm text-slate-300">
+                <Coins size={15} className="text-amber-400" /> <strong className="text-white">{balance}</strong> Lleidalitos
+              </p>
+            )}
             {row && (
               <div className="mt-4 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
                 <span className="rounded-xl bg-black/40 px-3 py-1.5 font-display text-lg font-black uppercase text-amber-300">#{row.position} · {row.points} pts</span>
@@ -85,15 +95,31 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
       <div className="space-y-8 p-6 sm:p-8">
         {team.history && (
           <section>
-            <h3 className="section-title mb-3 !text-xl">Historia</h3>
+            <h3 className="section-title mb-3 !text-xl">Història</h3>
             <p className="leading-relaxed text-slate-300">{team.history}</p>
+          </section>
+        )}
+
+        {myTx.length > 0 && (
+          <section>
+            <h3 className="section-title mb-4 !text-xl">Moviments de Lleidalitos</h3>
+            <ul className="space-y-2">
+              {myTx.map((tx) => (
+                <li key={tx.id} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2 text-sm">
+                  <span className="min-w-0 flex-1 truncate text-slate-200">
+                    {tx.concept} <span className="text-xs text-slate-500">· {KIND_LABEL[tx.kind]}</span>
+                  </span>
+                  <span className={`digital text-lg ${tx.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{signed(tx.amount)}</span>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
         <section>
           <h3 className="section-title mb-4 !text-xl">Plantilla</h3>
           {roster.length === 0 ? (
-            <p className="text-sm text-slate-400">Este equipo aún no tiene jugadores registrados.</p>
+            <p className="text-sm text-slate-400">Aquest equip encara no té jugadors registrats.</p>
           ) : (
             <ul className="grid gap-2.5 sm:grid-cols-2">
               {roster.map((p) => (
@@ -127,9 +153,9 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
 
         <section className="grid gap-6 sm:grid-cols-2">
           <div>
-            <h3 className="section-title mb-4 !text-xl">Últimos resultados</h3>
+            <h3 className="section-title mb-4 !text-xl">Últims resultats</h3>
             {results.length === 0 ? (
-              <p className="text-sm text-slate-400">Aún no hay partidos disputados.</p>
+              <p className="text-sm text-slate-400">Encara no hi ha partits disputats.</p>
             ) : (
               <ul className="space-y-2">
                 {results.map(({ match, gf, ga, result, isHome }) => {
@@ -163,7 +189,7 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
             )}
           </div>
           <div>
-            <h3 className="section-title mb-4 !text-xl">Próximo partido</h3>
+            <h3 className="section-title mb-4 !text-xl">Proper partit</h3>
             {next ? (
               <button
                 onClick={() => openModal({ kind: 'match', id: next.id })}
@@ -181,7 +207,7 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
               </button>
             ) : (
               <p className="flex items-center gap-2 text-sm text-slate-400">
-                <Users size={16} /> No hay partidos programados.
+                <Users size={16} /> No hi ha partits programats.
               </p>
             )}
           </div>

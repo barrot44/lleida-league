@@ -35,7 +35,7 @@ export function Toaster() {
             >
               <Icon size={20} className={s.text} />
               <p className="text-sm font-semibold text-white">{t.message}</p>
-              <button onClick={() => dismiss(t.id)} className="ml-1 text-slate-400 transition hover:text-white" aria-label="Cerrar aviso">
+              <button onClick={() => dismiss(t.id)} className="ml-1 text-slate-400 transition hover:text-white" aria-label="Tanca l’avís">
                 <X size={16} />
               </button>
             </motion.div>

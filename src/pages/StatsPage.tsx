@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, UserX } from 'lucide-react';
+import { BarChart3, Medal, Scale, Search, Trophy, UserX, Users } from 'lucide-react';
+import { CompareView } from '@/components/stats/CompareView';
+import { QuintetView } from '@/components/stats/QuintetView';
+import { RecordsView } from '@/components/stats/RecordsView';
 import type { Player, Position } from '@/types';
 import { Podium } from '@/components/stats/Podium';
 import { EmptyState, PageHeader } from '@/components/ui/Section';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { PositionTag } from '@/components/ui/Badges';
 import { TeamCrest } from '@/components/ui/TeamCrest';
-import { CATEGORY_BY_ID, POSITIONS } from '@/config/site';
+import { CATEGORY_BY_ID, POSITIONS, POSITION_LABEL } from '@/config/site';
 import { useUiStore } from '@/store/useUiStore';
 import { useLeagueView } from '@/hooks/useLeagueView';
 import { cn } from '@/lib/utils';
@@ -15,18 +18,17 @@ import { cn } from '@/lib/utils';
 type Metric = 'goals' | 'mvpAwards' | 'assists';
 
 const METRICS: { id: Metric; label: string; unit: string }[] = [
-  { id: 'goals', label: 'Goleadores', unit: 'goles' },
+  { id: 'goals', label: 'Golejadors', unit: 'gols' },
   { id: 'mvpAwards', label: 'MVPs', unit: 'MVPs' },
-  { id: 'assists', label: 'Asistentes', unit: 'asist.' },
+  { id: 'assists', label: 'Assistents', unit: 'assist.' },
 ];
 
 const PAGE = 15;
 
-export default function StatsPage() {
+function RankingsView() {
   const category = useUiStore((s) => s.category);
   const openModal = useUiStore((s) => s.openModal);
   const view = useLeagueView(category);
-  const cat = CATEGORY_BY_ID[category];
 
   const [metric, setMetric] = useState<Metric>('goals');
   const [query, setQuery] = useState('');
@@ -70,8 +72,7 @@ export default function StatsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <PageHeader eyebrow={cat.label} title="Goleadores & MVPs" description="Pichichi, asistentes y premios MVP. Todo se actualiza solo con los partidos finalizados." />
+    <div>
 
       <div role="tablist" aria-label="Estadística" className="glass mb-8 inline-flex gap-1 rounded-2xl p-1">
         {METRICS.map((m) => {
@@ -99,7 +100,7 @@ export default function StatsPage() {
           <Podium entries={podium} unit={current.unit} />
         </div>
       ) : (
-        <EmptyState className="mb-12" icon={<UserX />} title="Aún sin datos" hint="Cuando se finalicen partidos aparecerán aquí los líderes de la categoría." />
+        <EmptyState className="mb-12" icon={<UserX />} title="Encara sense dades" hint="Quan es finalitzin partits, aquí apareixeran els líders de la categoria." />
       )}
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -111,16 +112,16 @@ export default function StatsPage() {
               setQuery(e.target.value);
               setLimit(PAGE);
             }}
-            placeholder="Buscar jugador o equipo…"
-            aria-label="Buscar jugador o equipo"
+            placeholder="Cerca jugador o equip…"
+            aria-label="Cerca jugador o equip"
             className="input !pl-10"
           />
         </div>
-        <select value={position} onChange={(e) => setPosition(e.target.value as Position | 'all')} aria-label="Filtrar por posición" className="input !w-auto">
-          <option value="all">Todas las posiciones</option>
+        <select value={position} onChange={(e) => setPosition(e.target.value as Position | 'all')} aria-label="Filtra per posició" className="input !w-auto">
+          <option value="all">Totes les posicions</option>
           {POSITIONS.map((p) => (
             <option key={p} value={p}>
-              {p}
+              {POSITION_LABEL[p]}
             </option>
           ))}
         </select>
@@ -135,8 +136,8 @@ export default function StatsPage() {
                 <th className={cn(th, 'text-left')}>Jugador</th>
                 <th className={cn(th, 'hidden sm:table-cell')}>Pos</th>
                 <th className={cn(th, 'hidden md:table-cell')}>PJ</th>
-                <th className={cn(th, highlight('goals'))}>Goles</th>
-                <th className={cn(th, highlight('assists'))}>Asist</th>
+                <th className={cn(th, highlight('goals'))}>Gols</th>
+                <th className={cn(th, highlight('assists'))}>Assist</th>
                 <th className={cn(th, highlight('mvpAwards'))}>MVP</th>
                 <th className={cn(th, 'hidden pr-4 md:table-cell')}>🟨 / 🟥</th>
               </tr>
@@ -182,15 +183,58 @@ export default function StatsPage() {
             </tbody>
           </table>
         </div>
-        {rows.length === 0 && <p className="px-6 py-10 text-center text-slate-400">Ningún jugador coincide con la búsqueda.</p>}
+        {rows.length === 0 && <p className="px-6 py-10 text-center text-slate-400">Cap jugador coincideix amb la cerca.</p>}
         {rows.length > limit && (
           <div className="border-t border-white/10 p-3 text-center">
             <button className="btn-ghost" onClick={() => setLimit((l) => l + PAGE)}>
-              Mostrar más ({rows.length - limit})
+              Mostra’n més ({rows.length - limit})
             </button>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+type StatsViewId = 'rankings' | 'records' | 'quintet' | 'compare';
+
+const VIEWS: { id: StatsViewId; label: string; icon: typeof Medal }[] = [
+  { id: 'rankings', label: 'Rànquings', icon: Medal },
+  { id: 'records', label: 'Rècords', icon: Trophy },
+  { id: 'quintet', label: 'Quintet ideal', icon: Users },
+  { id: 'compare', label: 'Comparador', icon: Scale },
+];
+
+export default function StatsPage() {
+  const category = useUiStore((s) => s.category);
+  const cat = CATEGORY_BY_ID[category];
+  const [view, setView] = useState<StatsViewId>('rankings');
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <PageHeader
+        eyebrow={cat.label}
+        title="Golejadors i MVPs"
+        description="Pitxitxi, assistents i MVPs, més rècords de la lliga, el quintet ideal de cada jornada i un comparador. Tot s’actualitza sol amb els partits finalitzats."
+        actions={<BarChart3 aria-hidden className="hidden text-amber-400/40 sm:block" size={56} />}
+      />
+      <div role="tablist" aria-label="Estadístiques" className="hide-scrollbar glass mb-8 flex gap-1 overflow-x-auto rounded-2xl p-1 sm:inline-flex">
+        {VIEWS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={view === id}
+            onClick={() => setView(id)}
+            className={cn('inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 font-display text-sm font-black uppercase tracking-wide transition', view === id ? 'bg-gold-gradient text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white')}
+          >
+            <Icon size={15} /> {label}
+          </button>
+        ))}
+      </div>
+      {view === 'rankings' && <RankingsView />}
+      {view === 'records' && <RecordsView category={category} />}
+      {view === 'quintet' && <QuintetView category={category} />}
+      {view === 'compare' && <CompareView category={category} />}
     </div>
   );
 }

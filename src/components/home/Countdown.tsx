@@ -39,7 +39,7 @@ export function Countdown({ match, home, away }: { match: Match; home: Team; awa
   return (
     <div className="glass-strong relative overflow-hidden rounded-3xl p-5 shadow-card sm:p-6">
       <div aria-hidden className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber-400/10 blur-3xl" />
-      <p className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-amber-400">Próximo gran partido</p>
+      <p className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-amber-400">Proper gran partit</p>
 
       <button onClick={() => openModal({ kind: 'match', id: match.id })} className="group flex w-full items-center justify-between gap-3 text-left">
         <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -54,8 +54,8 @@ export function Countdown({ match, home, away }: { match: Match; home: Team; awa
       </button>
 
       <div className="mt-5 flex justify-center gap-2.5 sm:gap-3">
-        <Digit value={days} label="Días" />
-        <Digit value={hours} label="Horas" />
+        <Digit value={days} label="Dies" />
+        <Digit value={hours} label="Hores" />
         <Digit value={minutes} label="Min" />
         <Digit value={seconds} label="Seg" />
       </div>

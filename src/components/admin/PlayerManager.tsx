@@ -6,19 +6,19 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { PositionTag } from '@/components/ui/Badges';
 import { Field, Stepper } from '@/components/admin/fields';
-import { CATEGORIES, POSITIONS } from '@/config/site';
+import { CATEGORIES, POSITIONS, POSITION_LABEL } from '@/config/site';
 import { emptyStats } from '@/lib/standings';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { uid } from '@/lib/utils';
 
 const STAT_FIELDS: { key: keyof PlayerStats; label: string }[] = [
-  { key: 'goals', label: 'Goles' },
-  { key: 'assists', label: 'Asistencias' },
-  { key: 'yellowCards', label: 'Amarillas' },
-  { key: 'redCards', label: 'Rojas' },
+  { key: 'goals', label: 'Gols' },
+  { key: 'assists', label: 'Assistències' },
+  { key: 'yellowCards', label: 'Grogues' },
+  { key: 'redCards', label: 'Vermelles' },
   { key: 'mvpAwards', label: 'MVPs' },
-  { key: 'matchesPlayed', label: 'Partidos' },
+  { key: 'matchesPlayed', label: 'Partits' },
 ];
 
 function PlayerEditor({ initial, isNew, onClose }: { initial: Player; isNew: boolean; onClose: () => void }) {
@@ -32,34 +32,34 @@ function PlayerEditor({ initial, isNew, onClose }: { initial: Player; isNew: boo
   const team = teams.find((t) => t.id === p.teamId);
 
   const save = () => {
-    if (!p.name.trim()) return toast('El jugador necesita un nombre.', 'error');
-    if (!p.teamId) return toast('Selecciona un equipo.', 'error');
+    if (!p.name.trim()) return toast('El jugador necessita un nom.', 'error');
+    if (!p.teamId) return toast('Selecciona un equip.', 'error');
     upsertPlayer({ ...p, name: p.name.trim(), nickname: p.nickname?.trim() || undefined, photoUrl: p.photoUrl.trim() });
     const changed = Object.fromEntries((Object.keys(totals) as (keyof PlayerStats)[]).filter((k) => totals[k] !== initial.stats[k]).map((k) => [k, totals[k]]));
     if (Object.keys(changed).length > 0) setPlayerTotals(p.id, changed);
-    toast(isNew ? '¡Jugador añadido con éxito!' : '¡Jugador actualizado con éxito!');
+    toast(isNew ? 'Jugador afegit amb èxit!' : 'Jugador actualitzat amb èxit!');
     onClose();
   };
 
   return (
-    <Modal open onOpenChange={(o) => !o && onClose()} title={isNew ? 'Nuevo jugador' : 'Editar jugador'} size="lg">
+    <Modal open onOpenChange={(o) => !o && onClose()} title={isNew ? 'Nou jugador' : 'Edita el jugador'} size="lg">
       <div className="space-y-6 p-5 sm:p-6">
         <div className="grid gap-6 md:grid-cols-[auto_1fr]">
           <div className="flex flex-col items-center gap-2">
             <PlayerAvatar player={p} team={team} size={110} />
-            <p className="text-xs text-slate-500">Vista previa</p>
+            <p className="text-xs text-slate-500">Previsualització</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Nombre" className="sm:col-span-2">
+            <Field label="Nom" className="sm:col-span-2">
               <input className="input" value={p.name} onChange={(e) => patch({ name: e.target.value })} />
             </Field>
-            <Field label="Apodo (opcional)">
+            <Field label="Malnom (opcional)">
               <input className="input" value={p.nickname ?? ''} onChange={(e) => patch({ nickname: e.target.value })} />
             </Field>
             <Field label="Dorsal">
               <input type="number" min={0} max={99} className="input" value={p.dorsal} onChange={(e) => patch({ dorsal: Math.min(99, Math.max(0, Number(e.target.value) || 0)) })} />
             </Field>
-            <Field label="Equipo">
+            <Field label="Equip">
               <select className="input" value={p.teamId} onChange={(e) => patch({ teamId: e.target.value })}>
                 {CATEGORIES.map((c) => (
                   <optgroup key={c.id} label={c.label}>
@@ -74,25 +74,25 @@ function PlayerEditor({ initial, isNew, onClose }: { initial: Player; isNew: boo
                 ))}
               </select>
             </Field>
-            <Field label="Posición">
+            <Field label="Posició">
               <select className="input" value={p.position} onChange={(e) => patch({ position: e.target.value as Position })}>
                 {POSITIONS.map((pos) => (
                   <option key={pos} value={pos}>
-                    {pos}
+                    {POSITION_LABEL[pos]}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label="URL de la foto (opcional)" className="sm:col-span-2" hint="Vacío = avatar generado con los colores del equipo.">
+            <Field label="URL de la foto (opcional)" className="sm:col-span-2" hint="Buit = avatar generat amb els colors de l’equip.">
               <input className="input" value={p.photoUrl} onChange={(e) => patch({ photoUrl: e.target.value })} placeholder="https://…/foto.jpg" />
             </Field>
           </div>
         </div>
 
         <section>
-          <h3 className="mb-1 text-lg">Estadísticas acumuladas</h3>
+          <h3 className="mb-1 text-lg">Estadístiques acumulades</h3>
           <p className="mb-4 text-xs text-slate-500">
-            Los partidos finalizados suman automáticamente. Si modificas un total aquí, la diferencia se guarda como ajuste manual y se mantiene al recalcular.
+            Els partits finalitzats sumen automàticament. Si modifiques un total aquí, la diferència es guarda com a ajust manual i es manté en recalcular.
           </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {STAT_FIELDS.map(({ key, label }) => (
@@ -106,10 +106,10 @@ function PlayerEditor({ initial, isNew, onClose }: { initial: Player; isNew: boo
 
         <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
           <button className="btn-ghost" onClick={onClose}>
-            Cancelar
+            Cancel·la
           </button>
           <button className="btn-gold" onClick={save}>
-            <Save size={16} /> Guardar jugador
+            <Save size={16} /> Desa el jugador
           </button>
         </div>
       </div>
@@ -148,7 +148,7 @@ export function PlayerManager() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end gap-3">
         <label>
-          <span className="label">Categoría</span>
+          <span className="label">Categoria</span>
           <select className="input !w-auto" value={category} onChange={(e) => { setCategory(e.target.value as typeof category); setTeamId(''); }}>
             {CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
@@ -158,7 +158,7 @@ export function PlayerManager() {
           </select>
         </label>
         <label>
-          <span className="label">Equipo</span>
+          <span className="label">Equip</span>
           <select className="input !w-auto" value={activeTeam?.id ?? ''} onChange={(e) => setTeamId(e.target.value)}>
             {catTeams.map((t) => (
               <option key={t.id} value={t.id}>
@@ -168,7 +168,7 @@ export function PlayerManager() {
           </select>
         </label>
         <button className="btn-gold ml-auto" disabled={!activeTeam} onClick={() => setEditing({ player: blank(), isNew: true })}>
-          <Plus size={16} /> Nuevo jugador
+          <Plus size={16} /> Nou jugador
         </button>
       </div>
 
@@ -210,10 +210,10 @@ export function PlayerManager() {
                 </td>
                 <td className="py-2 pr-4">
                   <div className="flex justify-end gap-2">
-                    <button className="btn-ghost !p-2" aria-label={`Editar ${p.name}`} onClick={() => setEditing({ player: p, isNew: false })}>
+                    <button className="btn-ghost !p-2" aria-label={`Edita ${p.name}`} onClick={() => setEditing({ player: p, isNew: false })}>
                       <Pencil size={14} />
                     </button>
-                    <button className="btn-danger !p-2" aria-label={`Eliminar ${p.name}`} onClick={() => setRemoving(p)}>
+                    <button className="btn-danger !p-2" aria-label={`Elimina ${p.name}`} onClick={() => setRemoving(p)}>
                       <Trash2 size={14} />
                     </button>
                   </div>
@@ -222,21 +222,21 @@ export function PlayerManager() {
             ))}
           </tbody>
         </table>
-        {list.length === 0 && <p className="py-12 text-center text-slate-400">Este equipo aún no tiene jugadores.</p>}
+        {list.length === 0 && <p className="py-12 text-center text-slate-400">Aquest equip encara no té jugadors.</p>}
       </div>
 
       {editing && <PlayerEditor key={editing.player.id} initial={editing.player} isNew={editing.isNew} onClose={() => setEditing(null)} />}
 
       <ConfirmDialog
         open={!!removing}
-        title="Eliminar jugador"
-        message={`Se eliminará a ${removing?.name ?? 'este jugador'} de la plantilla. Los eventos de partidos ya registrados conservarán su nombre, pero dejarán de contar en sus estadísticas.`}
-        confirmLabel="Eliminar jugador"
+        title="Elimina el jugador"
+        message={`S’eliminarà ${removing?.name ?? 'aquest jugador'} de la plantilla. Els esdeveniments de partits ja registrats en conservaran el nom, però deixaran de comptar a les seves estadístiques.`}
+        confirmLabel="Elimina el jugador"
         onCancel={() => setRemoving(null)}
         onConfirm={() => {
           if (removing) deletePlayer(removing.id);
           setRemoving(null);
-          toast('Jugador eliminado.');
+          toast('Jugador eliminat.');
         }}
       />
     </div>

@@ -1,6 +1,10 @@
-import { CalendarDays, Hourglass, MapPin, Star } from 'lucide-react';
-import type { Match, MatchEvent, Team } from '@/types';
+import { useState } from 'react';
+import { CalendarDays, Coins, Hourglass, MapPin, Play, Share2, Star } from 'lucide-react';
+import { VideoModal } from '@/components/gallery/VideoModal';
+import { signed } from '@/lib/lleidalitos';
+import type { Match, MatchEvent, Team, VideoItem } from '@/types';
 import { Modal } from '@/components/ui/Modal';
+import { ShareMatchModal } from '@/components/social/ShareMatchModal';
 import { StatusBadge } from '@/components/ui/Badges';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
@@ -12,9 +16,9 @@ import { formatDateLong } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
 function EventIcon({ type }: { type: MatchEvent['type'] }) {
-  if (type === 'yellow_card') return <span className="inline-block h-5 w-3.5 rounded-[3px] bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,.6)]" title="Tarjeta amarilla" />;
-  if (type === 'red_card') return <span className="inline-block h-5 w-3.5 rounded-[3px] bg-red-500 shadow-red" title="Tarjeta roja" />;
-  return <span className="text-lg leading-none" title={type === 'own_goal' ? 'Gol en propia puerta' : 'Gol'}>⚽</span>;
+  if (type === 'yellow_card') return <span className="inline-block h-5 w-3.5 rounded-[3px] bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,.6)]" title="Targeta groga" />;
+  if (type === 'red_card') return <span className="inline-block h-5 w-3.5 rounded-[3px] bg-red-500 shadow-red" title="Targeta vermella" />;
+  return <span className="text-lg leading-none" title={type === 'own_goal' ? 'Gol en pròpia porta' : 'Gol'}>⚽</span>;
 }
 
 function eventLabel(e: MatchEvent) {
@@ -33,6 +37,10 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
   const match = useLeagueStore((s) => s.matches.find((m) => m.id === id));
   const { teamMap, playerMap } = useLookups();
   const openModal = useUiStore((s) => s.openModal);
+  const [sharing, setSharing] = useState(false);
+  const [playing, setPlaying] = useState<VideoItem | null>(null);
+  const videos = useLeagueStore((s) => s.videos);
+  const txs = useLeagueStore((s) => s.lleidalitoTx);
   const home = match ? teamMap.get(match.homeTeamId) : undefined;
   const away = match ? teamMap.get(match.awayTeamId) : undefined;
 
@@ -42,6 +50,8 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
   const mvpTeam = mvp ? teamMap.get(mvp.teamId) : undefined;
   const started = match.status !== 'scheduled';
   const cat = CATEGORY_BY_ID[match.category];
+  const matchVideos = videos.filter((v) => v.matchId === match.id);
+  const aids = txs.filter((t) => t.matchId === match.id);
 
   const Side = ({ team, right }: { team: Team; right?: boolean }) => (
     <button
@@ -54,7 +64,8 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
   );
 
   return (
-    <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Ficha del partido: ${home.name} contra ${away.name}`} hideHeader size="lg">
+    <>
+    <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Fitxa del partit: ${home.name} contra ${away.name}`} hideHeader size="lg">
       <div
         className="relative overflow-hidden px-5 pb-8 pt-10 sm:px-8"
         style={{ background: `radial-gradient(70% 120% at 0% 0%, ${home.primaryColor}55, transparent 60%), radial-gradient(70% 120% at 100% 0%, ${away.primaryColor}55, transparent 60%)` }}
@@ -76,7 +87,7 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
             ) : (
               <>
                 <p className="digital text-5xl text-gold-gradient">{match.time}</p>
-                <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Pendiente</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Pendent</p>
               </>
             )}
           </div>
@@ -92,6 +103,11 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
             <MapPin size={15} className="text-amber-400" /> {match.venue}
           </span>
         </div>
+        <div className="mt-5 flex justify-center">
+          <button className="btn-ghost !px-4 !py-2 text-xs" onClick={() => setSharing(true)}>
+            <Share2 size={14} /> Imatge per a xarxes
+          </button>
+        </div>
       </div>
 
       <div className="space-y-8 p-5 sm:p-8">
@@ -103,7 +119,7 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
             <PlayerAvatar player={mvp} team={mvpTeam} size={64} className="ring-2 ring-amber-400" />
             <div className="min-w-0">
               <p className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-amber-300">
-                <Star size={13} fill="currentColor" /> MVP del partido
+                <Star size={13} fill="currentColor" /> MVP del partit
               </p>
               <p className="truncate font-display text-2xl font-black uppercase text-white">{mvp.name}</p>
               <p className="text-xs text-slate-400">
@@ -113,12 +129,42 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
           </button>
         )}
 
+        {matchVideos.length > 0 && (
+          <section>
+            <h3 className="section-title mb-4 !text-xl">Resum en vídeo</h3>
+            <div className="flex flex-wrap gap-3">
+              {matchVideos.map((v) => (
+                <button key={v.id} onClick={() => setPlaying(v)} className="btn-gold">
+                  <Play size={15} fill="currentColor" /> {v.title}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {aids.length > 0 && (
+          <section>
+            <h3 className="section-title mb-4 !text-xl">Ajudes amb Lleidalitos</h3>
+            <ul className="space-y-2">
+              {aids.map((a) => (
+                <li key={a.id} className="flex items-center gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] px-3 py-2 text-sm">
+                  <Coins size={16} className="shrink-0 text-amber-400" />
+                  <span className="min-w-0 flex-1 truncate text-slate-200">
+                    <strong className="text-white">{teamMap.get(a.teamId)?.shortName}</strong> · {a.concept}
+                  </span>
+                  <span className={`digital text-lg ${a.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{signed(a.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section>
-          <h3 className="section-title mb-4 !text-xl">Cronología</h3>
+          <h3 className="section-title mb-4 !text-xl">Cronologia</h3>
           {match.events.length === 0 ? (
             <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-white/10 py-10 text-center text-sm text-slate-400">
               <Hourglass size={22} />
-              {started ? 'Todavía no hay eventos registrados en esta ficha.' : 'El partido aún no ha empezado. ¡Vuelve cuando suene el silbato!'}
+              {started ? 'Encara no hi ha esdeveniments registrats en aquesta fitxa.' : 'El partit encara no ha començat. Torna quan soni el xiulet!'}
             </div>
           ) : (
             <ol className="relative space-y-2.5">
@@ -130,7 +176,7 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
                     <EventIcon type={e.type} />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-white">{eventLabel(e)}</p>
-                      {e.assistPlayerName && <p className="truncate text-xs text-slate-400">Asist. {e.assistPlayerName}</p>}
+                      {e.assistPlayerName && <p className="truncate text-xs text-slate-400">Assist. {e.assistPlayerName}</p>}
                     </div>
                   </div>
                 );
@@ -147,5 +193,8 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
         </section>
       </div>
     </Modal>
+    {playing && <VideoModal video={playing} open onClose={() => setPlaying(null)} />}
+    {sharing && <ShareMatchModal match={match} home={home} away={away} mvp={mvp} open={sharing} onClose={() => setSharing(false)} />}
+    </>
   );
 }

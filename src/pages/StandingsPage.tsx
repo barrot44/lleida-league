@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PartyPopper } from 'lucide-react';
 import { PageHeader } from '@/components/ui/Section';
+import { PositionChart } from '@/components/standings/PositionChart';
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { CATEGORY_BY_ID } from '@/config/site';
@@ -29,8 +30,8 @@ export default function StandingsPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <PageHeader
         eyebrow={cat.label}
-        title="Clasificación"
-        description="Tabla en directo: 3 puntos por victoria, 1 por empate. Se recalcula sola cada vez que se finaliza un partido. Toca un equipo para ver su plantilla."
+        title="Classificació"
+        description="Taula en directe: 3 punts per victòria, 1 per empat. Es recalcula sola cada cop que es finalitza un partit. Toca un equip per veure’n la plantilla."
         actions={
           <div className="glass min-w-[200px] rounded-2xl px-4 py-3">
             <div className="mb-1.5 flex justify-between text-[11px] font-bold uppercase tracking-widest text-slate-400">
@@ -41,7 +42,7 @@ export default function StandingsPage() {
               <motion.div className="h-full rounded-full bg-gold-gradient shadow-glow" initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.9, ease: 'easeOut' }} />
             </div>
             <p className="mt-1.5 text-xs text-slate-500">
-              {played} de {total} partidos disputados
+              {played} de {total} partits disputats
             </p>
           </div>
         }
@@ -56,17 +57,22 @@ export default function StandingsPage() {
           <TeamCrest team={champion.team} size={64} />
           <div className="min-w-0 flex-1">
             <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.25em] text-amber-300">
-              <PartyPopper size={15} /> Campeón de {cat.label}
+              <PartyPopper size={15} /> Campió de {cat.label}
             </p>
             <p className="truncate font-display text-3xl font-black uppercase text-white">{champion.team.name}</p>
           </div>
           <button className="btn-gold" onClick={() => void celebrate([champion.team.primaryColor, champion.team.secondaryColor], { big: true })}>
-            ¡Celebrar!
+            Celebra-ho!
           </button>
         </motion.div>
       )}
 
       <StandingsTable rows={view.standings} category={cat} />
+
+      <section className="mt-14">
+        <h2 className="section-title mb-5">Evolució de la classificació</h2>
+        <PositionChart teams={view.catTeams} matches={view.catMatches} category={cat} />
+      </section>
     </div>
   );
 }

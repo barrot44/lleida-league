@@ -6,7 +6,7 @@ export type MatchStatus = 'scheduled' | 'live' | 'finished';
 
 export type MatchEventType = 'goal' | 'yellow_card' | 'red_card' | 'own_goal';
 
-export type NewsBadge = 'Oficial' | 'Mercado' | 'Sanción';
+export type NewsBadge = 'Oficial' | 'Mercat' | 'Sanció';
 
 export interface PlayerStats {
   goals: number;
@@ -43,6 +43,8 @@ export interface Team {
   secondaryColor: string;
   category: CategoryId;
   history: string;
+  /** Starting balance of the virtual currency ("Lleidalitos"). The current balance adds the ledger. Optional: only competitions that use it. */
+  lleidalitos?: number;
 }
 
 export interface MatchEvent {
@@ -97,12 +99,83 @@ export interface NewsItem {
   category?: CategoryId;
 }
 
+export interface Champion {
+  id: string;
+  category: CategoryId;
+  /** Edition number (1st, 2nd…). */
+  edition: number;
+  year: number;
+  /** Free text: champions may belong to teams that no longer exist in the app. */
+  team: string;
+}
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  url?: string;
+  logoUrl?: string;
+}
+
+export interface Referee {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface VideoItem {
+  id: string;
+  title: string;
+  /** YouTube, TikTok or Instagram link. */
+  url: string;
+  category: CategoryId | 'general';
+  matchday?: number;
+  /** Optional link to a match so the video also shows on its match sheet. */
+  matchId?: string;
+  date: string;
+}
+
+export type LleidalitoKind = 'ajuda' | 'premi' | 'fitxatge' | 'compra' | 'ajust';
+
+/** One movement of the virtual currency. `amount` is signed: positive = income, negative = spending. */
+export interface LleidalitoTx {
+  id: string;
+  teamId: string;
+  amount: number;
+  concept: string;
+  kind: LleidalitoKind;
+  date: string;
+  matchId?: string;
+}
+
+export type GateMode = 'off' | 'countdown' | 'maintenance';
+
+export interface GateSettings {
+  mode: GateMode;
+  /** ISO instant (UTC): countdown target, or the estimated return time while in maintenance. Empty = none. */
+  launchAt: string;
+  /** Custom texts. Empty = use the defaults of the mode. */
+  title: string;
+  message: string;
+  /** Countdown only: let visitors in by themselves when the countdown reaches zero. */
+  autoOpen: boolean;
+}
+
+export interface SiteSettings {
+  gate: GateSettings;
+}
+
 export interface LeagueData {
   teams: Team[];
   players: Player[];
   matches: Match[];
   gallery: GalleryItem[];
   news: NewsItem[];
+  champions: Champion[];
+  sponsors: Sponsor[];
+  referees: Referee[];
+  videos: VideoItem[];
+  lleidalitoTx: LleidalitoTx[];
+  settings: SiteSettings;
 }
 
 export interface CategoryMeta {

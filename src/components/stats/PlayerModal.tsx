@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { POSITION_LABEL } from '@/config/site';
 import { Modal } from '@/components/ui/Modal';
 import { PlayerCard } from '@/components/ui/PlayerCard';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLeagueView } from '@/hooks/useLeagueView';
-import { formatDay } from '@/lib/utils';
+import { decimal, formatDay } from '@/lib/utils';
 
 export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; onClose: () => void }) {
   const player = useLeagueStore((s) => s.players.find((p) => p.id === id));
@@ -34,10 +35,10 @@ export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; 
   if (!player || !info) return null;
   const team = view.teamMap.get(player.teamId);
   const s = player.stats;
-  const perGame = s.matchesPlayed > 0 ? (s.goals / s.matchesPlayed).toFixed(2) : '0.00';
+  const perGame = s.matchesPlayed > 0 ? decimal(s.goals / s.matchesPlayed, 2) : '0,00';
 
   return (
-    <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Ficha de ${player.name}`} hideHeader size="lg">
+    <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Fitxa de ${player.name}`} hideHeader size="lg">
       <div className="grid gap-8 p-6 pt-12 sm:p-8 sm:pt-10 md:grid-cols-[auto_1fr]">
         <div className="mx-auto">
           <PlayerCard player={player} team={team} size={270} />
@@ -52,19 +53,19 @@ export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; 
             )}
             <h2 className="mt-2 text-4xl leading-none sm:text-5xl">{player.name}</h2>
             <p className="mt-2 text-sm uppercase tracking-widest text-slate-400">
-              {player.position} · Dorsal {player.dorsal}
+              {POSITION_LABEL[player.position]} · Dorsal {player.dorsal}
               {player.nickname ? ` · “${player.nickname}”` : ''}
             </p>
           </div>
 
           <dl className="grid grid-cols-3 gap-2">
             {[
-              ['Goles', s.goals],
-              ['Asistencias', s.assists],
+              ['Gols', s.goals],
+              ['Assistències', s.assists],
               ['MVPs', s.mvpAwards],
-              ['Partidos', s.matchesPlayed],
-              ['Amarillas', s.yellowCards],
-              ['Rojas', s.redCards],
+              ['Partits', s.matchesPlayed],
+              ['Grogues', s.yellowCards],
+              ['Vermelles', s.redCards],
             ].map(([k, v]) => (
               <div key={k} className="rounded-xl border border-white/10 bg-white/[0.04] py-3 text-center">
                 <dd className="digital text-3xl text-white">{v}</dd>
@@ -74,13 +75,13 @@ export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; 
           </dl>
 
           <p className="text-sm text-slate-400">
-            Promedio <strong className="text-amber-300">{perGame}</strong> goles por partido · Puesto <strong className="text-amber-300">#{info.rank}</strong> en la lista de goleadores.
+            Mitjana de <strong className="text-amber-300">{perGame}</strong> gols per partit · Lloc <strong className="text-amber-300">#{info.rank}</strong> a la llista de golejadors.
           </p>
 
           <div>
-            <h3 className="mb-3 text-lg">Últimas actuaciones</h3>
+            <h3 className="mb-3 text-lg">Darreres actuacions</h3>
             {info.appearances.length === 0 ? (
-              <p className="text-sm text-slate-400">Todavía no hay acciones registradas.</p>
+              <p className="text-sm text-slate-400">Encara no hi ha accions registrades.</p>
             ) : (
               <ul className="space-y-2">
                 {info.appearances.map(({ match, goals, assists, cards, mvp }) => (
