@@ -13,6 +13,7 @@ import type {
   Team,
 } from '@/types';
 import { emptyStats, recomputePlayerStats } from '@/lib/standings';
+import { DEFAULT_SETTINGS } from '@/lib/gate';
 import { toISODate, toTimeString } from '@/lib/utils';
 
 /**
@@ -511,5 +512,6 @@ export function createInitialLeagueData(now: Date = new Date()): LeagueData {
     champions: CHAMPIONS.map((c, i) => ({ id: `c-${i + 1}`, ...c })),
     sponsors: SPONSORS.map((s, i) => ({ id: `s-${i + 1}`, ...s })),
     referees: REFEREES.map((ref, i) => ({ id: `r-${i + 1}`, ...ref })),
+    settings: DEFAULT_SETTINGS,
   };
 }

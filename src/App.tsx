@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { CategorySwitcher } from '@/components/layout/CategorySwitcher';
 import { GlobalModals } from '@/components/layout/GlobalModals';
+import { GateSwitch } from '@/components/gate/GateSwitch';
 import { Logo } from '@/components/ui/Logo';
 import { Toaster } from '@/components/ui/Toaster';
 import { useRoute } from '@/hooks/useHashRoute';
@@ -28,6 +29,12 @@ function PageFallback() {
   );
 }
 
+const admin = (
+  <Suspense fallback={<PageFallback />}>
+    <AdminPage />
+  </Suspense>
+);
+
 /** Shown only while the shared league data is being read for the first time (Supabase mode). */
 function Splash() {
   return (
@@ -50,46 +57,46 @@ export default function App() {
   if (!remoteReady) return <Splash />;
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <a href="#contingut" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-amber-400 focus:px-4 focus:py-2 focus:text-slate-950">
-        Salta al contingut
-      </a>
-      <Header route={route} />
+    <>
+      <GateSwitch route={route} adminView={admin}>
+        <div className="flex min-h-dvh flex-col">
+          <a href="#contingut" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-amber-400 focus:px-4 focus:py-2 focus:text-slate-950">
+            Salta al contingut
+          </a>
+          <Header route={route} />
 
-      {route !== 'admin' && route !== 'club' && (
-        <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
-          <CategorySwitcher className="w-full sm:w-fit" />
-        </div>
-      )}
-
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.main
-          id="contingut"
-          key={route}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.28 }}
-          className="flex-1"
-        >
-          {route === 'home' && <HomePage />}
-          {route === 'standings' && <StandingsPage />}
-          {route === 'calendar' && <CalendarPage />}
-          {route === 'stats' && <StatsPage />}
-          {route === 'gallery' && <GalleryPage />}
-          {route === 'club' && <DiscoverPage />}
-          {route === 'admin' && (
-            <Suspense fallback={<PageFallback />}>
-              <AdminPage />
-            </Suspense>
+          {route !== 'admin' && route !== 'club' && (
+            <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
+              <CategorySwitcher className="w-full sm:w-fit" />
+            </div>
           )}
-        </motion.main>
-      </AnimatePresence>
 
-      <Footer />
-      <MobileNav route={route} />
-      <GlobalModals />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.main
+              id="contingut"
+              key={route}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.28 }}
+              className="flex-1"
+            >
+              {route === 'home' && <HomePage />}
+              {route === 'standings' && <StandingsPage />}
+              {route === 'calendar' && <CalendarPage />}
+              {route === 'stats' && <StatsPage />}
+              {route === 'gallery' && <GalleryPage />}
+              {route === 'club' && <DiscoverPage />}
+              {route === 'admin' && admin}
+            </motion.main>
+          </AnimatePresence>
+
+          <Footer />
+          <MobileNav route={route} />
+          <GlobalModals />
+        </div>
+      </GateSwitch>
       <Toaster />
-    </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { Champion, GalleryItem, LeagueData, Match, NewsItem, Player, PlayerStats, Referee, Sponsor, Team } from '@/types';
+import type { Champion, GalleryItem, GateSettings, LeagueData, Match, NewsItem, Player, PlayerStats, Referee, Sponsor, Team } from '@/types';
+import { DEFAULT_SETTINGS } from '@/lib/gate';
 import { createInitialLeagueData } from '@/data/initialLeagueData';
 import { emptyStats, recomputePlayerStats } from '@/lib/standings';
 
@@ -26,6 +27,8 @@ interface LeagueActions {
   deleteSponsor: (id: string) => void;
   upsertReferee: (item: Referee) => void;
   deleteReferee: (id: string) => void;
+  /** Site access: open, launch countdown or maintenance. Shared with every visitor through the league data. */
+  setGate: (patch: Partial<GateSettings>) => void;
   /** Removes every match and player (keeps teams, gallery, news and club info) to start a real season. */
   startBlankSeason: () => void;
   resetToSeed: () => void;
@@ -44,6 +47,7 @@ export const pickData = (s: LeagueData): LeagueData => ({
   champions: s.champions,
   sponsors: s.sponsors,
   referees: s.referees,
+  settings: s.settings,
 });
 
 function upsert<T extends { id: string }>(list: T[], item: T): T[] {
@@ -133,9 +137,12 @@ export const useLeagueStore = create<LeagueStore>()(
       upsertReferee: (item) => set({ referees: upsert(get().referees, item) }),
       deleteReferee: (id) => set({ referees: get().referees.filter((r) => r.id !== id) }),
 
+      setGate: (patch) => set({ settings: { ...get().settings, gate: { ...get().settings.gate, ...patch } } }),
+
       startBlankSeason: () => set({ matches: [], players: [] }),
 
-      resetToSeed: () => set(createInitialLeagueData()),
+      // The access gate is site configuration, not league data: it survives a reset.
+      resetToSeed: () => set({ ...createInitialLeagueData(), settings: get().settings }),
 
       importData: (raw) => {
         if (!raw || typeof raw !== 'object') return false;
@@ -151,6 +158,7 @@ export const useLeagueStore = create<LeagueStore>()(
           champions: isArray(d.champions) ? (d.champions as Champion[]) : get().champions,
           sponsors: isArray(d.sponsors) ? (d.sponsors as Sponsor[]) : get().sponsors,
           referees: isArray(d.referees) ? (d.referees as Referee[]) : get().referees,
+          settings: d.settings && typeof d.settings === 'object' ? { ...DEFAULT_SETTINGS, ...(d.settings as object), gate: { ...DEFAULT_SETTINGS.gate, ...((d.settings as { gate?: object }).gate ?? {}) } } : get().settings,
           players: recomputePlayerStats(players, matches),
         });
         return true;

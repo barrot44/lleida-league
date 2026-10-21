@@ -126,6 +126,18 @@ En mode local, les dades només existeixen al navegador de qui edita. Per **comp
 Formats: **post 4:5** (1080×1350), **story/TikTok/Reel 9:16** (1080×1920) i **quadrat 1:1**. Cada imatge porta un **text suggerit** (amb emojis i hashtags)
 per copiar, es pot **descarregar en PNG** i, al mòbil, **compartir** directament. Qualsevol visitant també pot generar la imatge d'un partit des de la seva fitxa.
 
+## Comptador de llançament i mode manteniment
+
+A **Admin → Accés** pots tancar la web als visitants:
+
+- **Comptador de llançament**: els visitants veuen un compte enrere gegant (dies, hores, minuts i segons) amb el títol i el missatge que triïs. Pots fer que **s'obri sola** quan arribi a zero (amb confeti!).
+- **Manteniment**: avís de manteniment, amb un temps estimat opcional.
+- A la capçalera del tauler hi ha el botó **«Mode manteniment»** per activar-lo (o desactivar-lo) en un clic. Hi ha també un botó **Previsualitza**.
+
+Els administradors identificats sempre veuen la web (amb un avís groc) i `#/admin` continua accessible per poder entrar-hi. La configuració es guarda amb les dades de la lliga: amb Supabase, **tots els visitants la reben en uns 20 segons**.
+
+> És una porta a la web, no una protecció de dades: serveix per preparar un llançament o fer manteniment, però no amaga la base de dades a algú que la consulti directament.
+
 ## Estructura del projecte
 
 ```

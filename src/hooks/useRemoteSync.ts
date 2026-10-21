@@ -64,11 +64,13 @@ export function useRemoteSync() {
     if (!remoteEnabled) return;
     let cancelled = false;
 
-    if (hasStoredSession()) {
-      void restoreAdminSession(() => ui().setAdminSession(null)).then((email) => {
-        if (!cancelled && email !== null) ui().setAdminSession(email);
-      });
-    }
+    // Restore a previous admin session. The app waits for it (and for the first read) before showing anything,
+    // otherwise a signed-in admin would flash the maintenance screen on every reload.
+    const restored = hasStoredSession()
+      ? restoreAdminSession(() => ui().setAdminSession(null)).then((email) => {
+          if (!cancelled && email !== null) ui().setAdminSession(email);
+        })
+      : Promise.resolve();
 
     const pull = async (initial: boolean) => {
       try {
@@ -84,13 +86,13 @@ export function useRemoteSync() {
         ui().setSyncStatus('idle');
       } catch {
         if (!cancelled) ui().setSyncStatus('error');
-      } finally {
-        if (!cancelled) ui().setRemoteReady(true);
       }
     };
 
     ui().setSyncStatus('syncing');
-    void pull(true);
+    void Promise.all([restored, pull(true)]).then(() => {
+      if (!cancelled) ui().setRemoteReady(true);
+    });
     const timer = window.setInterval(() => {
       if (!document.hidden) void pull(false);
     }, POLL_MS);
@@ -133,7 +135,8 @@ export function useRemoteSync() {
         state.news === prev.news &&
         state.champions === prev.champions &&
         state.sponsors === prev.sponsors &&
-        state.referees === prev.referees
+        state.referees === prev.referees &&
+        state.settings === prev.settings
       )
         return;
       meta.dirty = true;

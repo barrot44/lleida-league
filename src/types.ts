@@ -122,6 +122,23 @@ export interface Referee {
   role: string;
 }
 
+export type GateMode = 'off' | 'countdown' | 'maintenance';
+
+export interface GateSettings {
+  mode: GateMode;
+  /** ISO instant (UTC): countdown target, or the estimated return time while in maintenance. Empty = none. */
+  launchAt: string;
+  /** Custom texts. Empty = use the defaults of the mode. */
+  title: string;
+  message: string;
+  /** Countdown only: let visitors in by themselves when the countdown reaches zero. */
+  autoOpen: boolean;
+}
+
+export interface SiteSettings {
+  gate: GateSettings;
+}
+
 export interface LeagueData {
   teams: Team[];
   players: Player[];
@@ -131,6 +148,7 @@ export interface LeagueData {
   champions: Champion[];
   sponsors: Sponsor[];
   referees: Referee[];
+  settings: SiteSettings;
 }
 
 export interface CategoryMeta {

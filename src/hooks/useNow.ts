@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 
-/** Re-renders every `intervalMs` with the current timestamp (for countdowns and live clocks). */
-export function useNow(intervalMs = 1000): number {
+/** Re-renders every `intervalMs` with the current timestamp (for countdowns and live clocks). `null` pauses the clock. */
+export function useNow(intervalMs: number | null = 1000): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
+    if (intervalMs === null) return;
+    setNow(Date.now());
     const id = window.setInterval(() => setNow(Date.now()), intervalMs);
     return () => window.clearInterval(id);
   }, [intervalMs]);
