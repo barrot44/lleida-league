@@ -512,6 +512,8 @@ export function createInitialLeagueData(now: Date = new Date()): LeagueData {
     champions: CHAMPIONS.map((c, i) => ({ id: `c-${i + 1}`, ...c })),
     sponsors: SPONSORS.map((s, i) => ({ id: `s-${i + 1}`, ...s })),
     referees: REFEREES.map((ref, i) => ({ id: `r-${i + 1}`, ...ref })),
+    videos: [],
+    lleidalitoTx: [],
     settings: DEFAULT_SETTINGS,
   };
 }

@@ -1,10 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { VideoItem } from '@/types';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
 import { NewsList } from '@/components/home/NewsList';
 import { MatchCard } from '@/components/calendar/MatchCard';
 import { SponsorGrid } from '@/components/club/SponsorGrid';
+import { VideoCard } from '@/components/gallery/VideoCard';
+import { VideoModal } from '@/components/gallery/VideoModal';
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { CATEGORY_BY_ID } from '@/config/site';
@@ -32,6 +35,9 @@ export default function HomePage() {
   const news = useLeagueStore((s) => s.news);
   const gallery = useLeagueStore((s) => s.gallery);
   const sponsors = useLeagueStore((s) => s.sponsors);
+  const videos = useLeagueStore((s) => s.videos);
+  const [playing, setPlaying] = useState<VideoItem | null>(null);
+  const latestVideos = useMemo(() => [...videos].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3), [videos]);
   const cat = CATEGORY_BY_ID[category];
 
   const fixtures = useMemo(() => {
@@ -76,6 +82,18 @@ export default function HomePage() {
             <NewsList items={latestNews} />
           </div>
         </section>
+
+        {latestVideos.length > 0 && (
+          <section>
+            <SectionHead title="Últims resums" to="gallery" label="Tots els vídeos" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {latestVideos.map((v, i) => (
+                <VideoCard key={v.id} video={v} index={i} onOpen={setPlaying} />
+              ))}
+            </div>
+            {playing && <VideoModal video={playing} open onClose={() => setPlaying(null)} />}
+          </section>
+        )}
 
         {sponsors.length > 0 && (
           <section>

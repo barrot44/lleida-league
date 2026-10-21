@@ -43,7 +43,7 @@ export interface Team {
   secondaryColor: string;
   category: CategoryId;
   history: string;
-  /** Virtual currency balance ("Lleidalitos"). Optional: only competitions that use it. */
+  /** Starting balance of the virtual currency ("Lleidalitos"). The current balance adds the ledger. Optional: only competitions that use it. */
   lleidalitos?: number;
 }
 
@@ -122,6 +122,31 @@ export interface Referee {
   role: string;
 }
 
+export interface VideoItem {
+  id: string;
+  title: string;
+  /** YouTube, TikTok or Instagram link. */
+  url: string;
+  category: CategoryId | 'general';
+  matchday?: number;
+  /** Optional link to a match so the video also shows on its match sheet. */
+  matchId?: string;
+  date: string;
+}
+
+export type LleidalitoKind = 'ajuda' | 'premi' | 'fitxatge' | 'compra' | 'ajust';
+
+/** One movement of the virtual currency. `amount` is signed: positive = income, negative = spending. */
+export interface LleidalitoTx {
+  id: string;
+  teamId: string;
+  amount: number;
+  concept: string;
+  kind: LleidalitoKind;
+  date: string;
+  matchId?: string;
+}
+
 export type GateMode = 'off' | 'countdown' | 'maintenance';
 
 export interface GateSettings {
@@ -148,6 +173,8 @@ export interface LeagueData {
   champions: Champion[];
   sponsors: Sponsor[];
   referees: Referee[];
+  videos: VideoItem[];
+  lleidalitoTx: LleidalitoTx[];
   settings: SiteSettings;
 }
 

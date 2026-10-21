@@ -9,6 +9,7 @@ import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLeagueView } from '@/hooks/useLeagueView';
 import { teamResults } from '@/lib/standings';
+import { KIND_LABEL, balances, newestFirst, signed } from '@/lib/lleidalitos';
 import { cn, formatDay, matchTimestamp } from '@/lib/utils';
 import type { Position } from '@/types';
 
@@ -16,6 +17,8 @@ const ORDER: Record<Position, number> = { Portero: 0, Cierre: 1, Ala: 2, Pívot:
 
 export function TeamModal({ id, open, onClose }: { id: string; open: boolean; onClose: () => void }) {
   const team = useLeagueStore((s) => s.teams.find((t) => t.id === id));
+  const allTeams = useLeagueStore((s) => s.teams);
+  const txs = useLeagueStore((s) => s.lleidalitoTx);
   const view = useLeagueView(team?.category ?? 'senior');
   const openModal = useUiStore((s) => s.openModal);
 
@@ -35,6 +38,8 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
   if (!team || !data) return null;
   const { row, roster, results, next } = data;
   const cat = CATEGORY_BY_ID[team.category];
+  const balance = balances(allTeams, txs).get(team.id);
+  const myTx = txs.filter((t) => t.teamId === team.id).sort(newestFirst).slice(0, 5);
 
   return (
     <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Equip ${team.name}`} hideHeader size="lg">
@@ -56,7 +61,7 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
             </p>
             {team.lleidalitos !== undefined && (
               <p className="mt-2 inline-flex items-center gap-2 text-sm text-slate-300">
-                <Coins size={15} className="text-amber-400" /> <strong className="text-white">{team.lleidalitos}</strong> Lleidalitos
+                <Coins size={15} className="text-amber-400" /> <strong className="text-white">{balance}</strong> Lleidalitos
               </p>
             )}
             {row && (
@@ -92,6 +97,22 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
           <section>
             <h3 className="section-title mb-3 !text-xl">Història</h3>
             <p className="leading-relaxed text-slate-300">{team.history}</p>
+          </section>
+        )}
+
+        {myTx.length > 0 && (
+          <section>
+            <h3 className="section-title mb-4 !text-xl">Moviments de Lleidalitos</h3>
+            <ul className="space-y-2">
+              {myTx.map((tx) => (
+                <li key={tx.id} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2 text-sm">
+                  <span className="min-w-0 flex-1 truncate text-slate-200">
+                    {tx.concept} <span className="text-xs text-slate-500">· {KIND_LABEL[tx.kind]}</span>
+                  </span>
+                  <span className={`digital text-lg ${tx.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{signed(tx.amount)}</span>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

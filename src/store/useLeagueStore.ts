@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { Champion, GalleryItem, GateSettings, LeagueData, Match, NewsItem, Player, PlayerStats, Referee, Sponsor, Team } from '@/types';
+import type { Champion, GalleryItem, GateSettings, LeagueData, LleidalitoTx, Match, NewsItem, Player, PlayerStats, Referee, Sponsor, Team, VideoItem } from '@/types';
 import { DEFAULT_SETTINGS } from '@/lib/gate';
 import { createInitialLeagueData } from '@/data/initialLeagueData';
 import { emptyStats, recomputePlayerStats } from '@/lib/standings';
@@ -27,6 +27,10 @@ interface LeagueActions {
   deleteSponsor: (id: string) => void;
   upsertReferee: (item: Referee) => void;
   deleteReferee: (id: string) => void;
+  upsertVideo: (item: VideoItem) => void;
+  deleteVideo: (id: string) => void;
+  upsertLleidalitoTx: (item: LleidalitoTx) => void;
+  deleteLleidalitoTx: (id: string) => void;
   /** Site access: open, launch countdown or maintenance. Shared with every visitor through the league data. */
   setGate: (patch: Partial<GateSettings>) => void;
   /** Removes every match and player (keeps teams, gallery, news and club info) to start a real season. */
@@ -47,6 +51,8 @@ export const pickData = (s: LeagueData): LeagueData => ({
   champions: s.champions,
   sponsors: s.sponsors,
   referees: s.referees,
+  videos: s.videos,
+  lleidalitoTx: s.lleidalitoTx,
   settings: s.settings,
 });
 
@@ -136,6 +142,10 @@ export const useLeagueStore = create<LeagueStore>()(
       deleteSponsor: (id) => set({ sponsors: get().sponsors.filter((s) => s.id !== id) }),
       upsertReferee: (item) => set({ referees: upsert(get().referees, item) }),
       deleteReferee: (id) => set({ referees: get().referees.filter((r) => r.id !== id) }),
+      upsertVideo: (item) => set({ videos: upsert(get().videos, item) }),
+      deleteVideo: (id) => set({ videos: get().videos.filter((v) => v.id !== id) }),
+      upsertLleidalitoTx: (item) => set({ lleidalitoTx: upsert(get().lleidalitoTx, item) }),
+      deleteLleidalitoTx: (id) => set({ lleidalitoTx: get().lleidalitoTx.filter((t) => t.id !== id) }),
 
       setGate: (patch) => set({ settings: { ...get().settings, gate: { ...get().settings.gate, ...patch } } }),
 
@@ -158,6 +168,8 @@ export const useLeagueStore = create<LeagueStore>()(
           champions: isArray(d.champions) ? (d.champions as Champion[]) : get().champions,
           sponsors: isArray(d.sponsors) ? (d.sponsors as Sponsor[]) : get().sponsors,
           referees: isArray(d.referees) ? (d.referees as Referee[]) : get().referees,
+          videos: isArray(d.videos) ? (d.videos as VideoItem[]) : get().videos,
+          lleidalitoTx: isArray(d.lleidalitoTx) ? (d.lleidalitoTx as LleidalitoTx[]) : get().lleidalitoTx,
           settings: d.settings && typeof d.settings === 'object' ? { ...DEFAULT_SETTINGS, ...(d.settings as object), gate: { ...DEFAULT_SETTINGS.gate, ...((d.settings as { gate?: object }).gate ?? {}) } } : get().settings,
           players: recomputePlayerStats(players, matches),
         });

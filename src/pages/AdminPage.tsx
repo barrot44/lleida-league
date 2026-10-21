@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { motion } from 'framer-motion';
-import { Camera, DoorClosed, Image as ImageIcon, LogOut, Newspaper, Settings, Shield, Sparkles, Swords, Users, Wrench } from 'lucide-react';
+import { Camera, Coins, DoorClosed, Film, Image as ImageIcon, LogOut, Newspaper, Settings, Shield, Sparkles, Swords, Users, Wrench } from 'lucide-react';
 import { AdminGate } from '@/components/admin/AdminGate';
 import { ClubManager } from '@/components/admin/ClubManager';
 import { GateManager } from '@/components/admin/GateManager';
+import { LleidalitosManager } from '@/components/admin/LleidalitosManager';
+import { VideoManager } from '@/components/admin/VideoManager';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { GATE_LABEL } from '@/lib/gate';
 import { GalleryManager } from '@/components/admin/GalleryManager';
@@ -25,6 +27,8 @@ const TABS = [
   { id: 'players', label: 'Jugadors', icon: Users },
   { id: 'social', label: 'Xarxes', icon: Camera },
   { id: 'gallery', label: 'Galeria', icon: ImageIcon },
+  { id: 'videos', label: 'Vídeos', icon: Film },
+  { id: 'lleidalitos', label: 'Lleidalitos', icon: Coins },
   { id: 'news', label: 'Comunicats', icon: Newspaper },
   { id: 'club', label: 'Club', icon: Sparkles },
   { id: 'access', label: 'Accés', icon: DoorClosed },
@@ -135,6 +139,8 @@ export default function AdminPage() {
         <Tabs.Content value="players" className="outline-none"><PlayerManager /></Tabs.Content>
         <Tabs.Content value="social" className="outline-none"><SocialStudio /></Tabs.Content>
         <Tabs.Content value="gallery" className="outline-none"><GalleryManager /></Tabs.Content>
+        <Tabs.Content value="videos" className="outline-none"><VideoManager /></Tabs.Content>
+        <Tabs.Content value="lleidalitos" className="outline-none"><LleidalitosManager /></Tabs.Content>
         <Tabs.Content value="news" className="outline-none"><NewsManager /></Tabs.Content>
         <Tabs.Content value="club" className="outline-none"><ClubManager /></Tabs.Content>
         <Tabs.Content value="access" className="outline-none"><GateManager /></Tabs.Content>

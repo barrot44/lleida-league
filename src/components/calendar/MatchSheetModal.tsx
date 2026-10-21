@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { CalendarDays, Hourglass, MapPin, Share2, Star } from 'lucide-react';
-import type { Match, MatchEvent, Team } from '@/types';
+import { CalendarDays, Coins, Hourglass, MapPin, Play, Share2, Star } from 'lucide-react';
+import { VideoModal } from '@/components/gallery/VideoModal';
+import { signed } from '@/lib/lleidalitos';
+import type { Match, MatchEvent, Team, VideoItem } from '@/types';
 import { Modal } from '@/components/ui/Modal';
 import { ShareMatchModal } from '@/components/social/ShareMatchModal';
 import { StatusBadge } from '@/components/ui/Badges';
@@ -36,6 +38,9 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
   const { teamMap, playerMap } = useLookups();
   const openModal = useUiStore((s) => s.openModal);
   const [sharing, setSharing] = useState(false);
+  const [playing, setPlaying] = useState<VideoItem | null>(null);
+  const videos = useLeagueStore((s) => s.videos);
+  const txs = useLeagueStore((s) => s.lleidalitoTx);
   const home = match ? teamMap.get(match.homeTeamId) : undefined;
   const away = match ? teamMap.get(match.awayTeamId) : undefined;
 
@@ -45,6 +50,8 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
   const mvpTeam = mvp ? teamMap.get(mvp.teamId) : undefined;
   const started = match.status !== 'scheduled';
   const cat = CATEGORY_BY_ID[match.category];
+  const matchVideos = videos.filter((v) => v.matchId === match.id);
+  const aids = txs.filter((t) => t.matchId === match.id);
 
   const Side = ({ team, right }: { team: Team; right?: boolean }) => (
     <button
@@ -122,6 +129,36 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
           </button>
         )}
 
+        {matchVideos.length > 0 && (
+          <section>
+            <h3 className="section-title mb-4 !text-xl">Resum en vídeo</h3>
+            <div className="flex flex-wrap gap-3">
+              {matchVideos.map((v) => (
+                <button key={v.id} onClick={() => setPlaying(v)} className="btn-gold">
+                  <Play size={15} fill="currentColor" /> {v.title}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {aids.length > 0 && (
+          <section>
+            <h3 className="section-title mb-4 !text-xl">Ajudes amb Lleidalitos</h3>
+            <ul className="space-y-2">
+              {aids.map((a) => (
+                <li key={a.id} className="flex items-center gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] px-3 py-2 text-sm">
+                  <Coins size={16} className="shrink-0 text-amber-400" />
+                  <span className="min-w-0 flex-1 truncate text-slate-200">
+                    <strong className="text-white">{teamMap.get(a.teamId)?.shortName}</strong> · {a.concept}
+                  </span>
+                  <span className={`digital text-lg ${a.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{signed(a.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section>
           <h3 className="section-title mb-4 !text-xl">Cronologia</h3>
           {match.events.length === 0 ? (
@@ -156,6 +193,7 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
         </section>
       </div>
     </Modal>
+    {playing && <VideoModal video={playing} open onClose={() => setPlaying(null)} />}
     {sharing && <ShareMatchModal match={match} home={home} away={away} mvp={mvp} open={sharing} onClose={() => setSharing(false)} />}
     </>
   );

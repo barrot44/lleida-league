@@ -62,7 +62,7 @@ function TeamEditor({ initial, isNew, onClose }: { initial: Team; isNew: boolean
           <Field label="President/a" className="sm:col-span-2">
             <input className="input" value={t.presidentName} onChange={(e) => patch({ presidentName: e.target.value })} />
           </Field>
-          <Field label="Lleidalitos (moneda virtual)" hint="Deixa-ho buit si la competició no els fa servir." className="sm:col-span-2">
+          <Field label="Saldo inicial de Lleidalitos" hint="El saldo actual suma els moviments registrats a Admin → Lleidalitos. Buit = la competició no els fa servir." className="sm:col-span-2">
             <input type="number" min={0} className="input" value={t.lleidalitos ?? ''} onChange={(e) => patch({ lleidalitos: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0) })} />
           </Field>
           <Field label="Color principal">

@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ImageOff, Maximize2 } from 'lucide-react';
-import type { CategoryId } from '@/types';
+import { Film, ImageOff, Images, Maximize2 } from 'lucide-react';
+import { VideoCard } from '@/components/gallery/VideoCard';
+import { VideoModal } from '@/components/gallery/VideoModal';
+import type { CategoryId, VideoItem } from '@/types';
 import { Lightbox } from '@/components/gallery/Lightbox';
 import { EmptyState, PageHeader } from '@/components/ui/Section';
 import { SmartImage } from '@/components/ui/SmartImage';
-import { CATEGORIES, CATEGORY_BY_ID } from '@/config/site';
+import { CATEGORIES, CATEGORY_BY_ID, SITE } from '@/config/site';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useLookups } from '@/hooks/useLeagueView';
 import { cn, formatDateShort } from '@/lib/utils';
@@ -21,7 +23,7 @@ const chip = (active: boolean) =>
     active ? 'border-amber-400 bg-gold-gradient text-slate-950 shadow-glow' : 'border-white/10 bg-white/[0.04] text-slate-300 hover:border-amber-400/50 hover:text-white',
   );
 
-export default function GalleryPage() {
+function PhotosSection() {
   const gallery = useLeagueStore((s) => s.gallery);
   const teams = useLeagueStore((s) => s.teams);
   const { teamMap } = useLookups();
@@ -45,8 +47,7 @@ export default function GalleryPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <PageHeader eyebrow="Moments de la lliga" title="Galeria" description="Les millors imatges de cada jornada. Toca una foto per veure-la a pantalla completa i navega amb les fletxes." />
+    <div>
 
       <div className="mb-8 space-y-3">
         <div className="hide-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Categoria de la galeria">
@@ -127,6 +128,81 @@ export default function GalleryPage() {
       )}
 
       <Lightbox items={items} index={index} onIndexChange={setIndex} />
+    </div>
+  );
+}
+
+function VideosSection() {
+  const videos = useLeagueStore((s) => s.videos);
+  const [cat, setCat] = useState<CatFilter>('all');
+  const [open, setOpen] = useState<VideoItem | null>(null);
+  const items = useMemo(() => videos.filter((v) => cat === 'all' || v.category === cat).sort((a, b) => b.date.localeCompare(a.date)), [videos, cat]);
+
+  return (
+    <div>
+      <div className="hide-scrollbar -mx-4 mb-8 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Categoria dels vídeos">
+        <button role="tab" aria-selected={cat === 'all'} className={chip(cat === 'all')} onClick={() => setCat('all')}>
+          Totes
+        </button>
+        {CATEGORIES.map((c) => (
+          <button key={c.id} role="tab" aria-selected={cat === c.id} className={chip(cat === c.id)} onClick={() => setCat(c.id)}>
+            {c.short}
+          </button>
+        ))}
+        <button role="tab" aria-selected={cat === 'general'} className={chip(cat === 'general')} onClick={() => setCat('general')}>
+          General
+        </button>
+      </div>
+
+      {items.length === 0 ? (
+        <EmptyState
+          icon={<Film />}
+          title="Encara sense vídeos"
+          hint="Aquí apareixeran els resums de les jornades. Mentrestant, tens tots els vídeos al nostre canal de YouTube."
+        />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((v, i) => (
+            <VideoCard key={v.id} video={v} index={i} onOpen={setOpen} />
+          ))}
+        </div>
+      )}
+
+      <p className="mt-8 text-center text-sm text-slate-500">
+        Més vídeos al{' '}
+        <a href={SITE.socials[2].url} target="_blank" rel="noopener noreferrer" className="font-bold text-amber-300 hover:underline">
+          canal de YouTube
+        </a>
+        .
+      </p>
+
+      {open && <VideoModal video={open} open onClose={() => setOpen(null)} />}
+    </div>
+  );
+}
+
+export default function GalleryPage() {
+  const [section, setSection] = useState<'photos' | 'videos'>('photos');
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <PageHeader eyebrow="Moments de la lliga" title="Galeria" description="Fotos i vídeos de cada jornada: toca una foto per veure-la a pantalla completa o reprodueix els resums." />
+      <div role="tablist" aria-label="Galeria" className="glass mb-8 inline-flex gap-1 rounded-2xl p-1">
+        {([
+          ['photos', 'Fotos', Images],
+          ['videos', 'Vídeos i resums', Film],
+        ] as const).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={section === id}
+            onClick={() => setSection(id)}
+            className={cn('inline-flex items-center gap-2 rounded-xl px-4 py-2 font-display text-sm font-black uppercase tracking-wide transition', section === id ? 'bg-gold-gradient text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white')}
+          >
+            <Icon size={15} /> {label}
+          </button>
+        ))}
+      </div>
+      {section === 'photos' ? <PhotosSection /> : <VideosSection />}
     </div>
   );
 }

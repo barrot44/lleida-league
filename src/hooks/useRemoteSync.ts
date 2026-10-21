@@ -136,6 +136,8 @@ export function useRemoteSync() {
         state.champions === prev.champions &&
         state.sponsors === prev.sponsors &&
         state.referees === prev.referees &&
+        state.videos === prev.videos &&
+        state.lleidalitoTx === prev.lleidalitoTx &&
         state.settings === prev.settings
       )
         return;
