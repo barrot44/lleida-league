@@ -1,6 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-const URL_BASE = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '');
+/** Accepts the bare project URL, but also tolerates a pasted `…/rest/v1/` or a trailing slash. */
+function normalizeUrl(raw: string | undefined): string | undefined {
+  const value = raw?.trim();
+  if (!value) return undefined;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return value.replace(/\/+$/, '');
+  }
+}
+
+const URL_BASE = normalizeUrl(import.meta.env.VITE_SUPABASE_URL);
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const SUPABASE_TABLE = import.meta.env.VITE_SUPABASE_TABLE || 'league_state';
