@@ -16,7 +16,14 @@ export interface RemoteSnapshot {
 
 export type PushOutcome = { status: 'ok'; updatedAt: string } | { status: 'conflict' } | { status: 'error'; message: string };
 
-const readHeaders = () => ({ apikey: supabaseRest.key ?? '', Authorization: `Bearer ${supabaseRest.key ?? ''}` });
+/**
+ * Legacy `anon` keys are JWTs (`eyJ…`) and are also sent as Bearer. The new `sb_publishable_…` keys are NOT JWTs
+ * and must only travel in the `apikey` header, otherwise the API rejects the request.
+ */
+const readHeaders = (): Record<string, string> => {
+  const key = supabaseRest.key ?? '';
+  return key.startsWith('eyJ') ? { apikey: key, Authorization: `Bearer ${key}` } : { apikey: key };
+};
 const rowUrl = (select: string) => `${supabaseRest.url}/rest/v1/${SUPABASE_TABLE}?id=eq.main&select=${select}`;
 
 export async function pullRemote(): Promise<RemoteSnapshot | null> {

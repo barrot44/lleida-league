@@ -79,7 +79,8 @@ En mode local, les dades només existeixen al navegador de qui edita. Per **comp
    on conflict do nothing;
    ```
 
-5. **Project Settings → API**: copia la *Project URL* i la clau *anon public*. En local, crea `.env.local` (a partir de `.env.example`):
+5. **Settings → API Keys**: copia la *Project URL* i la clau **Publishable** (`sb_publishable_…`; també val la clau *anon* antiga `eyJ…`).
+   **Mai** facis servir la clau *secret* / *service_role*. En local, crea `.env.local` (a partir de `.env.example`):
 
    ```bash
    VITE_SUPABASE_URL=https://EL-TEU-PROJECTE.supabase.co
