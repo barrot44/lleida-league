@@ -3,15 +3,16 @@ import { ImageIcon } from 'lucide-react';
 import type { CategoryId } from '@/types';
 import { Field } from '@/components/admin/fields';
 import { SocialCard } from '@/components/social/SocialCard';
-import { matchCaption, matchdayCaption, mvpCaption, scorersCaption, standingsCaption } from '@/components/social/captions';
-import { FORMATS, MatchListTemplate, MatchResultTemplate, MvpTemplate, ScorersTemplate, StandingsTemplate, type SocialFormat } from '@/components/social/templates';
+import { matchCaption, matchdayCaption, mvpCaption, quintetCaption, scorersCaption, standingsCaption } from '@/components/social/captions';
+import { buildQuintet } from '@/lib/quintet';
+import { FORMATS, MatchListTemplate, MatchResultTemplate, MvpTemplate, QuintetTemplate, ScorersTemplate, StandingsTemplate, type SocialFormat } from '@/components/social/templates';
 import { EmptyState } from '@/components/ui/Section';
 import { CATEGORIES, CATEGORY_BY_ID } from '@/config/site';
 import { useLeagueView } from '@/hooks/useLeagueView';
 import { useUiStore } from '@/store/useUiStore';
 import { formatDay } from '@/lib/utils';
 
-type TemplateId = 'match' | 'matchday' | 'fixtures' | 'standings' | 'scorers' | 'mvp';
+type TemplateId = 'match' | 'matchday' | 'fixtures' | 'standings' | 'scorers' | 'mvp' | 'quintet';
 
 const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
   { id: 'match', label: 'Resultat d’un partit', hint: 'Marcador, golejadors i MVP' },
@@ -20,6 +21,7 @@ const TEMPLATES: { id: TemplateId; label: string; hint: string }[] = [
   { id: 'standings', label: 'Classificació', hint: 'Taula amb els primers equips' },
   { id: 'scorers', label: 'Màxims golejadors', hint: 'Pitxitxi i el seu Top 5' },
   { id: 'mvp', label: 'MVP', hint: 'Targeta del millor jugador' },
+  { id: 'quintet', label: 'Quintet ideal', hint: 'Els cinc millors de la jornada' },
 ];
 
 export function SocialStudio() {
@@ -69,6 +71,8 @@ export function SocialStudio() {
     [view.catPlayers, view.teamMap],
   );
 
+  const quintet = useMemo(() => buildQuintet(view.catMatches, view.catPlayers, view.teamMap, matchday), [view.catMatches, view.catPlayers, view.teamMap, matchday]);
+
   const { width, height } = FORMATS[format];
 
   const art = (() => {
@@ -98,6 +102,9 @@ export function SocialStudio() {
       case 'scorers':
         if (scorers.length === 0) return null;
         return { node: <ScorersTemplate format={format} category={cat} entries={scorers} />, caption: scorersCaption(cat, scorers), file: `golejadors-${category}` };
+      case 'quintet':
+        if (quintet.length === 0) return null;
+        return { node: <QuintetTemplate format={format} category={cat} slots={quintet} label={`Jornada ${matchday}`} />, caption: quintetCaption(cat, quintet, `J${matchday}`), file: `quintet-${category}-j${matchday}` };
       case 'mvp': {
         if (!mvpPlayer) return null;
         const team = view.teamMap.get(mvpPlayer.teamId);
@@ -106,7 +113,7 @@ export function SocialStudio() {
     }
   })();
 
-  const needsMatchday = template === 'match' || template === 'matchday' || template === 'fixtures' || template === 'mvp';
+  const needsMatchday = template === 'match' || template === 'matchday' || template === 'fixtures' || template === 'mvp' || template === 'quintet';
 
   return (
     <div className="grid gap-8 lg:grid-cols-[340px_1fr]">

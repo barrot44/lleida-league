@@ -1,5 +1,7 @@
 import type { CategoryMeta, Match, Player, Team } from '@/types';
 import type { StandingRow } from '@/lib/standings';
+import type { QuintetSlot } from '@/lib/quintet';
+import { POSITION_LABEL } from '@/config/site';
 import { SITE } from '@/config/site';
 import { formatDay } from '@/lib/utils';
 
@@ -47,6 +49,11 @@ export function standingsCaption(cat: CategoryMeta, rows: StandingRow[]): string
 export function scorersCaption(cat: CategoryMeta, entries: { player: Player; team?: Team }[]): string {
   const body = entries.map((e, i) => `${i + 1}. ${e.player.name} (${e.team?.shortName ?? '—'}) — ${e.player.stats.goals} gols`);
   return `👑 PITXITXI · ${cat.label}\n\n${body.join('\n')}${tail}`;
+}
+
+export function quintetCaption(cat: CategoryMeta, slots: QuintetSlot[], label: string): string {
+  const body = slots.map((s) => `• ${POSITION_LABEL[s.role]}: ${s.player.name} (${s.team?.shortName ?? '—'})`);
+  return `⭐ QUINTET IDEAL · ${cat.short} · ${label}\n\n${body.join('\n')}${tail}`;
 }
 
 export function mvpCaption(cat: CategoryMeta, player: Player, team: Team | undefined, label: string): string {

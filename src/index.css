@@ -150,8 +150,10 @@
   }
 }
 
+/* Reduced motion for the UI — but not for the social artwork, which must render its final layout instantly
+   (a 0.01ms transition left the exported PNG with a half-applied scale). */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *:not([data-artwork] *), *:not([data-artwork] *)::before, *:not([data-artwork] *)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
