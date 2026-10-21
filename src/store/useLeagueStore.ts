@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { GalleryItem, LeagueData, Match, NewsItem, Player, PlayerStats, Team } from '@/types';
+import type { Champion, GalleryItem, LeagueData, Match, NewsItem, Player, PlayerStats, Referee, Sponsor, Team } from '@/types';
 import { createInitialLeagueData } from '@/data/initialLeagueData';
 import { emptyStats, recomputePlayerStats } from '@/lib/standings';
 
@@ -20,6 +20,14 @@ interface LeagueActions {
   deleteGallery: (id: string) => void;
   upsertNews: (item: NewsItem) => void;
   deleteNews: (id: string) => void;
+  upsertChampion: (item: Champion) => void;
+  deleteChampion: (id: string) => void;
+  upsertSponsor: (item: Sponsor) => void;
+  deleteSponsor: (id: string) => void;
+  upsertReferee: (item: Referee) => void;
+  deleteReferee: (id: string) => void;
+  /** Removes every match and player (keeps teams, gallery, news and club info) to start a real season. */
+  startBlankSeason: () => void;
   resetToSeed: () => void;
   importData: (raw: unknown) => boolean;
   exportData: () => string;
@@ -27,12 +35,15 @@ interface LeagueActions {
 
 export type LeagueStore = LeagueData & LeagueActions;
 
-const pickData = (s: LeagueData): LeagueData => ({
+export const pickData = (s: LeagueData): LeagueData => ({
   teams: s.teams,
   players: s.players,
   matches: s.matches,
   gallery: s.gallery,
   news: s.news,
+  champions: s.champions,
+  sponsors: s.sponsors,
+  referees: s.referees,
 });
 
 function upsert<T extends { id: string }>(list: T[], item: T): T[] {
@@ -115,6 +126,14 @@ export const useLeagueStore = create<LeagueStore>()(
       deleteGallery: (id) => set({ gallery: get().gallery.filter((g) => g.id !== id) }),
       upsertNews: (item) => set({ news: upsert(get().news, item) }),
       deleteNews: (id) => set({ news: get().news.filter((n) => n.id !== id) }),
+      upsertChampion: (item) => set({ champions: upsert(get().champions, item) }),
+      deleteChampion: (id) => set({ champions: get().champions.filter((c) => c.id !== id) }),
+      upsertSponsor: (item) => set({ sponsors: upsert(get().sponsors, item) }),
+      deleteSponsor: (id) => set({ sponsors: get().sponsors.filter((s) => s.id !== id) }),
+      upsertReferee: (item) => set({ referees: upsert(get().referees, item) }),
+      deleteReferee: (id) => set({ referees: get().referees.filter((r) => r.id !== id) }),
+
+      startBlankSeason: () => set({ matches: [], players: [] }),
 
       resetToSeed: () => set(createInitialLeagueData()),
 
@@ -129,18 +148,23 @@ export const useLeagueStore = create<LeagueStore>()(
           matches,
           gallery: d.gallery as GalleryItem[],
           news: d.news as NewsItem[],
+          champions: isArray(d.champions) ? (d.champions as Champion[]) : get().champions,
+          sponsors: isArray(d.sponsors) ? (d.sponsors as Sponsor[]) : get().sponsors,
+          referees: isArray(d.referees) ? (d.referees as Referee[]) : get().referees,
           players: recomputePlayerStats(players, matches),
         });
         return true;
       },
 
-      exportData: () => JSON.stringify({ app: 'lleida-league', version: 1, exportedAt: new Date().toISOString(), ...pickData(get()) }, null, 2),
+      exportData: () => JSON.stringify({ app: 'lleida-league', version: 2, exportedAt: new Date().toISOString(), ...pickData(get()) }, null, 2),
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => pickData(s),
+      // v1 stored the old demo league; v2 ships the real Senior teams, so start from the new seed.
+      migrate: () => ({}) as LeagueData,
     },
   ),
 );

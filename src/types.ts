@@ -6,7 +6,7 @@ export type MatchStatus = 'scheduled' | 'live' | 'finished';
 
 export type MatchEventType = 'goal' | 'yellow_card' | 'red_card' | 'own_goal';
 
-export type NewsBadge = 'Oficial' | 'Mercado' | 'Sanción';
+export type NewsBadge = 'Oficial' | 'Mercat' | 'Sanció';
 
 export interface PlayerStats {
   goals: number;
@@ -43,6 +43,8 @@ export interface Team {
   secondaryColor: string;
   category: CategoryId;
   history: string;
+  /** Virtual currency balance ("Lleidalitos"). Optional: only competitions that use it. */
+  lleidalitos?: number;
 }
 
 export interface MatchEvent {
@@ -97,12 +99,38 @@ export interface NewsItem {
   category?: CategoryId;
 }
 
+export interface Champion {
+  id: string;
+  category: CategoryId;
+  /** Edition number (1st, 2nd…). */
+  edition: number;
+  year: number;
+  /** Free text: champions may belong to teams that no longer exist in the app. */
+  team: string;
+}
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  url?: string;
+  logoUrl?: string;
+}
+
+export interface Referee {
+  id: string;
+  name: string;
+  role: string;
+}
+
 export interface LeagueData {
   teams: Team[];
   players: Player[];
   matches: Match[];
   gallery: GalleryItem[];
   news: NewsItem[];
+  champions: Champion[];
+  sponsors: Sponsor[];
+  referees: Referee[];
 }
 
 export interface CategoryMeta {
