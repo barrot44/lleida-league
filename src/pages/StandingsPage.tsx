@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { PartyPopper } from 'lucide-react';
 import { PageHeader } from '@/components/ui/Section';
+import { PositionChart } from '@/components/standings/PositionChart';
 import { StandingsTable } from '@/components/standings/StandingsTable';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { CATEGORY_BY_ID } from '@/config/site';
@@ -67,6 +68,11 @@ export default function StandingsPage() {
       )}
 
       <StandingsTable rows={view.standings} category={cat} />
+
+      <section className="mt-14">
+        <h2 className="section-title mb-5">Evolució de la classificació</h2>
+        <PositionChart teams={view.catTeams} matches={view.catMatches} category={cat} />
+      </section>
     </div>
   );
 }

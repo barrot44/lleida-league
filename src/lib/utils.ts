@@ -8,6 +8,9 @@ export const uid = (prefix: string) =>
 
 export const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
+/** Number with Catalan decimals (comma): 4,0 · 1,14 */
+export const decimal = (n: number, digits = 1) => n.toLocaleString('ca-ES', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** Local `YYYY-MM-DD` (avoids the UTC shift of `toISOString`). */

@@ -7,7 +7,7 @@ import { TeamCrest } from '@/components/ui/TeamCrest';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLeagueView } from '@/hooks/useLeagueView';
-import { formatDay } from '@/lib/utils';
+import { decimal, formatDay } from '@/lib/utils';
 
 export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; onClose: () => void }) {
   const player = useLeagueStore((s) => s.players.find((p) => p.id === id));
@@ -35,7 +35,7 @@ export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; 
   if (!player || !info) return null;
   const team = view.teamMap.get(player.teamId);
   const s = player.stats;
-  const perGame = s.matchesPlayed > 0 ? (s.goals / s.matchesPlayed).toFixed(2) : '0.00';
+  const perGame = s.matchesPlayed > 0 ? decimal(s.goals / s.matchesPlayed, 2) : '0,00';
 
   return (
     <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Fitxa de ${player.name}`} hideHeader size="lg">

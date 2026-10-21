@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, UserX } from 'lucide-react';
+import { BarChart3, Medal, Scale, Search, Trophy, UserX, Users } from 'lucide-react';
+import { CompareView } from '@/components/stats/CompareView';
+import { QuintetView } from '@/components/stats/QuintetView';
+import { RecordsView } from '@/components/stats/RecordsView';
 import type { Player, Position } from '@/types';
 import { Podium } from '@/components/stats/Podium';
 import { EmptyState, PageHeader } from '@/components/ui/Section';
@@ -22,11 +25,10 @@ const METRICS: { id: Metric; label: string; unit: string }[] = [
 
 const PAGE = 15;
 
-export default function StatsPage() {
+function RankingsView() {
   const category = useUiStore((s) => s.category);
   const openModal = useUiStore((s) => s.openModal);
   const view = useLeagueView(category);
-  const cat = CATEGORY_BY_ID[category];
 
   const [metric, setMetric] = useState<Metric>('goals');
   const [query, setQuery] = useState('');
@@ -70,8 +72,7 @@ export default function StatsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <PageHeader eyebrow={cat.label} title="Golejadors i MVPs" description="Pitxitxi, assistents i premis MVP. Tot s’actualitza sol amb els partits finalitzats." />
+    <div>
 
       <div role="tablist" aria-label="Estadística" className="glass mb-8 inline-flex gap-1 rounded-2xl p-1">
         {METRICS.map((m) => {
@@ -191,6 +192,49 @@ export default function StatsPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+type StatsViewId = 'rankings' | 'records' | 'quintet' | 'compare';
+
+const VIEWS: { id: StatsViewId; label: string; icon: typeof Medal }[] = [
+  { id: 'rankings', label: 'Rànquings', icon: Medal },
+  { id: 'records', label: 'Rècords', icon: Trophy },
+  { id: 'quintet', label: 'Quintet ideal', icon: Users },
+  { id: 'compare', label: 'Comparador', icon: Scale },
+];
+
+export default function StatsPage() {
+  const category = useUiStore((s) => s.category);
+  const cat = CATEGORY_BY_ID[category];
+  const [view, setView] = useState<StatsViewId>('rankings');
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <PageHeader
+        eyebrow={cat.label}
+        title="Golejadors i MVPs"
+        description="Pitxitxi, assistents i MVPs, més rècords de la lliga, el quintet ideal de cada jornada i un comparador. Tot s’actualitza sol amb els partits finalitzats."
+        actions={<BarChart3 aria-hidden className="hidden text-amber-400/40 sm:block" size={56} />}
+      />
+      <div role="tablist" aria-label="Estadístiques" className="hide-scrollbar glass mb-8 flex gap-1 overflow-x-auto rounded-2xl p-1 sm:inline-flex">
+        {VIEWS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={view === id}
+            onClick={() => setView(id)}
+            className={cn('inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 font-display text-sm font-black uppercase tracking-wide transition', view === id ? 'bg-gold-gradient text-slate-950 shadow-glow' : 'text-slate-400 hover:text-white')}
+          >
+            <Icon size={15} /> {label}
+          </button>
+        ))}
+      </div>
+      {view === 'rankings' && <RankingsView />}
+      {view === 'records' && <RecordsView category={category} />}
+      {view === 'quintet' && <QuintetView category={category} />}
+      {view === 'compare' && <CompareView category={category} />}
     </div>
   );
 }
