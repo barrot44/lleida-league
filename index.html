@@ -2,17 +2,42 @@
 <html lang="ca" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="./logo.png" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#080b11" />
-    <meta name="description" content="Lleida League — la lliga de futbol sala de Lleida. Classificació, resultats, golejadors i MVPs en directe. Més que un joc, una batalla presidencial." />
-    <meta property="og:title" content="LLEIDA LEAGUE — Futsal" />
-    <meta property="og:description" content="Més que un joc, una batalla presidencial. Classificació, calendari, golejadors i galeria de la lliga de futbol sala de Lleida." />
-    <meta property="og:image" content="./logo.png" />
-    <title>Lleida League · Futsal</title>
+    <title>Lleida League · Futbol sala · Més que un joc, una batalla presidencial</title>
+    <meta name="description" content="Lleida League: el torneig presidencial de futbol sala de les terres de Lleida. Classificació en directe, resultats, golejadors, MVPs, galeria i vídeos de la Senior, Juvenil, Junior i Femenina." />
+    <meta name="robots" content="index,follow" />
+    <meta name="application-name" content="Lleida League" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Lleida League" />
+    <meta property="og:locale" content="ca_ES" />
+    <meta property="og:title" content="Lleida League · Futbol sala · Més que un joc, una batalla presidencial" />
+    <meta property="og:description" content="Classificació en directe, resultats, golejadors, MVPs, galeria i vídeos del torneig presidencial de futbol sala de Lleida." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Lleida League · Futbol sala" />
+    <meta name="twitter:description" content="Més que un joc, una batalla presidencial. Tot el futbol sala de Lleida en una sola web." />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Contingut inicial per a cercadors i abans que carregui el JavaScript; React el substitueix en arrencar. -->
+      <main style="min-height:100vh;box-sizing:border-box;padding:48px 24px;background:#080b11;color:#e2e8f0;font-family:system-ui,sans-serif;line-height:1.55">
+        <h1 style="margin:0 0 12px;font-size:2rem;color:#fde68a">Lleida League · Futbol sala a Lleida</h1>
+        <p style="max-width:42rem;margin:0 0 20px">
+          Lleida League és el torneig presidencial de futbol sala de les terres de Lleida (des del 2023), amb quatre competicions: Senior, Juvenil, Junior i Femenina. Consulta la classificació en directe, el calendari i els resultats, els golejadors i
+          MVPs, la galeria de fotos i els resums en vídeo. Més que un joc, una batalla presidencial.
+        </p>
+        <nav aria-label="Principal" style="display:flex;flex-wrap:wrap;gap:16px">
+          <a style="color:#fbbf24" href="/classificacio">Classificació</a>
+          <a style="color:#fbbf24" href="/calendari">Calendari i resultats</a>
+          <a style="color:#fbbf24" href="/golejadors">Golejadors i MVPs</a>
+          <a style="color:#fbbf24" href="/galeria">Galeria</a>
+          <a style="color:#fbbf24" href="/descobreix-nos">Descobreix-nos</a>
+        </nav>
+        <noscript><p style="margin-top:24px">Aquesta web necessita JavaScript per mostrar les dades de la lliga.</p></noscript>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

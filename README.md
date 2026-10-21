@@ -29,11 +29,11 @@ estètica de videojoc esportiu: mode fosc, accents daurat/cian/maragda, targetes
 | --- | --- |
 | **Capçalera** | Logo amb llum neó, ticker animat (en directe · propers · últims resultats), selector de categoria i navegació; al mòbil, barra inferior tipus app. |
 | **Inici** | Hero amb partícules, **compte enrere en temps real** al proper gran partit, partits en directe, targetes FIFA del **MVP de la setmana** i del **màxim golejador**, mini-classificació, comunicats i col·laboradors. |
-| **Classificació** | Taula en directe (3 pts victòria / 1 empat; desempat per diferència de gols → gols a favor), ratxa V-E-D i **fitxa d'equip** amb plantilla, president, Lleidalitos i resultats. Confeti quan es corona un campió. |
+| **Classificació** | Taula en directe (3 pts victòria / 1 empat; desempat per diferència de gols → gols a favor), ratxa V-E-D, **gràfic d'evolució jornada a jornada** i **fitxa d'equip** amb plantilla, president, Lleidalitos i resultats. Confeti quan es corona un campió. |
 | **Calendari** | Filtre per jornada i estat, targetes amb marcador digital i **fitxa del partit** (cronologia, assistències, MVP) amb botó **«Imatge per a xarxes»**. |
-| **Golejadors i MVPs** | Podi Top 3, rànquings de gols, MVPs i assistències amb cerca i filtre per posició, i fitxa de jugador. |
-| **Galeria** | Mosaic amb filtres per categoria, jornada i equip, i *lightbox* a pantalla completa. |
-| **Descobreix-nos** | *Qui som?*, **Palmarès** (historial de campions), **La nostra grada**, **Col·laboradors**, **Àrbitres** i **Moneda virtual** (Lleidalitos) — el contingut de la web antiga. |
+| **Golejadors i MVPs** | Rànquings amb podi Top 3, **rècords de la lliga**, **quintet ideal** de cada jornada (amb imatge per a xarxes) i **comparador** de jugadors i d'equips amb cara a cara. |
+| **Galeria** | Fotos (mosaic, filtres i *lightbox*) i **vídeos i resums** de YouTube, TikTok o Instagram que es reprodueixen dins la web; també a la fitxa del partit i a la portada. |
+| **Descobreix-nos** | *Qui som?*, **Palmarès** (historial de campions), **La nostra grada**, **Col·laboradors**, **Àrbitres** i **Moneda virtual** (Lleidalitos, amb saldos i **historial de moviments** en directe) — el contingut de la web antiga. |
 | **Admin** | Partits (marcador en directe, golejadors, assistències, targetes, MVP), equips, jugadors, **estudi de xarxes**, galeria, comunicats, club (palmarès, col·laboradors, àrbitres) i còpies de seguretat. |
 
 ### Càlcul automàtic
@@ -88,7 +88,7 @@ En mode local, les dades només existeixen al navegador de qui edita. Per **comp
    ```
 
    En producció (Vercel / Netlify) afegeix aquestes **mateixes variables** a *Environment Variables* i torna a desplegar.
-6. Obre **`/#/admin`**, entra amb el correu i la contrasenya i fes un primer canvi (o *Ajustos → Publica les dades d'aquest navegador*).
+6. Obre **`/admin`**, entra amb el correu i la contrasenya i fes un primer canvi (o *Ajustos → Publica les dades d'aquest navegador*).
    A partir d'aquí tothom veu les mateixes dades.
 
 **Com funciona**
@@ -134,7 +134,7 @@ A **Admin → Accés** pots tancar la web als visitants:
 - **Manteniment**: avís de manteniment, amb un temps estimat opcional.
 - A la capçalera del tauler hi ha el botó **«Mode manteniment»** per activar-lo (o desactivar-lo) en un clic. Hi ha també un botó **Previsualitza**.
 
-Els administradors identificats sempre veuen la web (amb un avís groc) i `#/admin` continua accessible per poder entrar-hi. La configuració es guarda amb les dades de la lliga: amb Supabase, **tots els visitants la reben en uns 20 segons**.
+Els administradors identificats sempre veuen la web (amb un avís groc) i `/admin` continua accessible per poder entrar-hi. La configuració es guarda amb les dades de la lliga: amb Supabase, **tots els visitants la reben en uns 20 segons**.
 
 > És una porta a la web, no una protecció de dades: serveix per preparar un llançament o fer manteniment, però no amaga la base de dades a algú que la consulti directament.
 
@@ -144,6 +144,7 @@ Els administradors identificats sempre veuen la web (amb un avís groc) i `#/adm
 ├── index.html
 ├── public/logo.png                 # Escut oficial
 ├── supabase/schema.sql             # Taules, RLS i funció is_admin()
+├── vercel.json · netlify.toml      # Rutes de l'SPA i capçaleres de caché
 ├── src/
 │   ├── main.tsx · App.tsx          # Arrencada, layout i rutes (hash router)
 │   ├── types.ts                    # Models de dades
@@ -161,13 +162,33 @@ Els administradors identificats sempre veuen la web (amb un avís groc) i `#/adm
 └── .env.example
 ```
 
-## Desplegament
+## Publica-la gratis i que surti a Google
 
-L'app és 100 % estàtica (`/dist`) i fa servir rutes amb `#`, per la qual cosa **no necessita regles de reescriptura**.
+No cal comprar cap domini. Els tres hostings següents regalen una adreça pròpia i Google l'indexa igual:
 
-- **Vercel** — [Importa el repo](https://vercel.com/new) (detecta Vite: *Build* `npm run build`, *Output* `dist`). Afegeix les variables `VITE_SUPABASE_*`.
-- **Netlify** — [Nou lloc des de Git](https://app.netlify.com/start); `netlify.toml` ja porta la configuració.
-- **GitHub Pages** — `npm run build` i publica `dist` (el `base` és relatiu, `./`).
+| Hosting | Adreça gratuïta | Nota |
+| --- | --- | --- |
+| **Vercel** | `nom.vercel.app` | El més còmode. El pla *Hobby* és per a ús no comercial. |
+| **Netlify** | `nom.netlify.app` | `netlify.toml` ja porta la configuració. |
+| **Cloudflare Pages** | `nom.pages.dev` | Permet ús comercial al pla gratuït. |
+
+**Passos amb Vercel** (els altres són equivalents):
+
+1. Fes el *merge* de la branca a `main` (pull request a GitHub).
+2. A [vercel.com/new](https://vercel.com/new) importa el repo `lleida-league-app`. Posa-hi un nom curt, p. ex. `lleida-league` → l'adreça serà `lleida-league.vercel.app`.
+3. A *Environment Variables* afegeix `VITE_SUPABASE_URL` i `VITE_SUPABASE_ANON_KEY` (mateixos valors que el `.env.local`) i desplega.
+4. Obre l'adreça i comprova que `/classificacio`, `/calendari`… carreguen directament (el fitxer `vercel.json` ho garanteix).
+
+**Perquè Google la trobi:**
+
+1. Entra a [Google Search Console](https://search.google.com/search-console) → *Afegeix una propietat* → *Prefix de l'URL* i escriu la teva adreça.
+2. Verifica-la amb l'opció *Etiqueta HTML* (enganxa la `<meta name="google-site-verification" …>` dins del `<head>` d'`index.html`) i torna a desplegar.
+3. A *Sitemaps* envia `sitemap.xml`. A *Inspecció d'URL* enganxa la portada i prem *Sol·licita la indexació*.
+4. Tarda dies (de vegades setmanes) a aparèixer. Ajuda molt posar l'adreça a la bio d'Instagram, TikTok i YouTube i que et enllacin.
+
+**Què ja està preparat per a SEO:** URLs reals per a cada pàgina, títol i descripció propis per pàgina, `canonical`, Open Graph/Twitter (imatge `og-image.png`), dades estructurades JSON-LD (`SportsOrganization`), `sitemap.xml` i `robots.txt` generats en construir (l'adreça es detecta sola a Vercel i Netlify; amb domini propi defineix `VITE_SITE_URL`) i contingut inicial en HTML per als cercadors.
+
+> Mentre el **comptador o el manteniment** estiguin actius, Google veurà aquella pantalla en lloc de la web: desactiva'ls abans de demanar la indexació.
 
 ## Personalització ràpida
 

@@ -10,6 +10,7 @@ import { Logo } from '@/components/ui/Logo';
 import { Toaster } from '@/components/ui/Toaster';
 import { useRoute } from '@/hooks/useHashRoute';
 import { useRemoteSync } from '@/hooks/useRemoteSync';
+import { useDocumentMeta } from '@/lib/seo';
 import { useUiStore } from '@/store/useUiStore';
 import HomePage from '@/pages/HomePage';
 import StandingsPage from '@/pages/StandingsPage';
@@ -52,6 +53,7 @@ function Splash() {
 export default function App() {
   const route = useRoute();
   useRemoteSync();
+  useDocumentMeta(route);
   const remoteReady = useUiStore((s) => s.remoteReady);
 
   if (!remoteReady) return <Splash />;
