@@ -15,16 +15,16 @@ export function Header({ route }: { route: RouteId }) {
     <div className="sticky top-0 z-50">
       <Ticker />
       <header className="border-b border-white/[0.08] bg-pitch/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
-          <a href={hrefFor('home')} className="group flex items-center gap-3" aria-label="Lleida League — inicio">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+          <a href={hrefFor('home')} className="group flex shrink-0 items-center gap-3" aria-label="Lleida League — inici">
             <Logo size={44} className="transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-110" />
             <span className="leading-none">
               <span className="neon-gold block font-display text-2xl font-black uppercase tracking-tight">Lleida League</span>
-              <span className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 sm:block">{SITE.tagline}</span>
+              <span className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 sm:block lg:hidden xl:block">{SITE.tagline}</span>
             </span>
           </a>
 
-          <nav className="ml-auto hidden items-center gap-1 lg:flex" aria-label="Principal">
+          <nav className="ml-auto hidden items-center lg:flex" aria-label="Principal">
             {NAV.map((item) => {
               const active = route === item.id;
               return (
@@ -33,12 +33,13 @@ export function Header({ route }: { route: RouteId }) {
                   href={hrefFor(item.id)}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'relative rounded-xl px-3.5 py-2 font-display text-[15px] font-bold uppercase tracking-wide transition-colors',
+                    'relative whitespace-nowrap rounded-xl px-2.5 py-2 font-display text-[14px] font-bold uppercase tracking-wide transition-colors xl:px-3.5 xl:text-[15px]',
                     active ? 'text-amber-300' : 'text-slate-300 hover:text-white',
                   )}
                 >
-                  {item.label}
-                  {active && <span className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-gold-gradient shadow-glow" />}
+                  <span className="xl:hidden">{item.lgLabel ?? item.label}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
+                  {active && <span className="absolute inset-x-2.5 -bottom-0.5 h-0.5 rounded-full bg-gold-gradient shadow-glow xl:inset-x-3" />}
                 </a>
               );
             })}
@@ -46,11 +47,11 @@ export function Header({ route }: { route: RouteId }) {
 
           <a
             href={hrefFor('admin')}
-            className={cn('btn-gold ml-auto lg:ml-2', route === 'admin' && 'ring-2 ring-white/40')}
+            className={cn('btn-gold ml-auto shrink-0 lg:ml-2', route === 'admin' && 'ring-2 ring-white/40')}
             aria-label={ADMIN_NAV.label}
           >
             <AdminIcon size={16} />
-            <span className="hidden sm:inline">Admin</span>
+            <span className="hidden sm:inline lg:hidden xl:inline">Admin</span>
           </a>
         </div>
       </header>

@@ -69,7 +69,7 @@ export function Hero() {
         <div className="min-w-0">
           <motion.div {...rise(0)} className="mb-5 flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">
-              <Sparkles size={13} /> Futsal · Lleida · Since {SITE.since}
+              <Sparkles size={13} /> Futsal · Lleida · Des del {SITE.since}
             </span>
             <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.22em]" style={{ color: cat.accent }}>
               {cat.label}
@@ -82,15 +82,15 @@ export function Hero() {
           </motion.h1>
 
           <motion.p {...rise(0.16)} className="mt-6 max-w-xl text-lg text-slate-300">
-            La liga de fútbol sala de Lleida en una sola app: clasificación en vivo, resultados, goleadores y MVPs de las cuatro competiciones.
+            La lliga de futbol sala de Lleida en una sola app: classificació en directe, resultats, golejadors i MVPs de les quatre competicions.
           </motion.p>
 
           <motion.div {...rise(0.24)} className="mt-7 flex flex-wrap gap-3">
             <a href={hrefFor('standings')} className="btn-gold">
-              Ver clasificación <ArrowRight size={16} />
+              Veure la classificació <ArrowRight size={16} />
             </a>
             <a href={hrefFor('calendar')} className="btn-ghost">
-              Calendario y resultados
+              Calendari i resultats
             </a>
           </motion.div>
 
@@ -104,7 +104,7 @@ export function Hero() {
                   <Radio size={22} className="animate-pulse-live" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-red-300">En directo ahora · {live.liveMinute ? `${live.liveMinute}'` : 'Jornada ' + live.matchday}</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-red-300">En directe ara · {live.liveMinute ? `${live.liveMinute}'` : 'Jornada ' + live.matchday}</p>
                   <p className="mt-1 flex items-center gap-2 font-display text-xl font-black uppercase text-white">
                     <TeamCrest team={liveHome} size={22} /> {liveHome.shortName}
                     <span className="digital rounded-lg bg-black/50 px-2.5 text-2xl text-amber-300">
@@ -130,13 +130,13 @@ export function Hero() {
             {mvp && (
               <div className="shrink-0 snap-center lg:z-10 lg:-rotate-3">
                 <PlayerCard player={mvp} team={view.teamMap.get(mvp.teamId)} size={cardSize} ribbon={matchday ? `MVP · J${matchday}` : 'MVP'} onClick={() => openModal({ kind: 'player', id: mvp.id })} />
-                <p className="mt-3 text-center text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">MVP de la semana</p>
+                <p className="mt-3 text-center text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">MVP de la setmana</p>
               </div>
             )}
             {scorer && (
               <div className="shrink-0 snap-center lg:-ml-5 lg:translate-y-10 lg:rotate-3">
-                <PlayerCard player={scorer} team={view.teamMap.get(scorer.teamId)} size={cardSize} ribbon="Pichichi" onClick={() => openModal({ kind: 'player', id: scorer.id })} />
-                <p className="mt-3 text-center text-[11px] font-black uppercase tracking-[0.22em] text-cyan-300">Máximo goleador actual</p>
+                <PlayerCard player={scorer} team={view.teamMap.get(scorer.teamId)} size={cardSize} ribbon="Pitxitxi" onClick={() => openModal({ kind: 'player', id: scorer.id })} />
+                <p className="mt-3 text-center text-[11px] font-black uppercase tracking-[0.22em] text-cyan-300">Màxim golejador actual</p>
               </div>
             )}
           </div>

@@ -51,7 +51,7 @@ export function Modal({ open, onOpenChange, title, hideHeader, size = 'lg', clas
                 ) : (
                   <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-white/10 bg-surface/95 px-5 py-4 backdrop-blur-xl sm:px-6">
                     <Dialog.Title className="font-display text-xl font-black uppercase tracking-tight text-white">{title}</Dialog.Title>
-                    <Dialog.Close className="btn-ghost !p-2" aria-label="Cerrar">
+                    <Dialog.Close className="btn-ghost !p-2" aria-label="Tanca">
                       <X size={18} />
                     </Dialog.Close>
                   </div>
@@ -59,7 +59,7 @@ export function Modal({ open, onOpenChange, title, hideHeader, size = 'lg', clas
                 {hideHeader && (
                   <Dialog.Close
                     className="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur transition hover:scale-110 hover:border-amber-400/60"
-                    aria-label="Cerrar"
+                    aria-label="Tanca"
                   >
                     <X size={18} />
                   </Dialog.Close>

@@ -1,5 +1,6 @@
 import type { Player, Team } from '@/types';
 import { playerRating } from '@/lib/standings';
+import { POSITION_SHORT } from '@/config/site';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { TiltCard } from '@/components/ui/TiltCard';
@@ -14,8 +15,6 @@ interface Props {
   tilt?: boolean;
   onClick?: () => void;
 }
-
-const POS_SHORT = { Portero: 'POR', Cierre: 'CIE', Ala: 'ALA', Pívot: 'PIV' } as const;
 
 /** FIFA / Kings League style collectible card with holographic tilt. */
 export function PlayerCard({ player, team, size = 260, ribbon, tilt = true, onClick }: Props) {
@@ -60,7 +59,7 @@ export function PlayerCard({ player, team, size = 260, ribbon, tilt = true, onCl
 
         <div className="absolute left-[1.5em] top-[3em] z-10 flex flex-col items-center gap-[0.35em]">
           <span className="text-gold-gradient font-display text-[3.6em] font-black leading-none">{rating}</span>
-          <span className="font-display text-[1.15em] font-black tracking-[0.18em] text-white">{POS_SHORT[player.position]}</span>
+          <span className="font-display text-[1.15em] font-black tracking-[0.18em] text-white">{POSITION_SHORT[player.position]}</span>
           {team && <TeamCrest team={team} size={size / 7.5} />}
         </div>
 
@@ -81,10 +80,10 @@ export function PlayerCard({ player, team, size = 260, ribbon, tilt = true, onCl
           <dl className="grid grid-cols-5 text-center">
             {[
               ['GOL', s.goals],
-              ['AST', s.assists],
+              ['ASS', s.assists],
               ['MVP', s.mvpAwards],
               ['PJ', s.matchesPlayed],
-              ['TA', s.yellowCards],
+              ['TG', s.yellowCards],
             ].map(([label, value]) => (
               <div key={label}>
                 <dd className="font-display text-[1.7em] font-black leading-none text-white">{value}</dd>
@@ -107,7 +106,7 @@ export function PlayerCard({ player, team, size = 260, ribbon, tilt = true, onCl
 
   if (!onClick) return content;
   return (
-    <button type="button" onClick={onClick} className="block rounded-[1.7em] text-left transition-transform hover:scale-[1.02]" aria-label={`Ver ficha de ${player.name}`}>
+    <button type="button" onClick={onClick} className="block rounded-[1.7em] text-left transition-transform hover:scale-[1.02]" aria-label={`Veure la fitxa de ${player.name}`}>
       {content}
     </button>
   );

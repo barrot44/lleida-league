@@ -28,20 +28,20 @@ export function NewsManager() {
   };
 
   const save = () => {
-    if (!form.headline.trim()) return toast('El comunicado necesita un titular.', 'error');
+    if (!form.headline.trim()) return toast('El comunicat necessita un titular.', 'error');
     upsertNews({ ...form, headline: form.headline.trim(), summary: form.summary.trim() });
-    toast(editing ? '¡Comunicado actualizado con éxito!' : '¡Comunicado publicado!');
+    toast(editing ? 'Comunicat actualitzat amb èxit!' : 'Comunicat publicat!');
     reset();
   };
 
   return (
     <div className="space-y-6">
       <SectionCard
-        title={editing ? 'Editar comunicado' : 'Nuevo comunicado presidencial'}
+        title={editing ? 'Edita el comunicat' : 'Nou comunicat presidencial'}
         actions={
           editing && (
             <button className="btn-ghost !py-1.5 text-xs" onClick={reset}>
-              <X size={14} /> Cancelar edición
+              <X size={14} /> Cancel·la l’edició
             </button>
           )
         }
@@ -50,7 +50,7 @@ export function NewsManager() {
           <Field label="Titular" className="sm:col-span-2">
             <input className="input" value={form.headline} onChange={(e) => patch({ headline: e.target.value })} />
           </Field>
-          <Field label="Resumen" className="sm:col-span-2">
+          <Field label="Resum" className="sm:col-span-2">
             <textarea className="input min-h-[88px]" value={form.summary} onChange={(e) => patch({ summary: e.target.value })} />
           </Field>
           <Field label="Etiqueta">
@@ -62,12 +62,12 @@ export function NewsManager() {
               ))}
             </select>
           </Field>
-          <Field label="Fecha">
+          <Field label="Data">
             <input type="date" className="input" value={form.date} onChange={(e) => patch({ date: e.target.value })} />
           </Field>
-          <Field label="Categoría (opcional)" hint="Vacío = visible en todas las categorías.">
+          <Field label="Categoria (opcional)" hint="Buit = visible a totes les categories.">
             <select className="input" value={form.category ?? ''} onChange={(e) => patch({ category: (e.target.value || undefined) as CategoryId | undefined })}>
-              <option value="">Todas</option>
+              <option value="">Totes</option>
               {CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.label}
@@ -77,7 +77,7 @@ export function NewsManager() {
           </Field>
           <div className="flex items-end">
             <button className="btn-gold" onClick={save}>
-              <Save size={16} /> {editing ? 'Guardar cambios' : 'Publicar'}
+              <Save size={16} /> {editing ? 'Desa els canvis' : 'Publica'}
             </button>
           </div>
         </div>
@@ -95,7 +95,7 @@ export function NewsManager() {
               </div>
               <button
                 className="btn-ghost !p-2.5"
-                aria-label={`Editar ${n.headline}`}
+                aria-label={`Edita ${n.headline}`}
                 onClick={() => {
                   setForm(n);
                   setEditing(true);
@@ -104,7 +104,7 @@ export function NewsManager() {
               >
                 <Pencil size={15} />
               </button>
-              <button className="btn-danger !p-2.5" aria-label={`Eliminar ${n.headline}`} onClick={() => setRemoving(n)}>
+              <button className="btn-danger !p-2.5" aria-label={`Elimina ${n.headline}`} onClick={() => setRemoving(n)}>
                 <Trash2 size={15} />
               </button>
             </li>
@@ -113,14 +113,14 @@ export function NewsManager() {
 
       <ConfirmDialog
         open={!!removing}
-        title="Eliminar comunicado"
-        message={`¿Eliminar «${removing?.headline ?? ''}»?`}
-        confirmLabel="Eliminar"
+        title="Elimina el comunicat"
+        message={`Vols eliminar «${removing?.headline ?? ''}»?`}
+        confirmLabel="Elimina"
         onCancel={() => setRemoving(null)}
         onConfirm={() => {
           if (removing) deleteNews(removing.id);
           setRemoving(null);
-          toast('Comunicado eliminado.');
+          toast('Comunicat eliminat.');
         }}
       />
     </div>

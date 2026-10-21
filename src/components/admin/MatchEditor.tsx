@@ -10,19 +10,19 @@ import { celebrate } from '@/lib/confetti';
 import { cn, toISODate, uid } from '@/lib/utils';
 
 const STATUSES: { id: MatchStatus; label: string }[] = [
-  { id: 'scheduled', label: 'Próximo' },
-  { id: 'live', label: 'En vivo' },
-  { id: 'finished', label: 'Finalizado' },
+  { id: 'scheduled', label: 'Pròxim' },
+  { id: 'live', label: 'En directe' },
+  { id: 'finished', label: 'Finalitzat' },
 ];
 
 const EVENT_LABEL: Record<MatchEventType, string> = {
   goal: '⚽ Gol',
-  own_goal: '⚽ Gol en propia',
-  yellow_card: '🟨 Amarilla',
-  red_card: '🟥 Roja',
+  own_goal: '⚽ Gol en pròpia',
+  yellow_card: '🟨 Groga',
+  red_card: '🟥 Vermella',
 };
 
-const VENUES = ['Pavelló Barris Nord', 'Pavelló Onze de Setembre', 'Pavelló Cappont', 'Pavelló Pardinyes', 'Pavelló La Mariola'];
+const VENUES = ['Pavelló Manel Bosch (Torrefarrera)', 'Pavelló de Pardinyes', 'Pavelló Barris Nord', 'Pavelló Onze de Setembre', 'Pavelló Cappont', 'Pavelló La Mariola'];
 
 export function newMatchDraft(category: CategoryId, matchday: number): Match {
   const teams = useLeagueStore.getState().teams.filter((t) => t.category === category);
@@ -101,7 +101,7 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
     const homeSquad = players.filter((p) => p.teamId === draft.homeTeamId);
     const first = homeSquad.find((p) => p.position !== 'Portero') ?? homeSquad[0] ?? squad[0];
     if (!first) {
-      toast('Añade jugadores a los equipos antes de registrar eventos.', 'error');
+      toast('Afegeix jugadors als equips abans de registrar esdeveniments.', 'error');
       return;
     }
     const last = draft.events[draft.events.length - 1];
@@ -122,21 +122,21 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
   };
 
   const save = () => {
-    if (!draft.homeTeamId || !draft.awayTeamId) return toast('Selecciona los dos equipos.', 'error');
-    if (draft.homeTeamId === draft.awayTeamId) return toast('El equipo local y el visitante no pueden ser el mismo.', 'error');
-    if (!draft.date) return toast('Indica la fecha del partido.', 'error');
+    if (!draft.homeTeamId || !draft.awayTeamId) return toast('Selecciona els dos equips.', 'error');
+    if (draft.homeTeamId === draft.awayTeamId) return toast('L’equip local i el visitant no poden ser el mateix.', 'error');
+    if (!draft.date) return toast('Indica la data del partit.', 'error');
     const events = [...draft.events].sort((a, b) => a.minute - b.minute);
     const becameFinished = upsertMatch({ ...draft, events });
-    toast(isNew ? '¡Partido creado con éxito!' : draft.status === 'finished' ? '¡Resultado actualizado con éxito!' : 'Partido actualizado con éxito.');
+    toast(isNew ? 'Partit creat amb èxit!' : draft.status === 'finished' ? 'Resultat actualitzat amb èxit!' : 'Partit actualitzat amb èxit.');
     if (becameFinished) void celebrate([home?.primaryColor ?? '#FBBF24', away?.primaryColor ?? '#06B6D4'], { big: true });
     onClose();
   };
 
   return (
-    <Modal open onOpenChange={(o) => !o && onClose()} title={isNew ? 'Nuevo partido' : 'Editar partido'} size="xl">
+    <Modal open onOpenChange={(o) => !o && onClose()} title={isNew ? 'Nou partit' : 'Edita el partit'} size="xl">
       <div className="space-y-7 p-5 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="Categoría">
+          <Field label="Categoria">
             <select className="input" value={draft.category} onChange={(e) => changeCategory(e.target.value as CategoryId)}>
               {CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -148,13 +148,13 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
           <Field label="Jornada">
             <input type="number" min={1} className="input" value={draft.matchday} onChange={(e) => patch({ matchday: Math.max(1, Number(e.target.value) || 1) })} />
           </Field>
-          <Field label="Fecha">
+          <Field label="Data">
             <input type="date" className="input" value={draft.date} onChange={(e) => patch({ date: e.target.value })} />
           </Field>
           <Field label="Hora">
             <input type="time" className="input" value={draft.time} onChange={(e) => patch({ time: e.target.value })} />
           </Field>
-          <Field label="Equipo local" className="sm:col-span-1">
+          <Field label="Equip local" className="sm:col-span-1">
             <select className="input" value={draft.homeTeamId} onChange={(e) => changeTeams(e.target.value, draft.awayTeamId)}>
               {catTeams.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -163,7 +163,7 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
               ))}
             </select>
           </Field>
-          <Field label="Equipo visitante">
+          <Field label="Equip visitant">
             <select className="input" value={draft.awayTeamId} onChange={(e) => changeTeams(draft.homeTeamId, e.target.value)}>
               {catTeams.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -172,7 +172,7 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
               ))}
             </select>
           </Field>
-          <Field label="Pista / pabellón" className="sm:col-span-2">
+          <Field label="Pista / pavelló" className="sm:col-span-2">
             <input className="input" list="venues" value={draft.venue} onChange={(e) => patch({ venue: e.target.value })} />
             <datalist id="venues">
               {VENUES.map((v) => (
@@ -183,8 +183,8 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
         </div>
 
         <div>
-          <span className="label">Estado</span>
-          <div className="inline-flex gap-1 rounded-2xl border border-white/10 bg-pitch/60 p-1" role="radiogroup" aria-label="Estado del partido">
+          <span className="label">Estat</span>
+          <div className="inline-flex gap-1 rounded-2xl border border-white/10 bg-pitch/60 p-1" role="radiogroup" aria-label="Estat del partit">
             {STATUSES.map((s) => (
               <button
                 key={s.id}
@@ -210,28 +210,28 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
 
         {started && (
           <section className="scoreboard rounded-3xl border border-white/10 p-5">
-            <p className="mb-4 text-center text-xs font-black uppercase tracking-[0.25em] text-amber-400">Marcador {draft.status === 'live' ? 'en vivo' : 'final'}</p>
+            <p className="mb-4 text-center text-xs font-black uppercase tracking-[0.25em] text-amber-400">Marcador {draft.status === 'live' ? 'en directe' : 'final'}</p>
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
               <div className="text-center">
                 <p className="mb-2 max-w-[11rem] truncate font-display text-lg font-black uppercase text-white">{home?.shortName ?? 'Local'}</p>
-                <Stepper big label="Goles local" value={draft.homeScore ?? 0} onChange={(n) => patch({ homeScore: n })} />
+                <Stepper big label="Gols local" value={draft.homeScore ?? 0} onChange={(n) => patch({ homeScore: n })} />
               </div>
               <span className="digital text-4xl text-slate-600">:</span>
               <div className="text-center">
-                <p className="mb-2 max-w-[11rem] truncate font-display text-lg font-black uppercase text-white">{away?.shortName ?? 'Visitante'}</p>
-                <Stepper big label="Goles visitante" value={draft.awayScore ?? 0} onChange={(n) => patch({ awayScore: n })} />
+                <p className="mb-2 max-w-[11rem] truncate font-display text-lg font-black uppercase text-white">{away?.shortName ?? 'Visitant'}</p>
+                <Stepper big label="Gols visitant" value={draft.awayScore ?? 0} onChange={(n) => patch({ awayScore: n })} />
               </div>
             </div>
             {draft.status === 'live' && (
               <div className="mt-4 flex items-center justify-center gap-3 text-sm text-slate-400">
-                Minuto actual <Stepper label="Minuto" value={draft.liveMinute ?? 1} min={1} max={60} onChange={(n) => patch({ liveMinute: n })} />
+                Minut actual <Stepper label="Minut" value={draft.liveMinute ?? 1} min={1} max={60} onChange={(n) => patch({ liveMinute: n })} />
               </div>
             )}
             {mismatch && (
               <div className="mt-4 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-sm text-amber-200">
-                Los goles registrados dan {implied.home}-{implied.away}.
+                Els gols registrats donen {implied.home}-{implied.away}.
                 <button className="btn-ghost !px-3 !py-1.5 text-xs" onClick={() => patch({ homeScore: implied.home, awayScore: implied.away })}>
-                  <RefreshCw size={13} /> Sincronizar marcador
+                  <RefreshCw size={13} /> Sincronitza el marcador
                 </button>
               </div>
             )}
@@ -241,7 +241,7 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
         {started && (
           <section>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-xl">Goleadores y tarjetas</h3>
+              <h3 className="text-xl">Golejadors i targetes</h3>
               <div className="flex flex-wrap gap-2">
                 {(['goal', 'own_goal', 'yellow_card', 'red_card'] as MatchEventType[]).map((t) => (
                   <button key={t} className="btn-ghost !px-3 !py-1.5 text-xs" onClick={() => addEvent(t)}>
@@ -252,7 +252,7 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
             </div>
             {draft.events.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-white/10 py-8 text-center text-sm text-slate-500">
-                Aún no hay eventos. Añade goles, tarjetas… y se sumarán a las estadísticas de los jugadores al finalizar el partido.
+                Encara no hi ha esdeveniments. Afegeix gols, targetes… i se sumaran a les estadístiques dels jugadors en finalitzar el partit.
               </p>
             ) : (
               <ul className="space-y-2">
@@ -264,12 +264,12 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
                         type="number"
                         min={0}
                         max={60}
-                        aria-label="Minuto"
+                        aria-label="Minut"
                         className="input !px-2 text-center"
                         value={e.minute}
                         onChange={(ev) => updateEvent(e.id, { minute: Math.min(60, Math.max(0, Number(ev.target.value) || 0)) })}
                       />
-                      <select aria-label="Tipo de evento" className="input" value={e.type} onChange={(ev) => updateEvent(e.id, { type: ev.target.value as MatchEventType, assistPlayerId: undefined, assistPlayerName: undefined })}>
+                      <select aria-label="Tipus d’esdeveniment" className="input" value={e.type} onChange={(ev) => updateEvent(e.id, { type: ev.target.value as MatchEventType, assistPlayerId: undefined, assistPlayerName: undefined })}>
                         {(Object.keys(EVENT_LABEL) as MatchEventType[]).map((t) => (
                           <option key={t} value={t}>
                             {EVENT_LABEL[t]}
@@ -293,18 +293,18 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
                         )}
                       </select>
                       {e.type === 'goal' ? (
-                        <select aria-label="Asistencia" className="input col-span-3 sm:col-span-1" value={e.assistPlayerId ?? ''} onChange={(ev) => setEventAssist(e.id, ev.target.value)}>
-                          <option value="">Sin asistencia</option>
+                        <select aria-label="Assistència" className="input col-span-3 sm:col-span-1" value={e.assistPlayerId ?? ''} onChange={(ev) => setEventAssist(e.id, ev.target.value)}>
+                          <option value="">Sense assistència</option>
                           {mates.map((p) => (
                             <option key={p.id} value={p.id}>
-                              Asist. #{p.dorsal} {p.name}
+                              Assist. #{p.dorsal} {p.name}
                             </option>
                           ))}
                         </select>
                       ) : (
-                        <span className="hidden text-xs text-slate-500 sm:block">{e.type === 'own_goal' ? 'El gol cuenta para el rival' : ''}</span>
+                        <span className="hidden text-xs text-slate-500 sm:block">{e.type === 'own_goal' ? 'El gol compta per al rival' : ''}</span>
                       )}
-                      <button className="btn-danger !p-2.5" aria-label="Eliminar evento" onClick={() => patch({ events: draft.events.filter((x) => x.id !== e.id) })}>
+                      <button className="btn-danger !p-2.5" aria-label="Elimina l’esdeveniment" onClick={() => patch({ events: draft.events.filter((x) => x.id !== e.id) })}>
                         <Trash2 size={15} />
                       </button>
                     </li>
@@ -316,9 +316,9 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
         )}
 
         {draft.status === 'finished' && (
-          <Field label="MVP del partido">
+          <Field label="MVP del partit">
             <select className="input" value={draft.mvpPlayerId ?? ''} onChange={(e) => patch({ mvpPlayerId: e.target.value || undefined })}>
-              <option value="">Sin MVP</option>
+              <option value="">Sense MVP</option>
               {[home, away].map(
                 (t) =>
                   t && (
@@ -339,10 +339,10 @@ export function MatchEditor({ initial, isNew, onClose }: { initial: Match; isNew
 
         <div className="flex flex-wrap justify-end gap-3 border-t border-white/10 pt-5">
           <button className="btn-ghost" onClick={onClose}>
-            Cancelar
+            Cancel·la
           </button>
           <button className="btn-gold" onClick={save}>
-            <Save size={16} /> Guardar partido
+            <Save size={16} /> Desa el partit
           </button>
         </div>
       </div>

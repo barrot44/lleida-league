@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { GalleryItem } from '@/types';
 import { SmartImage } from '@/components/ui/SmartImage';
+import { largeImage } from '@/lib/images';
 import { formatDateShort } from '@/lib/utils';
 
 interface Props {
@@ -57,7 +58,7 @@ export function Lightbox({ items, index, onIndexChange }: Props) {
                   <span className="digital text-lg">
                     {(index as number) + 1} <span className="text-slate-600">/</span> {items.length}
                   </span>
-                  <Dialog.Close className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/10 text-white transition hover:scale-110 hover:border-amber-400/60" aria-label="Cerrar">
+                  <Dialog.Close className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/10 text-white transition hover:scale-110 hover:border-amber-400/60" aria-label="Tanca">
                     <X size={20} />
                   </Dialog.Close>
                 </div>
@@ -84,14 +85,14 @@ export function Lightbox({ items, index, onIndexChange }: Props) {
                       className="flex h-full max-h-[70vh] w-full max-w-5xl items-center justify-center"
                     >
                       <SmartImage
-                        src={item.imageUrl.replace(/([?&])w=\d+/, '$1w=1600')}
+                        src={largeImage(item.imageUrl)}
                         alt={item.title}
                         seed={item.id}
                         className="max-h-full max-w-full rounded-2xl border border-white/10 object-contain shadow-2xl"
                       />
                     </motion.div>
                   </AnimatePresence>
-                  <button onClick={() => go(1)} className="absolute right-2 z-10 grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur transition hover:scale-110 hover:border-amber-400/60 sm:right-5" aria-label="Foto siguiente">
+                  <button onClick={() => go(1)} className="absolute right-2 z-10 grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-black/50 text-white backdrop-blur transition hover:scale-110 hover:border-amber-400/60 sm:right-5" aria-label="Foto següent">
                     <ChevronRight size={26} />
                   </button>
                 </div>

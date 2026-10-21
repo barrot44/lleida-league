@@ -7,7 +7,7 @@ import { EmptyState, PageHeader } from '@/components/ui/Section';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { PositionTag } from '@/components/ui/Badges';
 import { TeamCrest } from '@/components/ui/TeamCrest';
-import { CATEGORY_BY_ID, POSITIONS } from '@/config/site';
+import { CATEGORY_BY_ID, POSITIONS, POSITION_LABEL } from '@/config/site';
 import { useUiStore } from '@/store/useUiStore';
 import { useLeagueView } from '@/hooks/useLeagueView';
 import { cn } from '@/lib/utils';
@@ -15,9 +15,9 @@ import { cn } from '@/lib/utils';
 type Metric = 'goals' | 'mvpAwards' | 'assists';
 
 const METRICS: { id: Metric; label: string; unit: string }[] = [
-  { id: 'goals', label: 'Goleadores', unit: 'goles' },
+  { id: 'goals', label: 'Golejadors', unit: 'gols' },
   { id: 'mvpAwards', label: 'MVPs', unit: 'MVPs' },
-  { id: 'assists', label: 'Asistentes', unit: 'asist.' },
+  { id: 'assists', label: 'Assistents', unit: 'assist.' },
 ];
 
 const PAGE = 15;
@@ -71,7 +71,7 @@ export default function StatsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <PageHeader eyebrow={cat.label} title="Goleadores & MVPs" description="Pichichi, asistentes y premios MVP. Todo se actualiza solo con los partidos finalizados." />
+      <PageHeader eyebrow={cat.label} title="Golejadors i MVPs" description="Pitxitxi, assistents i premis MVP. Tot s’actualitza sol amb els partits finalitzats." />
 
       <div role="tablist" aria-label="Estadística" className="glass mb-8 inline-flex gap-1 rounded-2xl p-1">
         {METRICS.map((m) => {
@@ -99,7 +99,7 @@ export default function StatsPage() {
           <Podium entries={podium} unit={current.unit} />
         </div>
       ) : (
-        <EmptyState className="mb-12" icon={<UserX />} title="Aún sin datos" hint="Cuando se finalicen partidos aparecerán aquí los líderes de la categoría." />
+        <EmptyState className="mb-12" icon={<UserX />} title="Encara sense dades" hint="Quan es finalitzin partits, aquí apareixeran els líders de la categoria." />
       )}
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -111,16 +111,16 @@ export default function StatsPage() {
               setQuery(e.target.value);
               setLimit(PAGE);
             }}
-            placeholder="Buscar jugador o equipo…"
-            aria-label="Buscar jugador o equipo"
+            placeholder="Cerca jugador o equip…"
+            aria-label="Cerca jugador o equip"
             className="input !pl-10"
           />
         </div>
-        <select value={position} onChange={(e) => setPosition(e.target.value as Position | 'all')} aria-label="Filtrar por posición" className="input !w-auto">
-          <option value="all">Todas las posiciones</option>
+        <select value={position} onChange={(e) => setPosition(e.target.value as Position | 'all')} aria-label="Filtra per posició" className="input !w-auto">
+          <option value="all">Totes les posicions</option>
           {POSITIONS.map((p) => (
             <option key={p} value={p}>
-              {p}
+              {POSITION_LABEL[p]}
             </option>
           ))}
         </select>
@@ -135,8 +135,8 @@ export default function StatsPage() {
                 <th className={cn(th, 'text-left')}>Jugador</th>
                 <th className={cn(th, 'hidden sm:table-cell')}>Pos</th>
                 <th className={cn(th, 'hidden md:table-cell')}>PJ</th>
-                <th className={cn(th, highlight('goals'))}>Goles</th>
-                <th className={cn(th, highlight('assists'))}>Asist</th>
+                <th className={cn(th, highlight('goals'))}>Gols</th>
+                <th className={cn(th, highlight('assists'))}>Assist</th>
                 <th className={cn(th, highlight('mvpAwards'))}>MVP</th>
                 <th className={cn(th, 'hidden pr-4 md:table-cell')}>🟨 / 🟥</th>
               </tr>
@@ -182,11 +182,11 @@ export default function StatsPage() {
             </tbody>
           </table>
         </div>
-        {rows.length === 0 && <p className="px-6 py-10 text-center text-slate-400">Ningún jugador coincide con la búsqueda.</p>}
+        {rows.length === 0 && <p className="px-6 py-10 text-center text-slate-400">Cap jugador coincideix amb la cerca.</p>}
         {rows.length > limit && (
           <div className="border-t border-white/10 p-3 text-center">
             <button className="btn-ghost" onClick={() => setLimit((l) => l + PAGE)}>
-              Mostrar más ({rows.length - limit})
+              Mostra’n més ({rows.length - limit})
             </button>
           </div>
         )}

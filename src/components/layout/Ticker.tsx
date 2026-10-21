@@ -7,7 +7,7 @@ import { CATEGORY_BY_ID } from '@/config/site';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { matchTimestamp, relativeDay } from '@/lib/utils';
 
-/** Marquee with the live match, the latest results and the upcoming fixtures of every category. */
+/** Marquee with the live matches, the upcoming fixtures and the latest results of every category. */
 export function Ticker() {
   const matches = useLeagueStore((s) => s.matches);
   const { teamMap } = useLookups();
@@ -40,7 +40,7 @@ export function Ticker() {
       >
         {m.status === 'live' ? (
           <span className="flex items-center gap-1.5 font-black uppercase tracking-widest text-red-400">
-            <span className="h-2 w-2 animate-pulse-live rounded-full bg-red-500" /> Directo
+            <span className="h-2 w-2 animate-pulse-live rounded-full bg-red-500" /> Directe
           </span>
         ) : m.status === 'finished' ? (
           <span className="font-black uppercase tracking-widest text-emerald-400/90">Final</span>
@@ -65,7 +65,7 @@ export function Ticker() {
   };
 
   return (
-    <div className="relative h-9 overflow-hidden border-b border-white/[0.07] bg-black/60 text-slate-300" aria-label="Últimos resultados y próximos partidos">
+    <div className="relative h-9 overflow-hidden border-b border-white/[0.07] bg-black/60 text-slate-300" aria-label="Últims resultats i propers partits">
       <div className="absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-pitch to-transparent" />
       <div className="absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-pitch to-transparent" />
       <div className="flex h-full w-max animate-marquee items-center hover:[animation-play-state:paused]">

@@ -20,7 +20,7 @@ function TeamSide({ team, align, dim, win }: { team: Team; align: 'left' | 'righ
     <button
       onClick={() => openModal({ kind: 'team', id: team.id })}
       className={cn('group flex min-w-0 flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-left', align === 'right' && 'sm:flex-row-reverse sm:text-right')}
-      aria-label={`Ver equipo ${team.name}`}
+      aria-label={`Veure l’equip ${team.name}`}
     >
       <span className="transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
         <TeamCrest team={team} size={52} />
@@ -102,7 +102,7 @@ export function MatchCard({ match, home, away, index = 0 }: Props) {
           )}
         </div>
         <button onClick={() => openModal({ kind: 'match', id: match.id })} className="btn-ghost !px-3 !py-1.5 text-xs">
-          Ficha del partido
+          Fitxa del partit
         </button>
       </div>
     </motion.article>

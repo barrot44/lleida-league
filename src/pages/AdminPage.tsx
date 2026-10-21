@@ -1,37 +1,42 @@
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { motion } from 'framer-motion';
-import { Image as ImageIcon, LogOut, Newspaper, Settings, Shield, Swords, Users } from 'lucide-react';
+import { Camera, Image as ImageIcon, LogOut, Newspaper, Settings, Shield, Sparkles, Swords, Users } from 'lucide-react';
 import { AdminGate } from '@/components/admin/AdminGate';
+import { ClubManager } from '@/components/admin/ClubManager';
 import { GalleryManager } from '@/components/admin/GalleryManager';
 import { MatchManager } from '@/components/admin/MatchManager';
 import { NewsManager } from '@/components/admin/NewsManager';
 import { PlayerManager } from '@/components/admin/PlayerManager';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
+import { SocialStudio } from '@/components/admin/SocialStudio';
 import { TeamManager } from '@/components/admin/TeamManager';
 import { PageHeader } from '@/components/ui/Section';
-import type { SyncStatus } from '@/hooks/useRemoteSync';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { cn } from '@/lib/utils';
 
 const TABS = [
-  { id: 'matches', label: 'Partidos', icon: Swords },
-  { id: 'teams', label: 'Equipos', icon: Shield },
-  { id: 'players', label: 'Jugadores', icon: Users },
-  { id: 'gallery', label: 'Galería', icon: ImageIcon },
-  { id: 'news', label: 'Comunicados', icon: Newspaper },
-  { id: 'settings', label: 'Ajustes y copia', icon: Settings },
+  { id: 'matches', label: 'Partits', icon: Swords },
+  { id: 'teams', label: 'Equips', icon: Shield },
+  { id: 'players', label: 'Jugadors', icon: Users },
+  { id: 'social', label: 'Xarxes', icon: Camera },
+  { id: 'gallery', label: 'Galeria', icon: ImageIcon },
+  { id: 'news', label: 'Comunicats', icon: Newspaper },
+  { id: 'club', label: 'Club', icon: Sparkles },
+  { id: 'settings', label: 'Ajustos i còpia', icon: Settings },
 ] as const;
 
-export default function AdminPage({ sync }: { sync: SyncStatus }) {
+type TabId = (typeof TABS)[number]['id'];
+
+export default function AdminPage() {
   const unlocked = useUiStore((s) => s.adminUnlocked);
   const lock = useUiStore((s) => s.lockAdmin);
   const toast = useUiStore((s) => s.toast);
   const matches = useLeagueStore((s) => s.matches);
   const teams = useLeagueStore((s) => s.teams);
   const players = useLeagueStore((s) => s.players);
-  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('matches');
+  const [tab, setTab] = useState<TabId>('matches');
 
   if (!unlocked) return <AdminGate />;
 
@@ -41,27 +46,27 @@ export default function AdminPage({ sync }: { sync: SyncStatus }) {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <PageHeader
         eyebrow="Back-office"
-        title="Panel de control"
-        description="Gestiona resultados, equipos, jugadores y galería. Todo se guarda al instante y la clasificación se recalcula sola."
+        title="Tauler de control"
+        description="Gestiona resultats, equips, jugadors i galeria, i crea imatges per a les xarxes. Tot es desa a l’instant i la classificació es recalcula sola."
         actions={
           <button
             className="btn-ghost"
             onClick={() => {
               lock();
-              toast('Sesión de administrador cerrada.', 'info');
+              toast('Sessió d’administrador tancada.', 'info');
             }}
           >
-            <LogOut size={16} /> Cerrar sesión
+            <LogOut size={16} /> Tanca la sessió
           </button>
         }
       />
 
       <div className="mb-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          ['Equipos', teams.length],
-          ['Jugadores', players.length],
-          ['Partidos', matches.length],
-          ['En directo', live],
+          ['Equips', teams.length],
+          ['Jugadors', players.length],
+          ['Partits', matches.length],
+          ['En directe', live],
         ].map(([k, v]) => (
           <div key={k} className="card px-4 py-3">
             <p className="digital text-3xl text-gold-gradient">{v}</p>
@@ -70,8 +75,8 @@ export default function AdminPage({ sync }: { sync: SyncStatus }) {
         ))}
       </div>
 
-      <Tabs.Root value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <Tabs.List aria-label="Secciones del panel" className="hide-scrollbar glass mb-7 flex gap-1 overflow-x-auto rounded-2xl p-1">
+      <Tabs.Root value={tab} onValueChange={(v) => setTab(v as TabId)}>
+        <Tabs.List aria-label="Seccions del tauler" className="hide-scrollbar glass mb-7 flex gap-1 overflow-x-auto rounded-2xl p-1">
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.id;
@@ -92,9 +97,11 @@ export default function AdminPage({ sync }: { sync: SyncStatus }) {
         <Tabs.Content value="matches" className="outline-none"><MatchManager /></Tabs.Content>
         <Tabs.Content value="teams" className="outline-none"><TeamManager /></Tabs.Content>
         <Tabs.Content value="players" className="outline-none"><PlayerManager /></Tabs.Content>
+        <Tabs.Content value="social" className="outline-none"><SocialStudio /></Tabs.Content>
         <Tabs.Content value="gallery" className="outline-none"><GalleryManager /></Tabs.Content>
         <Tabs.Content value="news" className="outline-none"><NewsManager /></Tabs.Content>
-        <Tabs.Content value="settings" className="outline-none"><SettingsPanel sync={sync} /></Tabs.Content>
+        <Tabs.Content value="club" className="outline-none"><ClubManager /></Tabs.Content>
+        <Tabs.Content value="settings" className="outline-none"><SettingsPanel /></Tabs.Content>
       </Tabs.Root>
     </div>
   );
