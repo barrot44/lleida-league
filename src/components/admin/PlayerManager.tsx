@@ -5,7 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { PositionTag } from '@/components/ui/Badges';
-import { Field, Stepper } from '@/components/admin/fields';
+import { Field, ImageInput, Stepper } from '@/components/admin/fields';
 import { CATEGORIES, POSITIONS, POSITION_LABEL } from '@/config/site';
 import { emptyStats } from '@/lib/standings';
 import { useLeagueStore } from '@/store/useLeagueStore';
@@ -83,9 +83,7 @@ function PlayerEditor({ initial, isNew, onClose }: { initial: Player; isNew: boo
                 ))}
               </select>
             </Field>
-            <Field label="URL de la foto (opcional)" className="sm:col-span-2" hint="Buit = avatar generat amb els colors de l’equip.">
-              <input className="input" value={p.photoUrl} onChange={(e) => patch({ photoUrl: e.target.value })} placeholder="https://…/foto.jpg" />
-            </Field>
+            <ImageInput label="Foto (opcional)" className="sm:col-span-2" kind="avatar" folder="jugadors" value={p.photoUrl} onChange={(photoUrl) => patch({ photoUrl })} hint="Buit = avatar generat amb els colors de l’equip." />
           </div>
         </div>
 

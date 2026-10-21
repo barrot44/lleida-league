@@ -85,5 +85,32 @@ create trigger league_state_touch
 -- select id from auth.users where email = 'EL-TEU-CORREU@exemple.com'
 -- on conflict do nothing;
 
+-- 4b) Fotos: bucket públic «fotos» (lectura per a tothom, pujada només per a admins) ----------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('fotos', 'fotos', true, 5242880, array['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+on conflict (id) do update
+  set public = true, file_size_limit = 5242880, allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+drop policy if exists "Fotos: lectura pública"      on storage.objects;
+drop policy if exists "Fotos: admins pugen"         on storage.objects;
+drop policy if exists "Fotos: admins actualitzen"   on storage.objects;
+drop policy if exists "Fotos: admins esborren"      on storage.objects;
+
+create policy "Fotos: lectura pública"
+  on storage.objects for select to anon, authenticated
+  using (bucket_id = 'fotos');
+
+create policy "Fotos: admins pugen"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'fotos' and public.is_admin());
+
+create policy "Fotos: admins actualitzen"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'fotos' and public.is_admin()) with check (bucket_id = 'fotos' and public.is_admin());
+
+create policy "Fotos: admins esborren"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'fotos' and public.is_admin());
+
 -- 5) (Opcional) Temps real: perquè els visitants rebin els canvis sense recarregar
 -- alter publication supabase_realtime add table public.league_state;

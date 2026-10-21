@@ -3,7 +3,7 @@ import { ImagePlus, Pencil, Save, Trash2, X } from 'lucide-react';
 import type { CategoryId, GalleryItem } from '@/types';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SmartImage } from '@/components/ui/SmartImage';
-import { Field, SectionCard } from '@/components/admin/fields';
+import { Field, ImageInput, SectionCard } from '@/components/admin/fields';
 import { CATEGORIES, CATEGORY_BY_ID } from '@/config/site';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -82,9 +82,7 @@ export function GalleryManager() {
             )}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="URL de la imatge" className="sm:col-span-2" hint="Enganxa l’enllaç directe a la foto (https://…jpg / png / webp).">
-              <input className="input" value={form.imageUrl} onChange={(e) => patch({ imageUrl: e.target.value })} placeholder="https://…" />
-            </Field>
+            <ImageInput label="Imatge" className="sm:col-span-2" kind="photo" folder="galeria" value={form.imageUrl} onChange={(imageUrl) => patch({ imageUrl })} hint="Puja una foto des d’aquest dispositiu (mòbil o ordinador) o enganxa’n l’enllaç." />
             <Field label="Títol / peu de foto">
               <input className="input" value={form.title} onChange={(e) => patch({ title: e.target.value })} />
             </Field>

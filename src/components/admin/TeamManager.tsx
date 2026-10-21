@@ -4,7 +4,7 @@ import type { CategoryId, Team } from '@/types';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TeamCrest } from '@/components/ui/TeamCrest';
-import { Field } from '@/components/admin/fields';
+import { Field, ImageInput } from '@/components/admin/fields';
 import { CATEGORIES } from '@/config/site';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -71,9 +71,7 @@ function TeamEditor({ initial, isNew, onClose }: { initial: Team; isNew: boolean
           <Field label="Color secundari">
             <input type="color" className="h-11 w-full cursor-pointer rounded-xl border border-white/10 bg-pitch/70 p-1" value={t.secondaryColor} onChange={(e) => patch({ secondaryColor: e.target.value })} />
           </Field>
-          <Field label="URL de l’escut (opcional)" hint="Deixa-ho buit per usar l’escut generat amb els colors de l’equip." className="sm:col-span-2">
-            <input className="input" value={t.logoUrl} onChange={(e) => patch({ logoUrl: e.target.value })} placeholder="https://…/escudo.png" />
-          </Field>
+          <ImageInput label="Escut (opcional)" kind="logo" folder="escuts" value={t.logoUrl} onChange={(logoUrl) => patch({ logoUrl })} hint="Deixa-ho buit per usar l’escut generat amb els colors de l’equip." className="sm:col-span-2" />
           <Field label="Història" className="sm:col-span-2">
             <textarea className="input min-h-[96px]" value={t.history} onChange={(e) => patch({ history: e.target.value })} />
           </Field>

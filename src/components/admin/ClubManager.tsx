@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pencil, Plus, Save, Trash2, X } from 'lucide-react';
 import type { CategoryId, Champion, Referee, Sponsor } from '@/types';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Field, SectionCard } from '@/components/admin/fields';
+import { Field, ImageInput, SectionCard } from '@/components/admin/fields';
 import { CATEGORIES, CATEGORY_BY_ID } from '@/config/site';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -139,9 +139,7 @@ export function ClubManager() {
           <Field label="Web (opcional)">
             <input className="input" value={sponsor.url ?? ''} onChange={(e) => setSponsor({ ...sponsor, url: e.target.value })} placeholder="https://…" />
           </Field>
-          <Field label="URL del logo (opcional)">
-            <input className="input" value={sponsor.logoUrl ?? ''} onChange={(e) => setSponsor({ ...sponsor, logoUrl: e.target.value })} placeholder="https://…/logo.png" />
-          </Field>
+          <ImageInput label="Logo (opcional)" kind="logo" folder="logos" value={sponsor.logoUrl ?? ''} onChange={(logoUrl) => setSponsor({ ...sponsor, logoUrl })} />
           <div className="flex items-end">
             <button className="btn-gold" onClick={saveSponsor}>
               {sponsorEditing ? <Save size={16} /> : <Plus size={16} />} {sponsorEditing ? 'Desa' : 'Afegeix'}

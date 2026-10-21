@@ -1,5 +1,7 @@
-import { Minus, Plus } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Loader2, Minus, Plus, Upload, X } from 'lucide-react';
+import { useRef, useState, type ReactNode } from 'react';
+import { uploadImage, type UploadKind } from '@/lib/upload';
+import { useUiStore } from '@/store/useUiStore';
 import { cn } from '@/lib/utils';
 
 export function Field({ label, hint, className, children }: { label: string; hint?: string; className?: string; children: ReactNode }) {
@@ -9,6 +11,64 @@ export function Field({ label, hint, className, children }: { label: string; hin
       {children}
       {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
     </label>
+  );
+}
+
+interface ImageInputProps {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  kind: UploadKind;
+  folder: string;
+  hint?: string;
+  className?: string;
+  placeholder?: string;
+}
+
+/** Picture field: pick a file from this device (gallery or camera on a phone) or paste a link. */
+export function ImageInput({ label, value, onChange, kind, folder, hint, className, placeholder }: ImageInputProps) {
+  const toast = useUiStore((s) => s.toast);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const inline = value.startsWith('data:');
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      onChange(await uploadImage(file, kind, folder));
+      toast('Imatge pujada.', 'success');
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'No s’ha pogut pujar la imatge.', 'error');
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className={cn('block', className)}>
+      <span className="label">{label}</span>
+      <div className="flex gap-2">
+        <input
+          className="input min-w-0 flex-1"
+          value={inline ? '' : value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={inline ? 'Imatge pujada des del dispositiu' : (placeholder ?? 'Enganxa un enllaç o puja una foto →')}
+          aria-label={label}
+        />
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => void pick(e.target.files?.[0])} />
+        <button type="button" className="btn-ghost shrink-0" disabled={busy} onClick={() => fileRef.current?.click()}>
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} {busy ? 'Pujant…' : 'Puja foto'}
+        </button>
+        {value && (
+          <button type="button" className="btn-ghost shrink-0 !px-3" aria-label="Treu la imatge" onClick={() => onChange('')}>
+            <X size={16} />
+          </button>
+        )}
+      </div>
+      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
+    </div>
   );
 }
 
