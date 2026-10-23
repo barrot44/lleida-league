@@ -1,0 +1,13 @@
+# Upload only what the build needs (the project folder also holds videos and photos for the streams).
+/*
+!/src
+!/public
+!/supabase
+!/index.html
+!/package.json
+!/package-lock.json
+!/vite.config.ts
+!/tsconfig.json
+!/tailwind.config.js
+!/postcss.config.js
+!/vercel.json
