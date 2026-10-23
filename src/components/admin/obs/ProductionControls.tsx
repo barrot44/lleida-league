@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Clapperboard, Film, Loader2, Play, Rewind, Snail, Sparkles, Star, Trash2, TriangleAlert } from 'lucide-react';
+import { Clapperboard, Film, Loader2, Play, Save, Snail, Sparkles, Star, Trash2, TriangleAlert } from 'lucide-react';
 import type { ObsExecStatus } from '@/obs/types';
 import { onExecStatus } from '@/obs/bus';
 import { REPLAY_SCENE } from '@/obs/executor';
@@ -55,23 +55,25 @@ export function ProductionControls({ actions }: { actions: Actions }) {
     return sb.home ? `Jugada · ${matchMinute(sb.clock, sb.period)}’` : 'Jugada';
   };
 
-  const replay = (slow: boolean) => {
+  /** Saves the last seconds into "Jugades del partit" without putting anything on air. */
+  const saveClip = () => {
     if (!execOn) return toast('La capa d’OBS encara no té el control (mira les instruccions de sota).', 'error');
     if (!exec.replayBuffer) return toast(exec.replayError ?? 'El buffer de repeticions d’OBS no està actiu.', 'error');
     const clipId = uid('clip');
     const text = label.trim() || suggestLabel();
     const sb = state.scoreboard;
-    actions.sendCmd({ type: 'replay', clipId, label: text, slow }, (s) => ({
+    actions.sendCmd({ type: 'save', clipId }, (s) => ({
       clips: [...s.clips, { id: clipId, label: text, minute: sb.home ? matchMinute(sb.clock, sb.period) : null, at: Date.now(), starred: false }].slice(-40),
     }));
     setLabel('');
+    toast(`Jugada desada: «${text}». Reprodueix-la quan vulguis des de la llista.`, 'info');
   };
 
-  const playClips = (ids: string[], title: string) => {
+  const playClips = (list: typeof clips, title: string, slow: boolean) => {
     if (!execOn) return toast('La capa d’OBS no està connectada a OBS.', 'error');
-    const playable = ids.filter((id) => known.has(id));
+    const playable = list.filter((c) => known.has(c.id));
     if (!playable.length) return toast('Aquestes jugades no són a l’ordinador d’OBS.', 'error');
-    actions.sendCmd({ type: 'play', clipIds: playable, title, slow: false });
+    actions.sendCmd({ type: 'play', clipIds: playable.map((c) => c.id), labels: playable.map((c) => c.label), title, slow });
   };
 
   const patchClips = (fn: (c: typeof clips) => typeof clips) => actions.update((s) => ({ ...s, clips: fn(s.clips) }));
@@ -128,19 +130,14 @@ export function ProductionControls({ actions }: { actions: Actions }) {
       {/* Replay */}
       <div className="mt-5 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3">
         <p className="label flex items-center gap-1.5">
-          <Rewind size={12} /> Repetició (últims segons)
+          <Save size={12} /> Desa la jugada (últims segons)
         </p>
         <input className="input !py-2" value={label} onChange={(e) => setLabel(e.target.value)} placeholder={`Etiqueta (si la deixes buida: «${suggestLabel()}»)`} />
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <button className="btn-gold !py-3" disabled={!!exec?.busy} onClick={() => replay(false)}>
-            <Rewind size={17} /> Repetició
-          </button>
-          <button className="btn-ghost !py-3" disabled={!!exec?.busy} onClick={() => replay(true)}>
-            <Snail size={17} /> Càmera lenta
-          </button>
-        </div>
+        <button className="btn-gold mt-2 w-full !py-3" disabled={exec?.busy === 'Desant la jugada…'} onClick={saveClip}>
+          <Save size={17} /> Desa la jugada
+        </button>
         {execOn && !exec.replayBuffer && <p className="mt-2 text-xs text-red-300">{exec.replayError}</p>}
-        <p className="mt-2 text-[11px] text-slate-500">Desa la jugada, la mostra amb la transició del logo i torna sola al directe. Queda guardada a «Jugades del partit».</p>
+        <p className="mt-2 text-[11px] text-slate-500">No surt res en pantalla: la jugada es guarda a la llista i la reprodueixes quan vulguis (▶ normal o 🐌 càmera lenta).</p>
       </div>
 
       {/* Plays of the match */}
@@ -150,7 +147,7 @@ export function ProductionControls({ actions }: { actions: Actions }) {
             <Film size={12} /> Jugades del partit ({clips.length})
           </p>
           <div className="flex gap-2">
-            <button className="btn-gold !px-3 !py-1.5 text-xs" disabled={clips.length === 0 || !!exec?.busy} onClick={() => playClips((starred.length ? starred : clips).map((c) => c.id), 'Jugades del partit')}>
+            <button className="btn-gold !px-3 !py-1.5 text-xs" disabled={clips.length === 0 || !!exec?.busy} onClick={() => playClips(starred.length ? starred : clips, 'Jugades del partit', false)}>
               <Play size={13} fill="currentColor" /> Resum {starred.length ? `(${starred.length} ⭐)` : `(${clips.length})`}
             </button>
             {clips.length > 0 && (
@@ -161,11 +158,12 @@ export function ProductionControls({ actions }: { actions: Actions }) {
           </div>
         </div>
         {clips.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-white/10 px-3 py-4 text-center text-xs text-slate-500">Cada repetició que facis s’acumularà aquí. Marca les millors amb ⭐ i al descans o al final llança el resum.</p>
+          <p className="rounded-xl border border-dashed border-white/10 px-3 py-4 text-center text-xs text-slate-500">Cada jugada que desis s’acumularà aquí. Reprodueix-les quan vulguis, marca les millors amb ⭐ i al descans o al final llança el resum.</p>
         ) : (
           <ul className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
             {clips.map((c) => {
               const ok = !exec || known.has(c.id);
+              const saving = !!exec && !ok && Date.now() - c.at < 15_000;
               return (
                 <li key={c.id} className={cn('flex items-center gap-2 rounded-xl border px-2 py-1.5', c.starred ? 'border-amber-400/50 bg-amber-400/[0.07]' : 'border-white/[0.07] bg-white/[0.02]')}>
                   <button aria-label={c.starred ? 'Treu la estrella' : 'Marca com a destacada'} onClick={() => patchClips((l) => l.map((x) => (x.id === c.id ? { ...x, starred: !x.starred } : x)))} className={c.starred ? 'text-amber-300' : 'text-slate-600 hover:text-amber-300'}>
@@ -177,9 +175,12 @@ export function ProductionControls({ actions }: { actions: Actions }) {
                     onChange={(e) => patchClips((l) => l.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)))}
                     aria-label="Etiqueta de la jugada"
                   />
-                  {!ok && <span className="text-[10px] font-bold uppercase text-slate-500">no disponible</span>}
-                  <button className="btn-ghost !p-1.5" aria-label="Torna-la a reproduir" disabled={!ok || !!exec?.busy} onClick={() => playClips([c.id], 'Repetició')}>
+                  {!ok && <span className="text-[10px] font-bold uppercase text-slate-500">{saving ? 'desant…' : 'no disponible'}</span>}
+                  <button className="btn-ghost !p-1.5" aria-label="Reprodueix-la" title="Reprodueix" disabled={!ok || !!exec?.busy} onClick={() => playClips([c], 'Repetició', false)}>
                     <Play size={13} />
+                  </button>
+                  <button className="btn-ghost !p-1.5" aria-label="Reprodueix-la a càmera lenta" title="Càmera lenta" disabled={!ok || !!exec?.busy} onClick={() => playClips([c], 'Repetició', true)}>
+                    <Snail size={13} />
                   </button>
                   <button className="btn-ghost !p-1.5 hover:!text-red-300" aria-label="Esborra la jugada" onClick={() => patchClips((l) => l.filter((x) => x.id !== c.id))}>
                     <Trash2 size={13} />

@@ -12,6 +12,7 @@ import { BrandControls, LowerThirdControls, ScreenControls, TickerControls } fro
 import { ObsConnection } from '@/components/admin/obs/ObsConnection';
 import { ProductionControls } from '@/components/admin/obs/ProductionControls';
 import { MvpPollControls } from '@/components/admin/obs/MvpPollControls';
+import { DiceControls } from '@/components/admin/obs/DiceControls';
 import { useObsActions, useSyncSetting } from '@/components/admin/obs/useObsActions';
 import { cn } from '@/lib/utils';
 
@@ -129,6 +130,7 @@ export function ObsStudio() {
         </div>
         <div className="space-y-6">
           <ScoreboardControls actions={actions} sync={sync} setSync={setSync} />
+          <DiceControls actions={actions} />
           <ProductionControls actions={actions} />
           <GraphicsControls actions={actions} />
           <MvpPollControls actions={actions} />

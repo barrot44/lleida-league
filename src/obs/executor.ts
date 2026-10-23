@@ -173,7 +173,14 @@ export class ObsExecutor {
     if (!this.socket.connected) return;
     try {
       if (cmd.type === 'scene') await this.switchScene(cmd.scene, cmd.transition);
-      else if (cmd.type === 'replay') {
+      else if (cmd.type === 'save') {
+        this.patch({ busy: 'Desant la jugada…' });
+        this.files[cmd.clipId] = await this.saveReplay();
+        save(FILES_KEY, this.files);
+      } else if (cmd.type === 'video') {
+        if (cmd.delay) await sleep(cmd.delay);
+        await this.play([{ path: cmd.path, label: cmd.label }], false, cmd.title);
+      } else if (cmd.type === 'replay') {
         this.patch({ busy: 'Desant la jugada…' });
         const path = await this.saveReplay();
         this.files[cmd.clipId] = path;
@@ -181,7 +188,7 @@ export class ObsExecutor {
         await this.play([{ id: cmd.clipId, label: cmd.label }], cmd.slow, 'Repetició');
       } else if (cmd.type === 'play') {
         await this.play(
-          cmd.clipIds.map((id) => ({ id, label: '' })),
+          cmd.clipIds.map((id, i) => ({ id, label: cmd.labels?.[i] ?? '' })),
           cmd.slow,
           cmd.title,
         );
@@ -298,8 +305,12 @@ export class ObsExecutor {
     await this.refreshScenes();
   }
 
-  private async play(items: { id: string; label: string }[], slow: boolean, title: string) {
-    const playable = items.filter((i) => this.files[i.id]);
+  /** Plays clips (by saved id) or plain video files (by path), one after another, and goes back to the live scene. */
+  private async play(items: ({ id: string; label: string } | { path: string; label: string })[], slow: boolean, title: string) {
+    const playable = items.flatMap((i) => {
+      const path = 'path' in i ? i.path : this.files[i.id];
+      return path ? [{ path, label: i.label }] : [];
+    });
     if (playable.length === 0) throw new Error('Aquestes jugades no són en aquest ordinador.');
     this.patch({ busy: playable.length > 1 ? `Reproduint ${playable.length} jugades…` : 'Reproduint la repetició…' });
     await this.ensureReplayScene();
@@ -308,7 +319,7 @@ export class ObsExecutor {
     for (let i = 0; i < playable.length; i++) {
       const clip = playable[i];
       await this.cover();
-      await this.req('SetInputSettings', { inputName: REPLAY_MEDIA, inputSettings: { local_file: this.files[clip.id], is_local_file: true, speed_percent: slow ? 50 : 100 } });
+      await this.req('SetInputSettings', { inputName: REPLAY_MEDIA, inputSettings: { local_file: clip.path, is_local_file: true, speed_percent: slow ? 50 : 100 } });
       if (i === 0) await this.req('SetCurrentProgramScene', { sceneName: REPLAY_SCENE });
       const ended = new Promise<void>((r) => (this.endedWaiter = r));
       await this.req('TriggerMediaInputAction', { inputName: REPLAY_MEDIA, mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART' });

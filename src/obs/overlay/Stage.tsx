@@ -7,6 +7,7 @@ import { BrandBug, LowerThird, QrCorner, ReplayTag, SponsorBug, TickerBar } from
 import { MainGraphic } from '@/obs/overlay/Graphics';
 import { FullScreen } from '@/obs/overlay/Screens';
 import { Stinger, useSting } from '@/obs/overlay/Stinger';
+import { DICE_DURATION, DiceRoll } from '@/obs/overlay/DiceRoll';
 import { FitInside, boardMotion } from '@/obs/overlay/kit';
 
 export const STAGE_W = 1920;
@@ -40,6 +41,8 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
   const showScreen = on('pantalles') && state.screen.visible;
   const showReplay = on('marcador') && (state.replay.visible || !!fx?.replay);
   const covered = on('pantalles') && (sting || !!fx?.cover);
+  const dice = state.dice.last;
+  const showDice = on('avisos') && !!dice && now - dice.at >= -2000 && now - dice.at < DICE_DURATION;
 
   return (
     <div
@@ -66,6 +69,7 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
       <AnimatePresence>{showQr && <QrCorner key={`qr-${state.qr.url}`} url={state.qr.url} label={state.qr.label} raised={showTicker} />}</AnimatePresence>
       <AnimatePresence>{showTicker && <TickerBar key="ticker" ticker={state.ticker} />}</AnimatePresence>
       <AnimatePresence>{flash && <Flash key={flash.id} flash={flash} />}</AnimatePresence>
+      <AnimatePresence>{showDice && dice && <DiceRoll key={dice.id} face={dice.face} result={dice.result} label={state.dice.labels[dice.result - 1] ?? ''} />}</AnimatePresence>
 
       <AnimatePresence>
         {showScreen && <FullScreen key={`screen-${state.screen.kind}`} screen={state.screen} sb={sb} sponsors={state.sponsors.items} accent={state.accent} now={now} />}

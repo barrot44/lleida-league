@@ -189,12 +189,31 @@ export interface ObsState {
   cmds: ObsCommand[];
   /** Plays of the match saved with the replay buffer ("Jugades del partit"). */
   clips: ObsClip[];
+  /** The public's dice throw (last two minutes of the first half). */
+  dice: ObsDice;
 }
+
+export interface ObsDice {
+  /** What each result (1–4) means, shown under the number. */
+  labels: string[];
+  /** Optional video file (on the OBS computer) for each result, played after the animation. */
+  videos: string[];
+  playVideo: boolean;
+  /** Last throw: the face that came out (1–6) and the result it counts as (1–4). */
+  last: { id: string; at: number; face: number; result: number } | null;
+}
+
+/** Faces 5 and 6 count as 1 and 2: the die only has four real results. */
+export const diceResult = (face: number) => (face === 5 ? 1 : face === 6 ? 2 : face);
 
 export type ObsCommand =
   | { id: string; at: number; type: 'scene'; scene: string; transition: boolean }
   | { id: string; at: number; type: 'replay'; clipId: string; label: string; slow: boolean }
-  | { id: string; at: number; type: 'play'; clipIds: string[]; title: string; slow: boolean };
+  /** Saves the last seconds as a clip WITHOUT putting it on air (played later from the list). */
+  | { id: string; at: number; type: 'save'; clipId: string }
+  /** Plays a video file of the OBS computer (e.g. the dice result videos) in the replay scene. */
+  | { id: string; at: number; type: 'video'; path: string; title: string; label: string; delay?: number }
+  | { id: string; at: number; type: 'play'; clipIds: string[]; labels?: string[]; title: string; slow: boolean };
 
 export interface ObsClip {
   id: string;

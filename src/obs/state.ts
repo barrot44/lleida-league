@@ -55,6 +55,12 @@ export function defaultObsState(): ObsState {
     transition: null,
     cmds: [],
     clips: [],
+    dice: {
+      labels: ['', '', '', ''],
+      videos: ['DAU NUMERO 1.mp4', 'Dau numero 2.mp4', 'DAU NUMERO 3.mp4', 'DAU NUMERO 4.mp4'].map((f) => `C:/Users/ferra/Desktop/LLEIDA LEAGUE/VIDEOS DAUS/${f}`),
+      playVideo: false,
+      last: null,
+    },
   };
 }
 
@@ -80,6 +86,7 @@ export function normalizeObsState(raw: unknown): ObsState {
     transition: r.transition ?? null,
     cmds: Array.isArray(r.cmds) ? r.cmds : [],
     clips: Array.isArray(r.clips) ? r.clips : [],
+    dice: { ...base.dice, ...r.dice, last: r.dice?.last ?? null },
   };
 }
 
