@@ -57,7 +57,7 @@ export function defaultObsState(): ObsState {
     clips: [],
     dice: {
       labels: ['', '', '', ''],
-      videos: ['DAU NUMERO 1.mp4', 'Dau numero 2.mp4', 'DAU NUMERO 3.mp4', 'DAU NUMERO 4.mp4'].map((f) => `C:/Users/ferra/Desktop/LLEIDA LEAGUE/VIDEOS DAUS/${f}`),
+      videos: ['DAU NUMERO 1.mp4', 'Dau numero 2.mp4', 'DAU NUMERO 3.mp4', 'DAU NUMERO 4.mp4'].map((f) => `C:/Users/ferra/Desktop/LLEIDA LEAGUE/VIDEOS I FOTOS/VIDEOS DAUS/${f}`),
       playVideo: false,
       last: null,
     },
