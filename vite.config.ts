@@ -46,7 +46,7 @@ function seoPlugin(env: Record<string, string | undefined>): Plugin {
       this.emitFile({
         type: 'asset',
         fileName: 'robots.txt',
-        source: `User-agent: *\nAllow: /\nDisallow: /admin\n${siteUrl ? `\nSitemap: ${siteUrl}/sitemap.xml\n` : ''}`,
+        source: `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /obs\n${siteUrl ? `\nSitemap: ${siteUrl}/sitemap.xml\n` : ''}`,
       });
       if (!siteUrl) return;
       const today = new Date().toISOString().slice(0, 10);

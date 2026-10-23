@@ -112,5 +112,54 @@ create policy "Fotos: admins esborren"
   on storage.objects for delete to authenticated
   using (bucket_id = 'fotos' and public.is_admin());
 
+-- 4c) Directe (OBS): estat dels gràfics en una fila JSON, en temps real ---------------------
+create table if not exists public.obs_state (
+  id         text primary key,
+  data       jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.obs_state enable row level security;
+
+drop policy if exists "OBS: lectura pública"     on public.obs_state;
+drop policy if exists "OBS: admins insereixen"   on public.obs_state;
+drop policy if exists "OBS: admins actualitzen"  on public.obs_state;
+
+create policy "OBS: lectura pública"
+  on public.obs_state for select to anon, authenticated
+  using (true);
+
+create policy "OBS: admins insereixen"
+  on public.obs_state for insert to authenticated
+  with check (public.is_admin());
+
+create policy "OBS: admins actualitzen"
+  on public.obs_state for update to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists obs_state_touch on public.obs_state;
+create trigger obs_state_touch
+  before insert or update on public.obs_state
+  for each row execute function public.touch_updated_at();
+
+-- La capa d'OBS rep els canvis a l'instant (Realtime). Si ja hi era, no passa res.
+do $$
+begin
+  alter publication supabase_realtime add table public.obs_state;
+exception
+  when duplicate_object then null;
+end
+$$;
+
 -- 5) (Opcional) Temps real: perquè els visitants rebin els canvis sense recarregar
 -- alter publication supabase_realtime add table public.league_state;

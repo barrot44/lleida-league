@@ -1,0 +1,139 @@
+import { useMemo, useState } from 'react';
+import { AlertTriangle, Check, ChevronDown, Copy, ExternalLink, Eraser, Wifi, WifiOff } from 'lucide-react';
+import { OBS_LAYERS, type ObsLayerId } from '@/obs/types';
+import { useObsStore, useObsSync } from '@/obs/useObsStore';
+import { obsRemoteEnabled } from '@/obs/transport';
+import { useUiStore } from '@/store/useUiStore';
+import { SectionCard } from '@/components/admin/fields';
+import { ObsPreview } from '@/components/admin/obs/ObsPreview';
+import { ScoreboardControls } from '@/components/admin/obs/ScoreboardControls';
+import { GraphicsControls } from '@/components/admin/obs/GraphicsControls';
+import { BrandControls, LowerThirdControls, ScreenControls, TickerControls } from '@/components/admin/obs/ExtrasControls';
+import { ObsConnection } from '@/components/admin/obs/ObsConnection';
+import { useObsActions, useSyncSetting } from '@/components/admin/obs/useObsActions';
+import { cn } from '@/lib/utils';
+
+function StatusChip() {
+  const { readStatus, readDetail, writeStatus, writeError } = useObsStore();
+  if (!obsRemoteEnabled)
+    return (
+      <span className="flex items-center gap-1.5 rounded-full bg-amber-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+        <WifiOff size={13} /> Mode local · només aquest navegador
+      </span>
+    );
+  const bad = writeStatus === 'error' || readStatus === 'error';
+  const text = writeStatus === 'error' ? writeError : readStatus === 'error' ? (readDetail === 'missing-table' ? 'Falta la taula «obs_state» a Supabase' : 'Sense connexió') : readStatus === 'realtime' ? 'En temps real' : readStatus === 'polling' ? 'Connectat (cada 2 s)' : 'Connectant…';
+  return (
+    <span className={cn('flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider', bad ? 'bg-red-500/15 text-red-300' : 'bg-emerald-500/15 text-emerald-300')}>
+      {bad ? <AlertTriangle size={13} /> : <Wifi size={13} />} {text}
+    </span>
+  );
+}
+
+function SetupCard({ overlayUrl }: { overlayUrl: string }) {
+  const toast = useUiStore((s) => s.toast);
+  const [open, setOpen] = useState(false);
+  const [layers, setLayers] = useState<ObsLayerId[]>([]);
+  const [copied, setCopied] = useState('');
+  const url = layers.length ? `${overlayUrl}?capes=${layers.join(',')}` : overlayUrl;
+
+  const copy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(text);
+      window.setTimeout(() => setCopied(''), 1800);
+    } catch {
+      toast('No s’ha pogut copiar. Selecciona l’enllaç i copia’l a mà.', 'error');
+    }
+  };
+
+  return (
+    <SectionCard title="La capa per a OBS" actions={<StatusChip />}>
+      <div className="flex gap-2">
+        <input readOnly className="input font-mono text-xs" value={url} onFocus={(e) => e.target.select()} aria-label="Enllaç de la capa" />
+        <button className="btn-gold shrink-0 !px-3" onClick={() => void copy(url)} aria-label="Copia l’enllaç">
+          {copied === url ? <Check size={16} /> : <Copy size={16} />}
+        </button>
+        <a className="btn-ghost shrink-0 !px-3" href={url} target="_blank" rel="noreferrer" aria-label="Obre la capa en una pestanya nova">
+          <ExternalLink size={16} />
+        </a>
+      </div>
+      <ol className="mt-4 space-y-1.5 text-sm text-slate-300">
+        <li>
+          <strong className="text-amber-300">1.</strong> A OBS, a l’escena del partit: <strong>+ → Navegador</strong> (Browser).
+        </li>
+        <li>
+          <strong className="text-amber-300">2.</strong> Enganxa l’enllaç a <strong>URL</strong>, amplada <strong>1920</strong> i alçada <strong>1080</strong>. Accepta.
+        </li>
+        <li>
+          <strong className="text-amber-300">3.</strong> Posa la font a dalt de tot de la llista. Tot el que facis aquí hi apareixerà a l’instant.
+        </li>
+      </ol>
+      <p className="mt-3 text-xs text-slate-500">O connecta OBS més avall i prem «Afegeix la capa a l’escena actual»: ho fa sol.</p>
+
+      <button className="mt-4 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white" onClick={() => setOpen((o) => !o)}>
+        <ChevronDown size={14} className={cn('transition', open && 'rotate-180')} /> Avançat: capes separades
+      </button>
+      {open && (
+        <div className="mt-3 rounded-2xl border border-white/10 bg-pitch/50 p-3">
+          <p className="mb-2 text-xs text-slate-400">Si vols posar cada gràfic en una font diferent d’OBS (per ordenar-los o aplicar-hi filtres), tria quines capes ha de dibuixar aquest enllaç:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {OBS_LAYERS.map((l) => {
+              const on = layers.includes(l.id);
+              return (
+                <button key={l.id} onClick={() => setLayers((ls) => (on ? ls.filter((x) => x !== l.id) : [...ls, l.id]))} className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold transition', on ? 'border-amber-400 bg-amber-400/15 text-amber-200' : 'border-white/10 text-slate-400')}>
+                  {l.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {obsRemoteEnabled && (
+        <p className="mt-4 text-xs leading-relaxed text-slate-500">
+          Pots portar el control des del mòbil: entra a l’admin, pestanya <strong>Directe</strong>, i els canvis arriben a OBS per internet. També pots afegir aquesta pàgina dins d’OBS a <strong>Acoblables → Acoblables de navegador personalitzats</strong> (Docks → Custom Browser Docks) amb l’adreça <strong>/admin?tab=live</strong>.
+        </p>
+      )}
+    </SectionCard>
+  );
+}
+
+/** Control room for the live streams: everything shown in OBS is driven from here. */
+export function ObsStudio() {
+  useObsSync();
+  const [sync, setSync] = useSyncSetting();
+  const actions = useObsActions(sync);
+  const overlayUrl = useMemo(() => `${window.location.origin}/obs`, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-3">
+        <p className="text-sm text-slate-400">
+          Controla els gràfics del directe: marcador, gols animats, alineacions, rètols i pantalles. <span className="text-slate-500">Tot es veu a la vista prèvia tal com sortirà a OBS.</span>
+        </p>
+        <button className="btn-danger !py-2" onClick={actions.clearAll}>
+          <Eraser size={15} /> Neteja la pantalla
+        </button>
+      </div>
+
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <SetupCard overlayUrl={overlayUrl} />
+        <ObsConnection overlayUrl={overlayUrl} />
+      </div>
+
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+        <div className="xl:sticky xl:top-24">
+          <ObsPreview />
+        </div>
+        <div className="space-y-6">
+          <ScoreboardControls actions={actions} sync={sync} setSync={setSync} />
+          <GraphicsControls actions={actions} />
+          <LowerThirdControls actions={actions} />
+          <ScreenControls actions={actions} />
+          <TickerControls actions={actions} />
+          <BrandControls actions={actions} />
+        </div>
+      </div>
+    </div>
+  );
+}

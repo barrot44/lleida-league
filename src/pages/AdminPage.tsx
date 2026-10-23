@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { motion } from 'framer-motion';
-import { Camera, Coins, DoorClosed, Film, Image as ImageIcon, LogOut, Newspaper, Settings, Shield, Sparkles, Swords, Users, Wrench } from 'lucide-react';
+import { Camera, Coins, DoorClosed, Film, Image as ImageIcon, LogOut, MonitorPlay, Newspaper, Settings, Shield, Sparkles, Swords, Users, Wrench } from 'lucide-react';
 import { AdminGate } from '@/components/admin/AdminGate';
 import { ClubManager } from '@/components/admin/ClubManager';
 import { GateManager } from '@/components/admin/GateManager';
@@ -16,6 +16,7 @@ import { PlayerManager } from '@/components/admin/PlayerManager';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SocialStudio } from '@/components/admin/SocialStudio';
 import { TeamManager } from '@/components/admin/TeamManager';
+import { ObsStudio } from '@/components/admin/obs/ObsStudio';
 import { PageHeader } from '@/components/ui/Section';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -23,6 +24,7 @@ import { cn } from '@/lib/utils';
 
 const TABS = [
   { id: 'matches', label: 'Partits', icon: Swords },
+  { id: 'live', label: 'Directe (OBS)', icon: MonitorPlay },
   { id: 'teams', label: 'Equips', icon: Shield },
   { id: 'players', label: 'Jugadors', icon: Users },
   { id: 'social', label: 'Xarxes', icon: Camera },
@@ -47,7 +49,11 @@ export default function AdminPage() {
   const matches = useLeagueStore((s) => s.matches);
   const teams = useLeagueStore((s) => s.teams);
   const players = useLeagueStore((s) => s.players);
-  const [tab, setTab] = useState<TabId>('matches');
+  // `/admin?tab=live` opens a tab directly (handy for an OBS custom browser dock).
+  const [tab, setTab] = useState<TabId>(() => {
+    const wanted = new URLSearchParams(window.location.search).get('tab');
+    return TABS.find((t) => t.id === wanted)?.id ?? 'matches';
+  });
 
   if (!unlocked) return <AdminGate />;
 
@@ -135,6 +141,7 @@ export default function AdminPage() {
         </Tabs.List>
 
         <Tabs.Content value="matches" className="outline-none"><MatchManager /></Tabs.Content>
+        <Tabs.Content value="live" className="outline-none"><ObsStudio /></Tabs.Content>
         <Tabs.Content value="teams" className="outline-none"><TeamManager /></Tabs.Content>
         <Tabs.Content value="players" className="outline-none"><PlayerManager /></Tabs.Content>
         <Tabs.Content value="social" className="outline-none"><SocialStudio /></Tabs.Content>
