@@ -21,8 +21,8 @@ export class ObsRequestError extends Error {
   }
 }
 
-/** Event subscriptions: General (1) | Scenes (4) | Outputs (64). */
-const EVENT_SUBSCRIPTIONS = 1 | 4 | 64;
+/** Event subscriptions: General (1) | Scenes (4) | Outputs (64) | MediaInputs (256). */
+const EVENT_SUBSCRIPTIONS = 1 | 4 | 64 | 256;
 
 async function sha256Base64(text: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));

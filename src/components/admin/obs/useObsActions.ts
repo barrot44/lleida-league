@@ -1,12 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { Match, MatchEventType, Player } from '@/types';
-import type { ObsFlashKind, ObsGraphic, ObsPeriod, ObsScreenKind, ObsState } from '@/obs/types';
+import type { ObsCommand, ObsFlashKind, ObsGraphic, ObsPeriod, ObsScreenKind, ObsState } from '@/obs/types';
 import { matchMinute, pauseClock, playerSnap, resetClock, teamSnap } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { uid } from '@/lib/utils';
 
 export type Side = 'home' | 'away';
+
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
 const SYNC_KEY = 'lleida-league:obs-sync';
 
@@ -210,5 +212,15 @@ export function useObsActions(sync: boolean) {
     [players],
   );
 
-  return { update, setScore, goal, sideFlash, setFouls, setPeriod, showGraphic, hideGraphic, showLower, hideLower, showScreen, hideScreen, clearAll, squadOf, patchMatch, teamMap };
+  /** Queues an order for the overlay inside OBS (only the last few are kept). */
+  const sendCmd = useCallback(
+    (cmd: DistributiveOmit<ObsCommand, 'id' | 'at'>, extra?: (s: ObsState) => Partial<ObsState>) =>
+      update((s) => ({ ...s, ...extra?.(s), cmds: [...s.cmds, { ...cmd, id: uid('c'), at: Date.now() } as ObsCommand].slice(-12) })),
+    [update],
+  );
+
+  /** Visual-only logo transition (no scene change). */
+  const sting = useCallback(() => update((s) => ({ ...s, transition: { id: uid('t'), at: Date.now() } })), [update]);
+
+  return { update, sendCmd, sting, setScore, goal, sideFlash, setFouls, setPeriod, showGraphic, hideGraphic, showLower, hideLower, showScreen, hideScreen, clearAll, squadOf, patchMatch, teamMap };
 }

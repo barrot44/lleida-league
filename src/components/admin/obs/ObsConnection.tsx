@@ -16,9 +16,13 @@ export function ObsConnection({ overlayUrl }: { overlayUrl: string }) {
   const [confirm, setConfirm] = useState<'stream' | 'record' | null>(null);
   const on = link.status === 'on';
 
+  // The overlay gets the OBS address in the URL hash (never sent to any server) so it can drive OBS itself:
+  // logo transitions, replays and the plays reel then work from any device, phone included.
+  const controlUrl = `${overlayUrl}#obs=${encodeURIComponent(link.settings.url)}&pw=${encodeURIComponent(link.settings.password)}`;
+
   const install = async () => {
     try {
-      toast(await link.installOverlay(overlayUrl));
+      toast(await link.installOverlay(controlUrl));
     } catch (e) {
       toast(e instanceof Error ? e.message : 'No s’ha pogut afegir la capa.', 'error');
     }
@@ -111,6 +115,21 @@ export function ObsConnection({ overlayUrl }: { overlayUrl: string }) {
               <RefreshCw size={15} /> Recarrega la capa
             </button>
           </div>
+          <p className="text-[11px] leading-relaxed text-slate-500">
+            «Afegeix la capa» també li dona el control d’OBS (transicions i repeticions). Si la vas afegir a mà abans, torna-la a afegir amb aquest botó o{' '}
+            <button
+              className="font-bold text-amber-300 underline-offset-2 hover:underline"
+              onClick={() =>
+                void navigator.clipboard.writeText(controlUrl).then(
+                  () => toast('Enllaç amb control copiat. Enganxa’l a la URL de la font de navegador d’OBS.', 'info'),
+                  () => toast('No s’ha pogut copiar.', 'error'),
+                )
+              }
+            >
+              copia l’enllaç amb control
+            </button>
+            .
+          </p>
           {link.error && <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">{link.error}</p>}
           <button className="btn-ghost w-full !py-2 text-xs" onClick={link.disconnect}>
             <Unplug size={14} /> Desconnecta

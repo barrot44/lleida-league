@@ -161,5 +161,70 @@ exception
 end
 $$;
 
+-- 4d) Votació de l'MVP del públic ------------------------------------------------------
+--    Els admins obren i tanquen votacions; qualsevol visitant pot votar UN cop per votació
+--    i només mentre està oberta. Els resultats es llegeixen amb mvp_tally() (sense exposar els vots).
+create table if not exists public.mvp_polls (
+  id         text primary key,
+  match_id   text,
+  title      text not null default 'Vota l''MVP del partit',
+  candidates jsonb not null default '[]'::jsonb,
+  status     text not null default 'open' check (status in ('open', 'closed')),
+  created_at timestamptz not null default now(),
+  closed_at  timestamptz
+);
+
+alter table public.mvp_polls enable row level security;
+
+drop policy if exists "MVP: lectura pública"        on public.mvp_polls;
+drop policy if exists "MVP: admins creen"           on public.mvp_polls;
+drop policy if exists "MVP: admins actualitzen"     on public.mvp_polls;
+drop policy if exists "MVP: admins esborren"        on public.mvp_polls;
+
+create policy "MVP: lectura pública"    on public.mvp_polls for select to anon, authenticated using (true);
+create policy "MVP: admins creen"       on public.mvp_polls for insert to authenticated with check (public.is_admin());
+create policy "MVP: admins actualitzen" on public.mvp_polls for update to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "MVP: admins esborren"    on public.mvp_polls for delete to authenticated using (public.is_admin());
+
+create table if not exists public.mvp_votes (
+  poll_id    text not null references public.mvp_polls (id) on delete cascade,
+  voter      text not null check (char_length(voter) between 8 and 64),
+  player_id  text not null,
+  created_at timestamptz not null default now(),
+  primary key (poll_id, voter)
+);
+
+alter table public.mvp_votes enable row level security;
+
+drop policy if exists "MVP: vota si està oberta" on public.mvp_votes;
+drop policy if exists "MVP: admins netegen vots" on public.mvp_votes;
+
+create policy "MVP: vota si està oberta"
+  on public.mvp_votes for insert to anon, authenticated
+  with check (
+    exists (
+      select 1 from public.mvp_polls p
+      where p.id = poll_id
+        and p.status = 'open'
+        and p.candidates @> jsonb_build_array(jsonb_build_object('id', player_id))
+    )
+  );
+
+create policy "MVP: admins netegen vots"
+  on public.mvp_votes for delete to authenticated
+  using (public.is_admin());
+
+create or replace function public.mvp_tally(p_poll text)
+returns table (player_id text, votes bigint)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select v.player_id, count(*) from public.mvp_votes v where v.poll_id = p_poll group by v.player_id;
+$$;
+
+grant execute on function public.mvp_tally(text) to anon, authenticated;
+
 -- 5) (Opcional) Temps real: perquè els visitants rebin els canvis sense recarregar
 -- alter publication supabase_realtime add table public.league_state;

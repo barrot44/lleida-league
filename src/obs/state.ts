@@ -51,6 +51,10 @@ export function defaultObsState(): ObsState {
     brand: { visible: true },
     sponsors: { visible: false, items: [], seconds: 8 },
     replay: { visible: false },
+    qr: { visible: false, url: '', label: 'Tota la lliga a la web' },
+    transition: null,
+    cmds: [],
+    clips: [],
   };
 }
 
@@ -71,7 +75,11 @@ export function normalizeObsState(raw: unknown): ObsState {
     brand: { ...base.brand, ...r.brand },
     sponsors: { ...base.sponsors, ...r.sponsors, items: Array.isArray(r.sponsors?.items) ? r.sponsors.items : [] },
     replay: { ...base.replay, ...r.replay },
+    qr: { ...base.qr, ...r.qr },
     flash: r.flash ?? null,
+    transition: r.transition ?? null,
+    cmds: Array.isArray(r.cmds) ? r.cmds : [],
+    clips: Array.isArray(r.clips) ? r.clips : [],
   };
 }
 

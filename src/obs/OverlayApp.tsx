@@ -3,6 +3,7 @@ import type { ObsLayerId, ObsState } from '@/obs/types';
 import { OBS_LAYERS } from '@/obs/types';
 import { defaultObsState } from '@/obs/state';
 import { subscribeObs } from '@/obs/transport';
+import { ObsExecutor, execConfigFromHash, type ExecFx } from '@/obs/executor';
 import { useNow } from '@/hooks/useNow';
 import { STAGE_H, STAGE_W, Stage } from '@/obs/overlay/Stage';
 
@@ -29,11 +30,28 @@ function useViewportScale() {
 /** Transparent page loaded by OBS as a "Browser" source (1920×1080). */
 export default function OverlayApp() {
   const [state, setState] = useState<ObsState>(defaultObsState);
+  const [fx, setFx] = useState<ExecFx>({ cover: false, replay: null });
   const layers = useMemo(layersFromUrl, []);
   const scale = useViewportScale();
   const now = useNow(250);
 
+  // With the OBS address in the hash, this page also drives OBS (transitions, replays…).
+  const executor = useMemo(() => {
+    const cfg = execConfigFromHash();
+    return cfg ? new ObsExecutor(cfg.url, cfg.password, (p) => setFx((f) => ({ ...f, ...p }))) : null;
+  }, []);
+
+  useEffect(() => {
+    if (!executor) return;
+    executor.start();
+    return () => executor.stop();
+  }, [executor]);
+
   useEffect(() => subscribeObs({ onState: setState }), []);
 
-  return <Stage state={state} now={now} layers={layers} scale={scale} />;
+  useEffect(() => {
+    executor?.handle(state.cmds);
+  }, [executor, state.cmds]);
+
+  return <Stage state={state} now={now} layers={layers} scale={scale} fx={fx} />;
 }

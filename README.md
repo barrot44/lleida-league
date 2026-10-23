@@ -161,6 +161,24 @@ Els administradors identificats sempre veuen la web (amb un avís groc) i `/admi
   (OBS → Eines → Configuració del servidor WebSocket).
 - `/obs?capes=marcador,rotul` dibuixa només algunes capes, per si vols separar-les en diverses fonts.
 
+### Realització: transicions, repeticions i jugades del partit
+
+Quan afegeixes la capa des de **Connexió amb OBS → «Afegeix la capa a l'escena actual»**, la capa rep l'adreça d'OBS al final de
+l'enllaç (`/obs#obs=…`, que mai surt de l'ordinador) i passa a **controlar OBS ella mateixa**. Així, des de qualsevol dispositiu (també el mòbil):
+
+- **Escenes amb la transició del logo**: dues fulles amb el logo tapen la pantalla, OBS canvia d'escena i s'obren.
+- **Repetició / Càmera lenta**: desa els últims segons amb el *buffer de repeticions* d'OBS (cal activar-lo a Configuració → Sortida),
+  crea sola l'escena «Lleida League · Repetició», la reprodueix amb el rètol «REPETICIÓ» i torna al directe.
+- **Jugades del partit**: cada repetició s'acumula en una llista (etiqueta editable i ⭐). El botó **Resum** les reprodueix seguides.
+
+### Votació de l'MVP del públic i QR
+
+- A **Directe → Votació MVP del públic** obres la votació amb els jugadors dels dos equips. La gent vota a **`/vota`**, des del bàner
+  de la pàgina d'inici o des de la fitxa del partit (1 vot per dispositiu). Al directe surt un gràfic amb **QR i percentatges en temps real**,
+  i en tancar-la, el **guanyador**, que pots desar com a MVP del partit.
+- **QR a la cantonada** (Marca, QR i patrocinadors): porta a la web, a la votació, a la classificació o al calendari.
+- Cal executar el `supabase/schema.sql` actualitzat (taules `mvp_polls`, `mvp_votes` i la funció `mvp_tally`).
+
 ## Estructura del projecte
 
 ```

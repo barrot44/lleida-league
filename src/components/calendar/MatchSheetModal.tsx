@@ -13,6 +13,8 @@ import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLookups } from '@/hooks/useLeagueView';
 import { formatDateLong } from '@/lib/utils';
+import { useOpenPoll } from '@/lib/mvp';
+import { MvpVoteBox } from '@/components/vote/MvpVoteBox';
 import { cn } from '@/lib/utils';
 
 function EventIcon({ type }: { type: MatchEvent['type'] }) {
@@ -41,6 +43,7 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
   const [playing, setPlaying] = useState<VideoItem | null>(null);
   const videos = useLeagueStore((s) => s.videos);
   const txs = useLeagueStore((s) => s.lleidalitoTx);
+  const poll = useOpenPoll();
   const home = match ? teamMap.get(match.homeTeamId) : undefined;
   const away = match ? teamMap.get(match.awayTeamId) : undefined;
 
@@ -111,6 +114,16 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
       </div>
 
       <div className="space-y-8 p-5 sm:p-8">
+        {poll?.matchId === match.id && (
+          <section className="rounded-3xl border border-amber-400/40 bg-amber-400/[0.05] p-4 shadow-glow sm:p-5">
+            <h3 className="mb-1 flex items-center gap-2 font-display text-xl font-black uppercase text-white">
+              <span className="h-2 w-2 animate-pulse-live rounded-full bg-red-500" /> {poll.title}
+            </h3>
+            <p className="mb-4 text-xs text-slate-400">Votació en directe del públic. Tria el millor jugador del partit.</p>
+            <MvpVoteBox poll={poll} compact />
+          </section>
+        )}
+
         {mvp && (
           <button
             onClick={() => openModal({ kind: 'player', id: mvp.id })}

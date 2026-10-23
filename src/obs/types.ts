@@ -1,4 +1,5 @@
 import type { CategoryId, Position } from '@/types';
+import type { MvpCandidate } from '@/lib/mvp';
 
 /**
  * Everything the OBS overlay shows lives in ONE small JSON document. The admin panel edits it and publishes it;
@@ -136,7 +137,9 @@ export type ObsGraphic =
   | { kind: 'standings'; categoryLabel: string; rows: ObsStandingRow[]; highlight: string[]; playoffSpots: number; relegationSpots: number; totalTeams: number }
   | { kind: 'scorers'; categoryLabel: string; rows: { player: ObsPlayer; team: ObsTeam; goals: number; assists: number }[] }
   | { kind: 'results'; categoryLabel: string; matchday: number; matches: ObsResult[] }
-  | { kind: 'summary'; title: string; home: ObsTeam; away: ObsTeam; homeScore: number; awayScore: number; events: ObsSummaryEvent[] };
+  | { kind: 'summary'; title: string; home: ObsTeam; away: ObsTeam; homeScore: number; awayScore: number; events: ObsSummaryEvent[] }
+  /** Public MVP vote: live bars + QR while open, winner reveal once closed. Results are read live by the overlay. */
+  | { kind: 'poll'; pollId: string; title: string; candidates: MvpCandidate[]; closed: boolean; voteUrl: string };
 
 export type ObsGraphicKind = ObsGraphic['kind'];
 
@@ -178,6 +181,41 @@ export interface ObsState {
   brand: { visible: boolean };
   sponsors: { visible: boolean; items: ObsSponsorItem[]; seconds: number };
   replay: { visible: boolean };
+  /** Corner QR code to the website. */
+  qr: { visible: boolean; url: string; label: string };
+  /** Visual-only logo sting (the overlay plays it once when `id` changes). */
+  transition: { id: string; at: number } | null;
+  /** Orders for the overlay running inside OBS (scene changes, replays…). Newest last, a few kept. */
+  cmds: ObsCommand[];
+  /** Plays of the match saved with the replay buffer ("Jugades del partit"). */
+  clips: ObsClip[];
+}
+
+export type ObsCommand =
+  | { id: string; at: number; type: 'scene'; scene: string; transition: boolean }
+  | { id: string; at: number; type: 'replay'; clipId: string; label: string; slow: boolean }
+  | { id: string; at: number; type: 'play'; clipIds: string[]; title: string; slow: boolean };
+
+export interface ObsClip {
+  id: string;
+  label: string;
+  minute: number | null;
+  at: number;
+  starred: boolean;
+}
+
+/** What the overlay inside OBS reports back to the control panels. */
+export interface ObsExecStatus {
+  at: number;
+  connected: boolean;
+  error: string | null;
+  scenes: string[];
+  currentScene: string;
+  replayBuffer: boolean;
+  replayError: string | null;
+  busy: string | null;
+  /** Clips whose video file this OBS knows (others were saved elsewhere or forgotten). */
+  clips: string[];
 }
 
 /** Layers that can be switched on/off in the overlay URL (`/obs?capes=marcador,rotul`). */

@@ -5,6 +5,7 @@ import type { ObsLowerThird, ObsSponsorItem, ObsTicker } from '@/obs/types';
 import { SITE } from '@/config/site';
 import { Logo } from '@/components/ui/Logo';
 import { TeamCrest } from '@/components/ui/TeamCrest';
+import { QrCode } from '@/components/ui/QrCode';
 import { EASE_OUT, GOLD_GRADIENT, PANEL_BG } from '@/obs/overlay/kit';
 
 /** Persistent "furniture" of the broadcast: lower third, ticker, brand bug, sponsors and replay tag. */
@@ -155,7 +156,15 @@ export function SponsorBug({ items, seconds, lowered }: { items: ObsSponsorItem[
   );
 }
 
-export function ReplayTag() {
+interface ReplayInfo {
+  label: string;
+  title: string;
+  index: number;
+  total: number;
+}
+
+export function ReplayTag({ info }: { info?: ReplayInfo | null }) {
+  const title = info?.title || 'Repetició';
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-0">
       <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 0 6px rgba(251,191,36,.85), inset 0 0 80px rgba(251,191,36,.25)' }} />
@@ -169,8 +178,44 @@ export function ReplayTag() {
         <motion.span animate={{ rotate: -360 }} transition={{ repeat: Infinity, duration: 1.6, ease: 'linear' }} className="grid">
           <RotateCcw size={32} strokeWidth={3} />
         </motion.span>
-        <span className="text-[34px] font-black uppercase tracking-[0.3em]">Repetició</span>
+        <span className="whitespace-nowrap text-[34px] font-black uppercase tracking-[0.3em]">{title}</span>
+        {info && info.total > 1 && <span className="rounded-full bg-slate-950/85 px-3 py-0.5 text-[24px] font-black text-amber-300">{info.index}/{info.total}</span>}
       </motion.div>
+      {info?.label && (
+        <motion.div
+          key={info.label}
+          initial={{ x: -400, opacity: 0 }}
+          animate={{ x: 0, opacity: 1, transition: { delay: 0.3, duration: 0.5, ease: EASE_OUT } }}
+          className="absolute bottom-[120px] left-[96px] flex items-stretch font-display"
+        >
+          <span className="w-[12px] rounded-l-md" style={{ background: GOLD_GRADIENT }} />
+          <span className="px-8 py-3 text-[44px] font-black uppercase leading-none text-white" style={{ background: PANEL_BG }}>
+            {info.label}
+          </span>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+}
+
+/** Corner QR to the website (or the vote page). */
+export function QrCorner({ url, label, raised }: { url: string; label: string; raised: boolean }) {
+  return (
+    <motion.div
+      initial={{ x: 320, opacity: 0 }}
+      animate={{ x: 0, opacity: 1, transition: { duration: 0.55, ease: EASE_OUT } }}
+      exit={{ x: 320, opacity: 0 }}
+      className="absolute right-[56px] flex items-center gap-4 rounded-3xl border border-amber-400/40 p-3 pr-6 font-display"
+      style={{ bottom: raised ? 92 : 48, background: PANEL_BG, boxShadow: '0 20px 50px -12px rgba(0,0,0,.85), 0 0 40px -16px rgba(251,191,36,.6)' }}
+    >
+      <div className="rounded-2xl bg-white p-1.5">
+        <QrCode value={url} size={150} border={1} />
+      </div>
+      <div className="max-w-[300px] leading-tight">
+        <p className="text-[16px] font-bold uppercase tracking-[0.28em] text-amber-300">Escaneja’m</p>
+        <p className="mt-1 text-[32px] font-black uppercase leading-[0.95] text-white">{label}</p>
+        <p className="mt-2 truncate text-[17px] font-bold text-slate-400">{url.replace(/^https?:\/\//, '').replace(/\/$/, '')}</p>
+      </div>
     </motion.div>
   );
 }

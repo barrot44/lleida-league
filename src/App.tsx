@@ -18,6 +18,7 @@ import CalendarPage from '@/pages/CalendarPage';
 import StatsPage from '@/pages/StatsPage';
 import GalleryPage from '@/pages/GalleryPage';
 import DiscoverPage from '@/pages/DiscoverPage';
+import VotePage from '@/pages/VotePage';
 
 // The back-office is only needed by admins, so it ships as its own chunk.
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
@@ -67,7 +68,7 @@ export default function App() {
           </a>
           <Header route={route} />
 
-          {route !== 'admin' && route !== 'club' && (
+          {route !== 'admin' && route !== 'club' && route !== 'vote' && (
             <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
               <CategorySwitcher className="w-full sm:w-fit" />
             </div>
@@ -89,6 +90,7 @@ export default function App() {
               {route === 'stats' && <StatsPage />}
               {route === 'gallery' && <GalleryPage />}
               {route === 'club' && <DiscoverPage />}
+              {route === 'vote' && <VotePage />}
               {route === 'admin' && admin}
             </motion.main>
           </AnimatePresence>

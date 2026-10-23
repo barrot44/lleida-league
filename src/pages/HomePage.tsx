@@ -3,6 +3,7 @@ import type { VideoItem } from '@/types';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
+import { LiveVoteBanner } from '@/components/vote/LiveVoteBanner';
 import { NewsList } from '@/components/home/NewsList';
 import { MatchCard } from '@/components/calendar/MatchCard';
 import { SponsorGrid } from '@/components/club/SponsorGrid';
@@ -61,6 +62,7 @@ export default function HomePage() {
     <>
       <Hero />
       <div className="mx-auto max-w-7xl space-y-16 px-4 pt-14 sm:px-6">
+        <LiveVoteBanner />
         <section>
           <SectionHead title="La jornada" to="calendar" label="Calendari complet" />
           <div className="grid gap-4 md:grid-cols-2">

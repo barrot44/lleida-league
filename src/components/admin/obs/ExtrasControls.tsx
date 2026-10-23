@@ -217,6 +217,35 @@ export function ScreenControls({ actions }: { actions: Actions }) {
   );
 }
 
+// ───────────────────────── QR to the website ─────────────────────────
+
+const QR_TARGETS = [
+  { path: '/', label: 'Tota la lliga a la web', name: 'Inici de la web' },
+  { path: '/vota', label: 'Vota l’MVP!', name: 'Votació MVP' },
+  { path: '/classificacio', label: 'Classificació en directe', name: 'Classificació' },
+  { path: '/calendari', label: 'Resultats i calendari', name: 'Calendari' },
+] as const;
+
+function QrControl({ actions }: { actions: Actions }) {
+  const qr = useObsStore((s) => s.state.qr);
+  const origin = window.location.origin;
+  const current = QR_TARGETS.find((t) => `${origin}${t.path}` === qr.url) ?? QR_TARGETS[0];
+  const set = (visible: boolean, target = current) => actions.update((s) => ({ ...s, qr: { visible, url: `${origin}${target.path}`, label: target.label } }));
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <Toggle checked={qr.visible} onChange={(v) => set(v)} label="Codi QR a la cantonada" hint="La gent l’escaneja amb el mòbil i va directa a la web." />
+      <select className="input !w-auto !py-1.5 text-xs" value={current.path} onChange={(e) => set(qr.visible, QR_TARGETS.find((t) => t.path === e.target.value) ?? QR_TARGETS[0])} aria-label="On porta el QR">
+        {QR_TARGETS.map((t) => (
+          <option key={t.path} value={t.path}>
+            {t.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 // ───────────────────────── Brand & sponsors ─────────────────────────
 
 export function BrandControls({ actions }: { actions: Actions }) {
@@ -228,7 +257,7 @@ export function BrandControls({ actions }: { actions: Actions }) {
     actions.update((s) => ({ ...s, sponsors: { visible, seconds, items: sponsors.map((x) => ({ name: x.name, logoUrl: x.logoUrl ?? '' })) } }));
 
   return (
-    <SectionCard title="Marca i patrocinadors">
+    <SectionCard title="Marca, QR i patrocinadors">
       <div className="space-y-4">
         <Toggle checked={brand.visible} onChange={(v) => actions.update((s) => ({ ...s, brand: { visible: v } }))} label="«Directe» + logo + @lleidaleague" hint="A dalt a la dreta." />
         <Toggle
@@ -237,8 +266,9 @@ export function BrandControls({ actions }: { actions: Actions }) {
           label="Patrocinadors rotatius"
           hint={sponsors.length ? `${sponsors.length} patrocinadors de la pestanya Club.` : 'Afegeix patrocinadors a la pestanya Club.'}
         />
+        <QrControl actions={actions} />
         <label className="flex items-center gap-2 text-xs text-slate-400">
-          <MessageSquareText size={14} /> Canvia cada
+          <MessageSquareText size={14} /> Patrocinadors: canvia cada
           <select className="input !w-auto !py-1" value={sponsorsState.seconds} onChange={(e) => setSponsors(sponsorsState.visible, Number(e.target.value))}>
             {[5, 8, 12, 20].map((n) => (
               <option key={n} value={n}>

@@ -1,6 +1,6 @@
-import { CalendarDays, House, ImageIcon, Lock, Medal, Sparkles, Trophy, type LucideIcon } from 'lucide-react';
+import { CalendarDays, House, ImageIcon, Lock, Medal, Sparkles, Trophy, Vote, type LucideIcon } from 'lucide-react';
 
-export type RouteId = 'home' | 'standings' | 'calendar' | 'stats' | 'gallery' | 'club' | 'admin';
+export type RouteId = 'home' | 'standings' | 'calendar' | 'stats' | 'gallery' | 'club' | 'admin' | 'vote';
 
 export interface NavItem {
   id: RouteId;
@@ -23,4 +23,7 @@ export const NAV: NavItem[] = [
 
 export const ADMIN_NAV: NavItem = { id: 'admin', path: '/admin', label: 'Tauler de control / Admin', short: 'Admin', icon: Lock };
 
-export const ALL_ROUTES: NavItem[] = [...NAV, ADMIN_NAV];
+/** Public MVP vote of the live streams (reached from the QR, the home banner or the match sheet; not in the menu). */
+export const VOTE_NAV: NavItem = { id: 'vote', path: '/vota', label: 'Vota l’MVP', short: 'Vota', icon: Vote };
+
+export const ALL_ROUTES: NavItem[] = [...NAV, ADMIN_NAV, VOTE_NAV];
