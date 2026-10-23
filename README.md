@@ -138,6 +138,29 @@ Els administradors identificats sempre veuen la web (amb un avís groc) i `/admi
 
 > És una porta a la web, no una protecció de dades: serveix per preparar un llançament o fer manteniment, però no amaga la base de dades a algú que la consulti directament.
 
+## Directes amb OBS
+
+**Admin → Directe (OBS)** és una sala de control per als directes. A OBS només cal una font **Navegador** amb l'adreça `https://LA-TEVA-WEB/obs`
+(1920 × 1080): és una capa transparent que mostra el que decideixis des del tauler, amb la mateixa estètica de la web.
+
+| Gràfic | Què fa |
+| --- | --- |
+| Marcador | Escuts, resultat, rellotge de futbol sala (compte enrere), part i faltes acumulades |
+| Gol! | Animació gran amb el golejador, el minut i el nou resultat (també gol en pròpia) |
+| Targetes i temps morts | Avís animat sota el marcador |
+| Alineació | Quintet inicial sobre una pista animada + suplents, o la plantilla sencera |
+| Prèvia | Els dos equips cara a cara amb posició, punts, ratxa, data i pavelló |
+| Jugador destacat / MVP | Targeta amb foto, valoració i estadístiques de la temporada i del partit |
+| Classificació, golejadors, resultats i resum | Taules animades amb els equips del partit ressaltats |
+| Rètol, barra inferior, marca i patrocinadors | Lower third, ticker amb resultats, «Directe» + @lleidaleague i logos rotatius |
+| Pantalles completes | Comencem aviat (amb compte enrere), Tornem de seguida, Descans i Gràcies |
+
+- **Des del mòbil**: amb Supabase, els canvis arriben a OBS per internet en temps real (cal executar `supabase/schema.sql` actualitzat, que crea la taula `obs_state`).
+- **Sincronitza amb la web**: els gols, les targetes i el minut també es guarden al partit del calendari.
+- **Connexió amb OBS** (opcional, al mateix ordinador): canvia d'escena, comença l'emissió o la gravació i afegeix la capa automàticament
+  (OBS → Eines → Configuració del servidor WebSocket).
+- `/obs?capes=marcador,rotul` dibuixa només algunes capes, per si vols separar-les en diverses fonts.
+
 ## Estructura del projecte
 
 ```
