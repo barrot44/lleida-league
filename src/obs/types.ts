@@ -76,6 +76,8 @@ export interface ObsFlash {
   team: ObsTeam;
   player?: ObsPlayer;
   ownGoal?: boolean;
+  /** Scored while the "Gol doble" card was in force (counts 2). */
+  double?: boolean;
   minute?: number;
   home?: ObsTeam;
   away?: ObsTeam;
@@ -191,6 +193,41 @@ export interface ObsState {
   clips: ObsClip[];
   /** The public's dice throw (last two minutes of the first half). */
   dice: ObsDice;
+  /** Power cards (Kings League style). */
+  cards: ObsCards;
+}
+
+export interface ObsCardDef {
+  id: string;
+  name: string;
+  desc: string;
+  /** 0 = instant power; otherwise how long it lasts. */
+  minutes: number;
+  color: string;
+  enabled: boolean;
+}
+
+export interface ObsActiveCard {
+  id: string;
+  cardId: string;
+  team: ObsTeam;
+  /** 'clock' = counts down with the match clock (stops when it stops); 'real' = wall clock. */
+  mode: 'clock' | 'real';
+  startAt: number;
+  startElapsed: number;
+  durationMs: number;
+}
+
+export interface ObsCards {
+  deck: ObsCardDef[];
+  /** A team asked for a card: on-air notice until the draw. */
+  request: { id: string; at: number; team: ObsTeam } | null;
+  /** The card that came out (plays the shuffle + reveal once per id). */
+  draw: { id: string; at: number; team: ObsTeam; cardId: string } | null;
+  /** Timed card currently in force. */
+  active: ObsActiveCard | null;
+  /** Cards drawn in this match. */
+  history: { id: string; at: number; teamId: string; teamShort: string; cardId: string }[];
 }
 
 export interface ObsDice {

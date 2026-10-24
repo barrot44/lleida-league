@@ -1,6 +1,7 @@
 import type { CategoryId, LeagueData, Match, Player, Team } from '@/types';
 import type { ObsClock, ObsPeriod, ObsPlayer, ObsPlayerStats, ObsResult, ObsStandingRow, ObsState, ObsSummaryEvent, ObsTeam } from '@/obs/types';
 import { CATEGORY_BY_ID, POSITIONS } from '@/config/site';
+import { DEFAULT_DECK, mergeDeck } from '@/obs/cards';
 import { computeStandings, playerRating, type StandingRow } from '@/lib/standings';
 import { matchTimestamp } from '@/lib/utils';
 
@@ -61,6 +62,7 @@ export function defaultObsState(): ObsState {
       playVideo: false,
       last: null,
     },
+    cards: { deck: DEFAULT_DECK, request: null, draw: null, active: null, history: [] },
   };
 }
 
@@ -87,6 +89,15 @@ export function normalizeObsState(raw: unknown): ObsState {
     cmds: Array.isArray(r.cmds) ? r.cmds : [],
     clips: Array.isArray(r.clips) ? r.clips : [],
     dice: { ...base.dice, ...r.dice, last: r.dice?.last ?? null },
+    cards: {
+      ...base.cards,
+      ...r.cards,
+      deck: mergeDeck(r.cards?.deck),
+      request: r.cards?.request ?? null,
+      draw: r.cards?.draw ?? null,
+      active: r.cards?.active ?? null,
+      history: Array.isArray(r.cards?.history) ? r.cards.history : [],
+    },
   };
 }
 

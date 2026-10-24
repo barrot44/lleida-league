@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { Match, MatchEventType, Player } from '@/types';
 import type { ObsCommand, ObsFlashKind, ObsGraphic, ObsPeriod, ObsScreenKind, ObsState } from '@/obs/types';
-import { matchMinute, pauseClock, playerSnap, resetClock, teamSnap } from '@/obs/state';
+import { clockElapsed, matchMinute, pauseClock, playerSnap, resetClock, teamSnap } from '@/obs/state';
+import { cardIsLive } from '@/obs/cards';
 import { useObsStore } from '@/obs/useObsStore';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { uid } from '@/lib/utils';
@@ -92,11 +93,17 @@ export function useObsActions(sync: boolean) {
         const team = side === 'home' ? sb.home : sb.away;
         if (!team || !sb.home || !sb.away) return s;
         teamOk = true;
-        const homeScore = sb.homeScore + (side === 'home' ? 1 : 0);
-        const awayScore = sb.awayScore + (side === 'away' ? 1 : 0);
+        // Power cards: "Gol doble" makes it count 2; scoring ends the rival's "Expulsió".
+        const live = cardIsLive(s.cards.active, sb.clock, now) ? s.cards.active : null;
+        const double = !!live && live.cardId === 'double-goal' && live.team.id === team.id;
+        const endsExpulsion = !!live && live.cardId === 'rival-expulsion' && live.team.id === team.id;
+        const inc = double ? 2 : 1;
+        const homeScore = sb.homeScore + (side === 'home' ? inc : 0);
+        const awayScore = sb.awayScore + (side === 'away' ? inc : 0);
         return {
           ...s,
           scoreboard: { ...sb, homeScore, awayScore },
+          cards: endsExpulsion ? { ...s.cards, active: null } : s.cards,
           flash: {
             id: uid('f'),
             kind: 'goal',
@@ -104,6 +111,7 @@ export function useObsActions(sync: boolean) {
             team,
             player: scorer ? playerSnap(scorer) : undefined,
             ownGoal,
+            double,
             minute: matchMinute(sb.clock, sb.period, now),
             home: sb.home,
             away: sb.away,
@@ -159,7 +167,14 @@ export function useObsActions(sync: boolean) {
         } else if (period === 'PRO' && sb.period !== 'PRO') clock = resetClock(clock);
         else if (period === '1T' && sb.period !== '1T') clock = resetClock(clock);
         else if (period === 'DESC' || period === 'FINAL' || period === 'PEN') clock = pauseClock(clock);
-        return { ...s, scoreboard: { ...sb, ...fouls, period, clock } };
+        // A timed card on the match clock keeps its remaining time when the clock is reset for a new period.
+        let cards = s.cards;
+        const a = cards.active;
+        if (a && a.mode === 'clock' && clock.baseMs === 0 && !clock.running && clockElapsed(sb.clock) > 0) {
+          const used = Math.max(0, clockElapsed(sb.clock) - a.startElapsed);
+          cards = { ...cards, active: { ...a, startElapsed: -used } };
+        }
+        return { ...s, scoreboard: { ...sb, ...fouls, period, clock }, cards };
       });
     },
     [update],

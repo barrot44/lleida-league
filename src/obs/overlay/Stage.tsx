@@ -8,6 +8,8 @@ import { MainGraphic } from '@/obs/overlay/Graphics';
 import { FullScreen } from '@/obs/overlay/Screens';
 import { Stinger, useSting } from '@/obs/overlay/Stinger';
 import { DICE_DURATION, DiceRoll } from '@/obs/overlay/DiceRoll';
+import { ActiveCardBug, CARD_REVEAL_MS, CardRequestAlert, CardReveal } from '@/obs/overlay/CardsLayer';
+import { cardIsLive } from '@/obs/cards';
 import { FitInside, boardMotion } from '@/obs/overlay/kit';
 
 export const STAGE_W = 1920;
@@ -43,6 +45,13 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
   const covered = on('pantalles') && (sting || !!fx?.cover);
   const dice = state.dice.last;
   const showDice = on('avisos') && !!dice && now - dice.at >= -2000 && now - dice.at < DICE_DURATION;
+  const cards = state.cards;
+  const deckById = (id: string) => cards.deck.find((c) => c.id === id);
+  const drawDef = cards.draw ? deckById(cards.draw.cardId) : undefined;
+  const activeDef = cards.active ? deckById(cards.active.cardId) : undefined;
+  const showReveal = on('avisos') && !!cards.draw && now - cards.draw.at >= -2000 && now - cards.draw.at < CARD_REVEAL_MS;
+  const showRequest = on('avisos') && !!cards.request && (!cards.draw || cards.draw.at < cards.request.at) && now - cards.request.at < 90_000;
+  const showActiveCard = on('marcador') && cardIsLive(cards.active, sb.clock, now) && !showReveal;
 
   return (
     <div
@@ -68,7 +77,10 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
       <AnimatePresence>{showLower && <LowerThird key={lt.id} lt={lt} raised={showTicker} />}</AnimatePresence>
       <AnimatePresence>{showQr && <QrCorner key={`qr-${state.qr.url}`} url={state.qr.url} label={state.qr.label} raised={showTicker} />}</AnimatePresence>
       <AnimatePresence>{showTicker && <TickerBar key="ticker" ticker={state.ticker} />}</AnimatePresence>
-      <AnimatePresence>{flash && <Flash key={flash.id} flash={flash} />}</AnimatePresence>
+      <AnimatePresence>{showActiveCard && activeDef && cards.active && <ActiveCardBug key={cards.active.id} active={cards.active} card={activeDef} clock={sb.clock} now={now} />}</AnimatePresence>
+      <AnimatePresence>{showRequest && cards.request && <CardRequestAlert key={cards.request.id} team={cards.request.team} />}</AnimatePresence>
+      <AnimatePresence>{flash && <Flash key={flash.id} flash={flash} low={showActiveCard} />}</AnimatePresence>
+      <AnimatePresence>{showReveal && drawDef && cards.draw && <CardReveal key={cards.draw.id} card={drawDef} team={cards.draw.team} />}</AnimatePresence>
       <AnimatePresence>{showDice && dice && <DiceRoll key={dice.id} face={dice.face} result={dice.result} label={state.dice.labels[dice.result - 1] ?? ''} />}</AnimatePresence>
 
       <AnimatePresence>
