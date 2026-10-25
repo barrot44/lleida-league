@@ -57,10 +57,13 @@ async function fetchRemote(): Promise<ObsState | null> {
 export interface SubscribeHandlers {
   onState: (state: ObsState) => void;
   onReadStatus?: (status: ReadStatus, detail?: string) => void;
+  /** false = polling only (public pages: no realtime connection per visitor). */
+  realtime?: boolean;
+  pollMs?: number;
 }
 
 /** Listens to every source. Returns the unsubscribe function. */
-export function subscribeObs({ onState, onReadStatus }: SubscribeHandlers): () => void {
+export function subscribeObs({ onState, onReadStatus, realtime: useRealtime = true, pollMs = 2_000 }: SubscribeHandlers): () => void {
   let lastTs = -1;
   let stopped = false;
   const deliver = (s: ObsState | null) => {
@@ -101,12 +104,12 @@ export function subscribeObs({ onState, onReadStatus }: SubscribeHandlers): () =
         onReadStatus?.('error', msg === 'missing-table' ? 'missing-table' : 'network');
       }
       // Without the table (SQL not run yet) or offline, retry calmly instead of every 2 s.
-      if (!stopped) timer = window.setTimeout(poll, failed ? 10_000 : realtime ? 15_000 : 2_000);
+      if (!stopped) timer = window.setTimeout(poll, failed ? 10_000 : realtime ? 15_000 : pollMs);
     };
     void poll();
 
     let removeChannel = () => {};
-    void getSupabase()
+    if (useRealtime) void getSupabase()
       .then((sb) => {
         if (stopped) return;
         const rc = sb

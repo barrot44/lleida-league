@@ -45,6 +45,8 @@ export interface Team {
   history: string;
   /** Starting balance of the virtual currency ("Lleidalitos"). The current balance adds the ledger. Optional: only competitions that use it. */
   lleidalitos?: number;
+  /** Optional photo of the president (presidents face-off on the live stream). */
+  presidentPhotoUrl?: string;
 }
 
 export interface MatchEvent {

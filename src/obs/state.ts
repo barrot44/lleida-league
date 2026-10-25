@@ -63,6 +63,7 @@ export function defaultObsState(): ObsState {
       last: null,
     },
     cards: { deck: DEFAULT_DECK, request: null, draw: null, active: null, history: [] },
+    stream: { url: '' },
   };
 }
 
@@ -98,6 +99,7 @@ export function normalizeObsState(raw: unknown): ObsState {
       active: r.cards?.active ?? null,
       history: Array.isArray(r.cards?.history) ? r.cards.history : [],
     },
+    stream: { ...base.stream, ...r.stream },
   };
 }
 
@@ -142,6 +144,7 @@ export const teamSnap = (t: Team): ObsTeam => ({
   secondaryColor: t.secondaryColor,
   logoUrl: t.logoUrl,
   presidentName: t.presidentName || undefined,
+  presidentPhotoUrl: t.presidentPhotoUrl || undefined,
 });
 
 export const playerSnap = (p: Player): ObsPlayer => ({

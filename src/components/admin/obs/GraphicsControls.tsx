@@ -1,7 +1,10 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { BarChart3, CalendarDays, ClipboardList, EyeOff, LayoutGrid, Medal, Send, Star, Swords, Trophy } from 'lucide-react';
-import type { Player } from '@/types';
-import type { ObsGraphic, ObsGraphicKind } from '@/obs/types';
+import { BarChart3, CalendarDays, ClipboardList, Crown, EyeOff, LayoutGrid, Medal, Send, Star, Swords, Trophy, Users } from 'lucide-react';
+import type { Player, Team } from '@/types';
+import { editionOf } from '@/lib/cardArt';
+import { balances, usesLleidalitos } from '@/lib/lleidalitos';
+import { walkoutDuration } from '@/obs/overlay/Walkout';
+import type { ObsGraphic, ObsGraphicKind, PresidentStats } from '@/obs/types';
 import { buildResults, buildStandings, categoryLabel, playerSnap, playerStatsSnap, squadOrder, summaryEvents, teamSnap } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
 import { useLeagueStore } from '@/store/useLeagueStore';
@@ -48,6 +51,8 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
   const teams = useLeagueStore((s) => s.teams);
   const players = useLeagueStore((s) => s.players);
   const matches = useLeagueStore((s) => s.matches);
+  const champions = useLeagueStore((s) => s.champions);
+  const lleidalitoTx = useLeagueStore((s) => s.lleidalitoTx);
   const toast = useUiStore((s) => s.toast);
 
   const [autoHide, setAutoHide] = useState(0);
@@ -79,7 +84,7 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
 
   const main = state.main;
   const onAir = (kind: ObsGraphicKind, extra?: (g: ObsGraphic) => boolean) => main.visible && main.graphic?.kind === kind && (!extra || extra(main.graphic));
-  const show = (g: ObsGraphic) => actions.showGraphic(g, autoHide);
+  const show = (g: ObsGraphic, hideAfter = autoHide) => actions.showGraphic(g, hideAfter);
   const needTeams = () => {
     toast('Primer tria els dos equips al marcador.', 'error');
   };
@@ -104,6 +109,65 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
     const chosen = starters[lineupSide].map((id) => squad.find((p) => p.id === id)).filter((p): p is Player => !!p);
     const bench = squad.filter((p) => !chosen.includes(p));
     show({ kind: 'lineup', team: teamSnap(team), starters: chosen.map(playerSnap), bench: bench.map(playerSnap), title: chosen.length ? 'Quintet inicial' : 'Plantilla' });
+  };
+
+  /** Player presentation: the chosen starters of that side, or the whole squad. */
+  const showWalkout = (side: Side) => {
+    const team = side === 'home' ? homeTeam : awayTeam;
+    if (!team) return needTeams();
+    const squad = squads[side];
+    const chosen = starters[side].map((id) => squad.find((p) => p.id === id)).filter((p): p is Player => !!p);
+    const list = (chosen.length ? chosen : squad).slice(0, 12);
+    if (!list.length) return toast('Aquest equip no té jugadors.', 'error');
+    show(
+      {
+        kind: 'walkout',
+        team: teamSnap(team),
+        title: chosen.length ? 'Quintet inicial' : 'Plantilla',
+        players: list.map((p) => ({ player: p, edition: editionOf(p, catPlayers) })),
+      },
+      Math.ceil(walkoutDuration(list.length)),
+    );
+  };
+
+  const showPresidents = () => {
+    if (!homeTeam || !awayTeam) return needTeams();
+    const table = buildStandings({ teams, matches }, homeTeam.category);
+    const money = balances(teams, lleidalitoTx);
+    const statsOf = (t: Team): PresidentStats => {
+      const row = table.find((r) => r.team.id === t.id);
+      return {
+        lleidalitos: usesLleidalitos(t) ? (money.get(t.id) ?? 0) : null,
+        titles: champions.filter((c) => c.team.trim().toLowerCase() === t.name.trim().toLowerCase()).length,
+        position: row?.position ?? null,
+        points: row?.points ?? null,
+        form: row?.form ?? [],
+      };
+    };
+    const meetings = matches
+      .filter((m) => m.status === 'finished' && [m.homeTeamId, m.awayTeamId].includes(homeTeam.id) && [m.homeTeamId, m.awayTeamId].includes(awayTeam.id))
+      .sort((a, b) => b.date.localeCompare(a.date));
+    let homeWins = 0;
+    let awayWins = 0;
+    let draws = 0;
+    for (const m of meetings) {
+      const hs = m.homeTeamId === homeTeam.id ? m.homeScore! : m.awayScore!;
+      const as = m.homeTeamId === homeTeam.id ? m.awayScore! : m.homeScore!;
+      if (hs > as) homeWins++;
+      else if (as > hs) awayWins++;
+      else draws++;
+    }
+    const last = meetings[0];
+    const name = (id: string) => teams.find((t) => t.id === id)?.shortName ?? '?';
+    show({
+      kind: 'presidents',
+      home: teamSnap(homeTeam),
+      away: teamSnap(awayTeam),
+      homeStats: statsOf(homeTeam),
+      awayStats: statsOf(awayTeam),
+      h2h: { homeWins, draws, awayWins, last: last ? `${name(last.homeTeamId)} ${last.homeScore}-${last.awayScore} ${name(last.awayTeamId)} (J${last.matchday})` : null },
+      categoryLabel: categoryLabel(homeTeam.category),
+    });
   };
 
   const showPreview = () => {
@@ -219,6 +283,30 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
           ) : (
             <p className="text-xs text-slate-500">Tria els equips al marcador per veure’n els jugadors.</p>
           )}
+        </Tile>
+
+        <div className={cn('flex flex-col gap-3 rounded-2xl border p-3.5 transition', onAir('walkout') ? 'border-amber-400/70 bg-amber-400/[0.07] shadow-glow' : 'border-white/[0.08] bg-white/[0.03]')}>
+          <span className="flex items-center justify-between gap-2 font-display text-base font-black uppercase tracking-wide text-white">
+            <span className="flex items-center gap-2">
+              <span className="text-amber-400">
+                <Users size={18} />
+              </span>
+              Presentació de jugadors
+            </span>
+            {onAir('walkout') && <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white">En antena</span>}
+          </span>
+          <p className="text-xs text-slate-400">Un a un amb la seva carta. Fa servir els titulars triats a «Alineació» (o tota la plantilla) i s’amaga sol en acabar.</p>
+          <div className="mt-auto grid grid-cols-2 gap-2">
+            {(['home', 'away'] as const).map((s) => (
+              <button key={s} className="btn-gold !px-2" onClick={() => showWalkout(s)} disabled={!(s === 'home' ? sb.home : sb.away)}>
+                <Send size={14} /> {(s === 'home' ? sb.home?.shortName : sb.away?.shortName) ?? (s === 'home' ? 'Local' : 'Visitant')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <Tile icon={<Crown size={18} />} title="Cara a cara de presidents" active={onAir('presidents')} onShow={showPresidents}>
+          <p className="text-xs text-slate-400">Els dos presidents amb Lleidalitos, títols, posició, ratxa i els seus duels anteriors. La foto es posa a Equips.</p>
         </Tile>
 
         <Tile icon={<Swords size={18} />} title="Prèvia del partit" active={onAir('preview')} onShow={showPreview}>

@@ -5,6 +5,7 @@ import { hrefFor } from '@/hooks/useHashRoute';
 import { useUiStore } from '@/store/useUiStore';
 import { Logo } from '@/components/ui/Logo';
 import { Ticker } from '@/components/layout/Ticker';
+import { LiveHeaderBadge } from '@/components/live/LiveBadges';
 import { cn } from '@/lib/utils';
 
 export function Header({ route }: { route: RouteId }) {
@@ -45,9 +46,12 @@ export function Header({ route }: { route: RouteId }) {
             })}
           </nav>
 
+          <span className="ml-auto lg:ml-2">
+            <LiveHeaderBadge active={route === 'live'} />
+          </span>
           <a
             href={hrefFor('admin')}
-            className={cn('btn-gold ml-auto shrink-0 lg:ml-2', route === 'admin' && 'ring-2 ring-white/40')}
+            className={cn('btn-gold shrink-0', route === 'admin' && 'ring-2 ring-white/40')}
             aria-label={ADMIN_NAV.label}
           >
             <AdminIcon size={16} />

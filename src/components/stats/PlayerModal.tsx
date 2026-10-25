@@ -1,13 +1,57 @@
-import { useMemo } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { ArrowRight, Download, Loader2 } from 'lucide-react';
 import { POSITION_LABEL } from '@/config/site';
 import { Modal } from '@/components/ui/Modal';
-import { PlayerCard } from '@/components/ui/PlayerCard';
+import { LeagueCard } from '@/components/cards/LeagueCard';
+import { editionOf } from '@/lib/cardArt';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLeagueView } from '@/hooks/useLeagueView';
 import { decimal, formatDay } from '@/lib/utils';
+import type { Player, Team } from '@/types';
+import type { Edition } from '@/lib/cardArt';
+
+/** Renders a large copy of the card off-screen and saves it as a PNG. */
+function CardDownload({ player, team, edition }: { player: Player; team?: Team; edition: Edition }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
+  const toast = useUiStore((s) => s.toast);
+
+  const save = async () => {
+    if (!ref.current) return;
+    setBusy(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      await toPng(ref.current, { pixelRatio: 1 }).catch(() => undefined);
+      const url = await toPng(ref.current, { pixelRatio: 1, cacheBust: true });
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `carta-${player.name.toLowerCase().replace(/\s+/g, '-')}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast('Carta descarregada!');
+    } catch {
+      toast('No s’ha pogut generar la imatge (alguna foto externa pot bloquejar-ho).', 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <button className="btn-ghost !py-2 text-xs" onClick={() => void save()} disabled={busy}>
+        {busy ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} Descarrega la carta
+      </button>
+      <div aria-hidden className="pointer-events-none fixed -left-[5000px] top-0">
+        <div ref={ref} data-artwork="true" className="p-10" style={{ background: 'transparent' }}>
+          <LeagueCard player={player} team={team} edition={edition} size={640} tilt={false} />
+        </div>
+      </div>
+    </>
+  );
+}
 
 export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; onClose: () => void }) {
   const player = useLeagueStore((s) => s.players.find((p) => p.id === id));
@@ -34,14 +78,17 @@ export function PlayerModal({ id, open, onClose }: { id: string; open: boolean; 
 
   if (!player || !info) return null;
   const team = view.teamMap.get(player.teamId);
+  const edition = editionOf(player, view.catPlayers);
   const s = player.stats;
   const perGame = s.matchesPlayed > 0 ? decimal(s.goals / s.matchesPlayed, 2) : '0,00';
 
   return (
     <Modal open={open} onOpenChange={(o) => !o && onClose()} title={`Fitxa de ${player.name}`} hideHeader size="lg">
       <div className="grid gap-8 p-6 pt-12 sm:p-8 sm:pt-10 md:grid-cols-[auto_1fr]">
-        <div className="mx-auto">
-          <PlayerCard player={player} team={team} size={270} />
+        <div className="mx-auto flex flex-col items-center gap-3">
+          <LeagueCard player={player} team={team} edition={edition} size={280} flippable />
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Toca la carta per girar-la</p>
+          <CardDownload player={player} team={team} edition={edition} />
         </div>
 
         <div className="min-w-0 space-y-6">

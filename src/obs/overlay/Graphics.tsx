@@ -6,6 +6,8 @@ import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { formatDateLong } from '@/lib/utils';
 import { PollGraphic } from '@/obs/overlay/PollGraphic';
+import { Walkout } from '@/obs/overlay/Walkout';
+import { Presidents } from '@/obs/overlay/Presidents';
 import { Board, EASE_OUT, FormChips, GOLD_GRADIENT, PANEL_BG, alpha, goldText, listItem, listParent } from '@/obs/overlay/kit';
 
 type G<K extends ObsGraphic['kind']> = Extract<ObsGraphic, { kind: K }>;
@@ -473,5 +475,9 @@ export function MainGraphic({ graphic, accent }: { graphic: ObsGraphic; accent: 
       return <SummaryGraphic g={graphic} accent={accent} />;
     case 'poll':
       return <PollGraphic g={graphic} accent={accent} />;
+    case 'walkout':
+      return <Walkout g={graphic} />;
+    case 'presidents':
+      return <Presidents g={graphic} />;
   }
 }

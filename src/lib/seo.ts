@@ -29,6 +29,10 @@ const META: Record<RouteId, { title: string; description: string }> = {
     description: 'Qui som, palmarès de campions, La nostra grada, col·laboradors, àrbitres i la moneda virtual (Lleidalitos) de la Lleida League, el torneig presidencial de futbol sala de Lleida.',
   },
   admin: { title: `Tauler de control · ${BASE_TITLE}`, description: 'Accés d’administració.' },
+  live: {
+    title: `En directe · ${BASE_TITLE}`,
+    description: 'Segueix en directe el partit de la Lleida League que s’està retransmetent: marcador, rellotge, cartes de poder i el vídeo.',
+  },
   vote: {
     title: `Vota l’MVP · ${BASE_TITLE}`,
     description: 'Vota el millor jugador del partit de la Lleida League que s’està jugant i segueix els resultats en directe.',

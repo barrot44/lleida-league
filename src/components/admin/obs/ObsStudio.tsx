@@ -36,6 +36,8 @@ function StatusChip() {
 
 function SetupCard({ overlayUrl }: { overlayUrl: string }) {
   const toast = useUiStore((s) => s.toast);
+  const streamUrl = useObsStore((s) => s.state.stream.url);
+  const update = useObsStore((s) => s.update);
   const [open, setOpen] = useState(false);
   const [layers, setLayers] = useState<ObsLayerId[]>([]);
   const [copied, setCopied] = useState('');
@@ -93,6 +95,11 @@ function SetupCard({ overlayUrl }: { overlayUrl: string }) {
           </div>
         </div>
       )}
+      <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/[0.05] p-3">
+        <p className="label flex items-center gap-1.5 !text-red-200">🔴 Directe a la web (/directe)</p>
+        <input className="input" value={streamUrl} onChange={(e) => update((s) => ({ ...s, stream: { url: e.target.value } }))} placeholder="Enllaç del directe de YouTube, Twitch o TikTok" aria-label="Enllaç del directe" />
+        <p className="mt-1.5 text-[11px] text-slate-500">Amb un enllaç de YouTube (vídeo o «live») o Twitch, el vídeo surt dins la web; amb TikTok, surt un botó per obrir-lo. El marcador de la web es mou sol mentre el marcador estigui en antena.</p>
+      </div>
       {obsRemoteEnabled && (
         <p className="mt-4 text-xs leading-relaxed text-slate-500">
           Pots portar el control des del mòbil: entra a l’admin, pestanya <strong>Directe</strong>, i els canvis arriben a OBS per internet. També pots afegir aquesta pàgina dins d’OBS a <strong>Acoblables → Acoblables de navegador personalitzats</strong> (Docks → Custom Browser Docks) amb l’adreça <strong>/admin?tab=live</strong>.

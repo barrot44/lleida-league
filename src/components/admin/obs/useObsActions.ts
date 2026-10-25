@@ -182,7 +182,7 @@ export function useObsActions(sync: boolean) {
 
   const showGraphic = useCallback(
     (graphic: ObsGraphic, autoHideSec: number) =>
-      update((s) => ({ ...s, main: { visible: true, id: uid('g'), graphic, hideAt: autoHideSec > 0 ? Date.now() + autoHideSec * 1000 : null } })),
+      update((s) => ({ ...s, main: { visible: true, id: uid('g'), graphic, at: Date.now(), hideAt: autoHideSec > 0 ? Date.now() + autoHideSec * 1000 : null } })),
     [update],
   );
 

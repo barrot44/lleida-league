@@ -72,6 +72,7 @@ function TeamEditor({ initial, isNew, onClose }: { initial: Team; isNew: boolean
             <input type="color" className="h-11 w-full cursor-pointer rounded-xl border border-white/10 bg-pitch/70 p-1" value={t.secondaryColor} onChange={(e) => patch({ secondaryColor: e.target.value })} />
           </Field>
           <ImageInput label="Escut (opcional)" kind="logo" folder="escuts" value={t.logoUrl} onChange={(logoUrl) => patch({ logoUrl })} hint="Deixa-ho buit per usar l’escut generat amb els colors de l’equip." className="sm:col-span-2" />
+          <ImageInput label="Foto del president (opcional)" kind="avatar" folder="presidents" value={t.presidentPhotoUrl ?? ''} onChange={(presidentPhotoUrl) => patch({ presidentPhotoUrl: presidentPhotoUrl || undefined })} hint="Surt al «Cara a cara de presidents» del directe. Sense foto, surt una silueta amb els colors de l’equip." className="sm:col-span-2" />
           <Field label="Història" className="sm:col-span-2">
             <textarea className="input min-h-[96px]" value={t.history} onChange={(e) => patch({ history: e.target.value })} />
           </Field>

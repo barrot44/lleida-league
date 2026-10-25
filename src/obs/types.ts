@@ -1,4 +1,5 @@
-import type { CategoryId, Position } from '@/types';
+import type { CategoryId, Player, Position } from '@/types';
+import type { Edition } from '@/lib/cardArt';
 import type { MvpCandidate } from '@/lib/mvp';
 
 /**
@@ -15,6 +16,7 @@ export interface ObsTeam {
   secondaryColor: string;
   logoUrl: string;
   presidentName?: string;
+  presidentPhotoUrl?: string;
 }
 
 export interface ObsPlayer {
@@ -141,7 +143,19 @@ export type ObsGraphic =
   | { kind: 'results'; categoryLabel: string; matchday: number; matches: ObsResult[] }
   | { kind: 'summary'; title: string; home: ObsTeam; away: ObsTeam; homeScore: number; awayScore: number; events: ObsSummaryEvent[] }
   /** Public MVP vote: live bars + QR while open, winner reveal once closed. Results are read live by the overlay. */
-  | { kind: 'poll'; pollId: string; title: string; candidates: MvpCandidate[]; closed: boolean; voteUrl: string };
+  | { kind: 'poll'; pollId: string; title: string; candidates: MvpCandidate[]; closed: boolean; voteUrl: string }
+  /** Players presented one by one with their collectible card. */
+  | { kind: 'walkout'; team: ObsTeam; title: string; players: { player: Player; edition: Edition }[] }
+  /** The two presidents face to face. */
+  | { kind: 'presidents'; home: ObsTeam; away: ObsTeam; homeStats: PresidentStats; awayStats: PresidentStats; h2h: { homeWins: number; draws: number; awayWins: number; last: string | null }; categoryLabel: string };
+
+export interface PresidentStats {
+  lleidalitos: number | null;
+  titles: number;
+  position: number | null;
+  points: number | null;
+  form: ('W' | 'D' | 'L')[];
+}
 
 export type ObsGraphicKind = ObsGraphic['kind'];
 
@@ -150,6 +164,8 @@ export interface ObsMain {
   id: string;
   graphic: ObsGraphic | null;
   hideAt: number | null;
+  /** When it went on air (sequenced graphics such as the player presentation). */
+  at?: number;
 }
 
 export type ObsScreenKind = 'starting' | 'brb' | 'halftime' | 'ending';
@@ -195,6 +211,8 @@ export interface ObsState {
   dice: ObsDice;
   /** Power cards (Kings League style). */
   cards: ObsCards;
+  /** Link of the live video (YouTube, Twitch…) shown on the website's live page. */
+  stream: { url: string };
 }
 
 export interface ObsCardDef {

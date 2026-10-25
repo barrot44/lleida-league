@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Medal, Scale, Search, Trophy, UserX, Users } from 'lucide-react';
+import { BarChart3, Layers, Medal, Scale, Search, Trophy, UserX, Users } from 'lucide-react';
+import { CardCollection } from '@/components/cards/CardCollection';
 import { CompareView } from '@/components/stats/CompareView';
 import { QuintetView } from '@/components/stats/QuintetView';
 import { RecordsView } from '@/components/stats/RecordsView';
@@ -196,10 +197,11 @@ function RankingsView() {
   );
 }
 
-type StatsViewId = 'rankings' | 'records' | 'quintet' | 'compare';
+type StatsViewId = 'rankings' | 'cards' | 'records' | 'quintet' | 'compare';
 
 const VIEWS: { id: StatsViewId; label: string; icon: typeof Medal }[] = [
   { id: 'rankings', label: 'Rànquings', icon: Medal },
+  { id: 'cards', label: 'Cartes', icon: Layers },
   { id: 'records', label: 'Rècords', icon: Trophy },
   { id: 'quintet', label: 'Quintet ideal', icon: Users },
   { id: 'compare', label: 'Comparador', icon: Scale },
@@ -232,6 +234,7 @@ export default function StatsPage() {
         ))}
       </div>
       {view === 'rankings' && <RankingsView />}
+      {view === 'cards' && <CardCollection category={category} />}
       {view === 'records' && <RecordsView category={category} />}
       {view === 'quintet' && <QuintetView category={category} />}
       {view === 'compare' && <CompareView category={category} />}
