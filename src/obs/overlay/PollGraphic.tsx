@@ -1,20 +1,21 @@
 import { motion } from 'framer-motion';
 import { Crown, Smartphone } from 'lucide-react';
 import type { ObsGraphic } from '@/obs/types';
-import { candidateTeam, ranked, useTally, type MvpPoll } from '@/lib/mvp';
+import { candidateTeam, isPrediction, ranked, useTally, type MvpPoll } from '@/lib/mvp';
 import { POSITION_LABEL } from '@/config/site';
-import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { QrCode } from '@/components/ui/QrCode';
+import { CandidateMark } from '@/components/vote/CandidateMark';
 import { Board, EASE_OUT, GOLD_GRADIENT, PANEL_BG, alpha, goldText, listItem, listParent } from '@/obs/overlay/kit';
 
 type G = Extract<ObsGraphic, { kind: 'poll' }>;
 
-/** Live public MVP vote (bars + QR), or the winner once the vote is closed. */
+/** Live public MVP vote or prediction (bars + QR), or the winner once the vote is closed. */
 export function PollGraphic({ g, accent }: { g: G; accent: string }) {
   const tally = useTally(g.pollId, 2500);
   const poll: MvpPoll = { id: g.pollId, matchId: null, title: g.title, candidates: g.candidates, status: g.closed ? 'closed' : 'open', createdAt: '' };
   const { rows, total } = ranked(poll, tally);
+  const prediction = isPrediction(poll);
 
   if (g.closed && rows[0]) {
     const win = rows[0];
@@ -27,19 +28,23 @@ export function PollGraphic({ g, accent }: { g: G; accent: string }) {
             <Crown size={84} fill="currentColor" strokeWidth={1.5} />
           </motion.span>
           <div className="rounded-full p-[8px]" style={{ background: GOLD_GRADIENT, boxShadow: '0 0 80px rgba(251,191,36,.7)' }}>
-            <PlayerAvatar player={win.c} team={team} size={340} />
+            <CandidateMark c={win.c} size={340} />
           </div>
         </motion.div>
         <div className="relative min-w-0 flex-1">
           <motion.p initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }} className="inline-block rounded-full px-6 py-2 text-[26px] font-black uppercase tracking-[0.3em] text-slate-950" style={{ background: GOLD_GRADIENT }}>
-            MVP del públic
+            {prediction ? 'Resultat de la porra' : 'MVP del públic'}
           </motion.p>
           <motion.h2 initial={{ opacity: 0, x: 60 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.55, duration: 0.6, ease: EASE_OUT }} className="mt-5 truncate text-[104px] font-black uppercase leading-[0.9]">
             {win.c.name}
           </motion.h2>
-          <p className="mt-4 flex items-center gap-3 text-[30px] font-bold uppercase tracking-[0.14em] text-slate-300">
-            <TeamCrest team={team} size={46} /> {win.c.teamName} · #{win.c.dorsal}
-          </p>
+          {prediction ? (
+            <p className="mt-4 text-[30px] font-bold uppercase tracking-[0.14em] text-slate-300">{g.title}</p>
+          ) : (
+            <p className="mt-4 flex items-center gap-3 text-[30px] font-bold uppercase tracking-[0.14em] text-slate-300">
+              <TeamCrest team={team} size={46} /> {win.c.teamName} · #{win.c.dorsal}
+            </p>
+          )}
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }} className="mt-8 flex items-end gap-6">
             <span className="digital text-[120px] leading-none" style={goldText}>
               {win.pct}%
@@ -64,11 +69,11 @@ export function PollGraphic({ g, accent }: { g: G; accent: string }) {
 
   const shown = rows.slice(0, 6);
   return (
-    <Board eyebrow={g.closed ? 'Votació tancada' : 'Votació en directe'} title={g.title} accent={accent} width={1560}>
+    <Board eyebrow={g.closed ? 'Votació tancada' : prediction ? 'Porra en directe' : 'Votació en directe'} title={g.title} accent={accent} width={1560}>
       <div className="flex gap-10">
         <div className="flex w-[380px] shrink-0 flex-col items-center rounded-3xl border border-amber-400/30 bg-white/[0.04] p-6 text-center">
           <p className="flex items-center gap-2 text-[24px] font-black uppercase tracking-[0.2em] text-amber-300">
-            <Smartphone size={26} /> Escaneja i vota
+            <Smartphone size={26} /> {prediction ? 'Escaneja i participa' : 'Escaneja i vota'}
           </p>
           <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3, type: 'spring', damping: 14 }} className="mt-4 rounded-2xl bg-white p-2.5 shadow-glow">
             <QrCode value={g.voteUrl} size={300} border={1} />
@@ -98,13 +103,15 @@ export function PollGraphic({ g, accent }: { g: G; accent: string }) {
                   {i + 1}
                 </span>
                 <span className="relative">
-                  <PlayerAvatar player={r.c} team={team} size={68} />
+                  <CandidateMark c={r.c} size={68} />
                 </span>
                 <span className="relative min-w-0 flex-1">
                   <span className="block truncate text-[34px] font-black uppercase leading-none text-white">{r.c.name}</span>
-                  <span className="mt-1.5 flex items-center gap-2 text-[19px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                    <TeamCrest team={team} size={22} /> {r.c.teamShort} · #{r.c.dorsal} · {POSITION_LABEL[r.c.position]}
-                  </span>
+                  {!r.c.option && (
+                    <span className="mt-1.5 flex items-center gap-2 text-[19px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                      <TeamCrest team={team} size={22} /> {r.c.teamShort} · #{r.c.dorsal} · {POSITION_LABEL[r.c.position]}
+                    </span>
+                  )}
                 </span>
                 <span className="digital relative text-[56px] leading-none" style={goldText}>
                   {r.pct}%

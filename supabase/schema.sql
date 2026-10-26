@@ -226,5 +226,97 @@ $$;
 
 grant execute on function public.mvp_tally(text) to anon, authenticated;
 
+-- 4e) Missatges de l'afició ---------------------------------------------------------
+--    Qualsevol visitant n'envia un (queda «pendent»); només els admins els llegeixen, els aproven
+--    i els posen en pantalla. Ningú de fora pot veure els missatges dels altres.
+create table if not exists public.fan_messages (
+  id         text primary key check (char_length(id) between 8 and 64),
+  name       text not null check (char_length(btrim(name)) between 1 and 30),
+  text       text not null check (char_length(btrim(text)) between 2 and 140),
+  status     text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.fan_messages enable row level security;
+
+drop policy if exists "Afició: envia"              on public.fan_messages;
+drop policy if exists "Afició: admins llegeixen"   on public.fan_messages;
+drop policy if exists "Afició: admins modifiquen"  on public.fan_messages;
+drop policy if exists "Afició: admins esborren"    on public.fan_messages;
+
+create policy "Afició: envia"             on public.fan_messages for insert to anon, authenticated with check (status = 'pending');
+create policy "Afició: admins llegeixen"  on public.fan_messages for select to authenticated using (public.is_admin());
+create policy "Afició: admins modifiquen" on public.fan_messages for update to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "Afició: admins esborren"   on public.fan_messages for delete to authenticated using (public.is_admin());
+
+-- 4f) Avisos al mòbil (notificacions push de l'app) -----------------------------------
+--    Els visitants s'hi apunten i se'n desapunten amb dues funcions (no poden llegir la taula);
+--    l'enviament el fa /api/push amb la sessió d'un admin.
+create table if not exists public.push_subscriptions (
+  endpoint   text primary key check (char_length(endpoint) between 20 and 1000),
+  p256dh     text not null check (char_length(p256dh) < 200),
+  auth       text not null check (char_length(auth) < 100),
+  created_at timestamptz not null default now()
+);
+
+alter table public.push_subscriptions enable row level security;
+
+create or replace function public.push_subscribe(p_endpoint text, p_p256dh text, p_auth text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.push_subscriptions (endpoint, p256dh, auth) values (p_endpoint, p_p256dh, p_auth)
+  on conflict (endpoint) do update set p256dh = excluded.p256dh, auth = excluded.auth;
+$$;
+
+create or replace function public.push_unsubscribe(p_endpoint text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.push_subscriptions where endpoint = p_endpoint;
+$$;
+
+create or replace function public.push_targets()
+returns setof public.push_subscriptions
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  return query select * from public.push_subscriptions;
+end;
+$$;
+
+create or replace function public.push_forget(p_endpoints text[])
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'not allowed' using errcode = '42501';
+  end if;
+  delete from public.push_subscriptions where endpoint = any (p_endpoints);
+end;
+$$;
+
+revoke all on function public.push_subscribe(text, text, text) from public;
+revoke all on function public.push_unsubscribe(text) from public;
+revoke all on function public.push_targets() from public;
+revoke all on function public.push_forget(text[]) from public;
+grant execute on function public.push_subscribe(text, text, text) to anon, authenticated;
+grant execute on function public.push_unsubscribe(text) to anon, authenticated;
+grant execute on function public.push_targets() to authenticated;
+grant execute on function public.push_forget(text[]) to authenticated;
+
 -- 5) (Opcional) Temps real: perquè els visitants rebin els canvis sense recarregar
 -- alter publication supabase_realtime add table public.league_state;

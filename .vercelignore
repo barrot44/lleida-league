@@ -1,6 +1,7 @@
 # Upload only what the build needs (the project folder also holds videos and photos for the streams).
 /*
 !/src
+!/api
 !/public
 !/supabase
 !/index.html

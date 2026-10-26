@@ -146,6 +146,8 @@ export type ObsGraphic =
   | { kind: 'poll'; pollId: string; title: string; candidates: MvpCandidate[]; closed: boolean; voteUrl: string }
   /** Players presented one by one with their collectible card. */
   | { kind: 'walkout'; team: ObsTeam; title: string; players: { player: Player; edition: Edition }[] }
+  /** Live match statistics face to face. */
+  | { kind: 'stats'; title: string; home: ObsTeam; away: ObsTeam; homeScore: number; awayScore: number; homeStats: MatchStats; awayStats: MatchStats }
   /** The two presidents face to face. */
   | { kind: 'presidents'; home: ObsTeam; away: ObsTeam; homeStats: PresidentStats; awayStats: PresidentStats; h2h: { homeWins: number; draws: number; awayWins: number; last: string | null }; categoryLabel: string };
 
@@ -213,6 +215,18 @@ export interface ObsState {
   cards: ObsCards;
   /** Link of the live video (YouTube, Twitch…) shown on the website's live page. */
   stream: { url: string };
+  /** Situations panel: OBS scene chosen for each match situation and the one on air. */
+  situations: { scenes: Record<string, string>; active: string | null; transition: boolean };
+  /** Interview at the side of the court. */
+  interview: ObsInterview;
+  /** Arena sounds played by the overlay inside OBS. */
+  sound: { enabled: boolean; auto: boolean; volume: number; last: { id: string; at: number; kind: SfxKind } | null };
+  /** Live match statistics (tapped from the panel). */
+  stats: { home: MatchStats; away: MatchStats };
+  /** A fan message approved for the screen. */
+  fanMsg: { id: string; at: number; name: string; text: string } | null;
+  /** Phone notifications sent automatically (goals, start, final, votes). */
+  notify: { auto: boolean };
 }
 
 export interface ObsCardDef {
@@ -304,3 +318,26 @@ export const OBS_LAYERS = [
 ] as const;
 
 export type ObsLayerId = (typeof OBS_LAYERS)[number]['id'];
+
+export type SfxKind = 'horn' | 'whistle' | 'cheer' | 'drumroll' | 'card' | 'sting' | 'dice';
+
+export interface MatchStats {
+  shots: number;
+  onTarget: number;
+  fouls: number;
+  corners: number;
+  saves: number;
+  /** Yellow + red cards shown. */
+  cards: number;
+}
+
+export interface ObsInterview {
+  visible: boolean;
+  /** Changes every time it is put on air, so the entrance replays. */
+  id: string;
+  name: string;
+  role: string;
+  team: ObsTeam | null;
+  question: string;
+  sponsors: boolean;
+}

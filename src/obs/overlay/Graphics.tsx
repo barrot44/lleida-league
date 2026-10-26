@@ -8,6 +8,7 @@ import { formatDateLong } from '@/lib/utils';
 import { PollGraphic } from '@/obs/overlay/PollGraphic';
 import { Walkout } from '@/obs/overlay/Walkout';
 import { Presidents } from '@/obs/overlay/Presidents';
+import { StatsGraphic } from '@/obs/overlay/StatsGraphic';
 import { Board, EASE_OUT, FormChips, GOLD_GRADIENT, PANEL_BG, alpha, goldText, listItem, listParent } from '@/obs/overlay/kit';
 
 type G<K extends ObsGraphic['kind']> = Extract<ObsGraphic, { kind: K }>;
@@ -479,5 +480,7 @@ export function MainGraphic({ graphic, accent }: { graphic: ObsGraphic; accent: 
       return <Walkout g={graphic} />;
     case 'presidents':
       return <Presidents g={graphic} />;
+    case 'stats':
+      return <StatsGraphic g={graphic} accent={accent} />;
   }
 }

@@ -179,6 +179,27 @@ l'enllaç (`/obs#obs=…`, que mai surt de l'ordinador) i passa a **controlar OB
 - **QR a la cantonada** (Marca, QR i patrocinadors): porta a la web, a la votació, a la classificació o al calendari.
 - Cal executar el `supabase/schema.sql` actualitzat (taules `mvp_polls`, `mvp_votes` i la funció `mvp_tally`).
 
+### Situacions, entrevista, sons, estadístiques, porra i afició
+
+- **Situacions del partit**: Prepartit, Partit, Temps mort, Descans, Entrevista i Final. Cada botó canvia a l'escena d'OBS que hi
+  hagis assignat (amb la transició del logo) i posa els gràfics que toquen. Les escenes es trien a «Escena d'OBS de cada situació».
+- **Mode entrevista**: rètol gran amb nom, càrrec i escut, la pregunta a dalt i una franja de patrocinadors.
+- **Sons del pavelló**: botzina, xiulet, ovació, redoble… generats per la mateixa capa (sense fitxers). Sonen sols amb els gols,
+  targetes, daus i cartes. Perquè entrin al directe, la font de navegador ha de tenir marcat «Controla l'àudio via OBS».
+- **Estadístiques en directe**: xuts, xuts a porta, parades, córners, faltes i targetes; surten en un gràfic i a `/directe`.
+- **Porra en directe**: preguntes ràpides (qui guanyarà, proper gol…) o la teva; es vota a `/vota` amb el mateix QR que l'MVP.
+- **Missatges de l'afició**: la gent n'envia des de `/directe`; tu els aproves i surten en una bombolla. Taula `fan_messages`.
+
+### App al mòbil i avisos
+
+La web es pot instal·lar com a app (Android/ordinador: botó «Instal·la-la»; iPhone: Compartir → Afegeix a la pantalla d'inici).
+Qui activa els avisos rep notificacions quan comença el directe, a cada gol, al final i quan s'obre una votació (automàtics o
+des de **Directe → Avisos al mòbil**). Necessita:
+
+1. El `supabase/schema.sql` actualitzat (taula `push_subscriptions` i funcions `push_*`).
+2. La variable `VAPID_PRIVATE_KEY` a Vercel (la clau privada és a `.env.local`, que no es puja mai a GitHub):
+   `npx vercel env add VAPID_PRIVATE_KEY production --sensitive` i torna a publicar.
+
 ## Estructura del projecte
 
 ```

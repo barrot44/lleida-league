@@ -66,7 +66,8 @@ const browserSettings = (url: string) => ({
   url,
   width: 1920,
   height: 1080,
-  reroute_audio: false,
+  // The arena sounds go through the OBS mixer (and can be turned down there).
+  reroute_audio: true,
   restart_when_active: false,
   shutdown: false,
   css: 'body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }',

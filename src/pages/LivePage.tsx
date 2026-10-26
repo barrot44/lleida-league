@@ -8,6 +8,9 @@ import { isLive, streamEmbed, useLiveState } from '@/lib/live';
 import { useOpenPoll } from '@/lib/mvp';
 import { celebrate } from '@/lib/confetti';
 import { MvpVoteBox } from '@/components/vote/MvpVoteBox';
+import { LiveStats, hasStats } from '@/components/live/LiveStats';
+import { FanMessageForm } from '@/components/live/FanMessageForm';
+import { AppCard } from '@/components/live/AppCard';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { EmptyState, PageHeader } from '@/components/ui/Section';
 import { useLeagueStore } from '@/store/useLeagueStore';
@@ -107,6 +110,7 @@ export default function LivePage() {
       {!live || !s ? (
         <div className="space-y-6">
           <EmptyState icon={<Radio />} title="Ara mateix no hi ha cap partit en directe" hint="Quan comenci una retransmissió, aquí veuràs el marcador en temps real i el vídeo." />
+          <AppCard />
           {next && team(next.homeTeamId) && team(next.awayTeamId) && (
             <a href={hrefFor('calendar')} className="card flex items-center justify-center gap-4 px-4 py-4 transition hover:border-amber-400/50">
               <CalendarDays className="text-amber-400" />
@@ -161,6 +165,11 @@ export default function LivePage() {
               <MvpVoteBox poll={poll} compact />
             </section>
           )}
+
+          {s.scoreboard.home && s.scoreboard.away && hasStats(s.stats.home, s.stats.away) && <LiveStats home={s.scoreboard.home} away={s.scoreboard.away} homeStats={s.stats.home} awayStats={s.stats.away} />}
+
+          <FanMessageForm />
+          <AppCard />
 
           {match && match.events.length > 0 && (
             <section className="card p-4 sm:p-6">

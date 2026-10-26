@@ -1,52 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Clapperboard, Film, Loader2, Play, Save, Snail, Sparkles, Star, Trash2, TriangleAlert } from 'lucide-react';
-import type { ObsExecStatus } from '@/obs/types';
-import { onExecStatus } from '@/obs/bus';
-import { REPLAY_SCENE } from '@/obs/executor';
 import { matchMinute } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
-import { useObsLink } from '@/obs/useObsLink';
 import { useUiStore } from '@/store/useUiStore';
-import { useNow } from '@/hooks/useNow';
 import { SectionCard } from '@/components/admin/fields';
 import { Toggle } from '@/components/admin/obs/Toggle';
 import type { useObsActions } from '@/components/admin/obs/useObsActions';
+import { useScenes } from '@/components/admin/obs/useScenes';
 import { cn, uid } from '@/lib/utils';
 
 type Actions = ReturnType<typeof useObsActions>;
 
-/** Latest report of the overlay that controls OBS (null when none has spoken recently). */
-function useExecStatus() {
-  const [status, setStatus] = useState<ObsExecStatus | null>(null);
-  const now = useNow(3000);
-  useEffect(() => onExecStatus(setStatus), []);
-  return status && now - status.at < 12_000 ? status : null;
-}
-
 /** Scenes with the logo transition, replays and the "plays of the match" reel. */
 export function ProductionControls({ actions }: { actions: Actions }) {
-  const exec = useExecStatus();
-  const link = useObsLink();
+  const { exec, execOn, scenes, current, goScene: switchScene } = useScenes(actions);
   const state = useObsStore((s) => s.state);
   const toast = useUiStore((s) => s.toast);
   const [withTransition, setWithTransition] = useState(true);
   const [label, setLabel] = useState('');
 
-  const execOn = !!exec?.connected;
-  const scenes = (execOn ? exec.scenes : link.status === 'on' ? link.scenes : []).filter((s) => s !== REPLAY_SCENE);
-  const current = execOn ? exec.currentScene : link.currentScene;
   const known = useMemo(() => new Set(exec?.clips ?? []), [exec?.clips]);
   const clips = [...state.clips].sort((a, b) => a.at - b.at);
   const starred = clips.filter((c) => c.starred);
 
-  const goScene = (scene: string) => {
-    if (execOn) return actions.sendCmd({ type: 'scene', scene, transition: withTransition });
-    // Only the panel is connected: sting on the overlay and switch while it covers the screen (allowing for the delay).
-    if (withTransition) {
-      actions.sting();
-      window.setTimeout(() => void link.setScene(scene), 750);
-    } else void link.setScene(scene);
-  };
+  const goScene = (scene: string) => switchScene(scene, withTransition);
 
   const suggestLabel = () => {
     const sb = state.scoreboard;
@@ -58,7 +35,7 @@ export function ProductionControls({ actions }: { actions: Actions }) {
   /** Saves the last seconds into "Jugades del partit" without putting anything on air. */
   const saveClip = () => {
     if (!execOn) return toast('La capa d’OBS encara no té el control (mira les instruccions de sota).', 'error');
-    if (!exec.replayBuffer) return toast(exec.replayError ?? 'El buffer de repeticions d’OBS no està actiu.', 'error');
+    if (!exec?.replayBuffer) return toast(exec?.replayError ?? 'El buffer de repeticions d’OBS no està actiu.', 'error');
     const clipId = uid('clip');
     const text = label.trim() || suggestLabel();
     const sb = state.scoreboard;
@@ -136,7 +113,7 @@ export function ProductionControls({ actions }: { actions: Actions }) {
         <button className="btn-gold mt-2 w-full !py-3" disabled={exec?.busy === 'Desant la jugada…'} onClick={saveClip}>
           <Save size={17} /> Desa la jugada
         </button>
-        {execOn && !exec.replayBuffer && <p className="mt-2 text-xs text-red-300">{exec.replayError}</p>}
+        {execOn && !exec?.replayBuffer && <p className="mt-2 text-xs text-red-300">{exec?.replayError}</p>}
         <p className="mt-2 text-[11px] text-slate-500">No surt res en pantalla: la jugada es guarda a la llista i la reprodueixes quan vulguis (▶ normal o 🐌 càmera lenta).</p>
       </div>
 

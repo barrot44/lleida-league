@@ -1,5 +1,5 @@
 import type { CategoryId, LeagueData, Match, Player, Team } from '@/types';
-import type { ObsClock, ObsPeriod, ObsPlayer, ObsPlayerStats, ObsResult, ObsStandingRow, ObsState, ObsSummaryEvent, ObsTeam } from '@/obs/types';
+import type { MatchStats, ObsClock, ObsPeriod, ObsPlayer, ObsPlayerStats, ObsResult, ObsStandingRow, ObsState, ObsSummaryEvent, ObsTeam } from '@/obs/types';
 import { CATEGORY_BY_ID, POSITIONS } from '@/config/site';
 import { DEFAULT_DECK, mergeDeck } from '@/obs/cards';
 import { computeStandings, playerRating, type StandingRow } from '@/lib/standings';
@@ -23,6 +23,8 @@ export const SCREEN_DEFAULTS = {
   halftime: { title: 'Descans', subtitle: 'Tornem amb la segona part' },
   ending: { title: 'Gràcies per veure’ns', subtitle: 'Segueix-nos a les xarxes per no perdre’t res' },
 } as const;
+
+export const emptyMatchStats = (): MatchStats => ({ shots: 0, onTarget: 0, fouls: 0, corners: 0, saves: 0, cards: 0 });
 
 export function defaultObsState(): ObsState {
   return {
@@ -64,6 +66,12 @@ export function defaultObsState(): ObsState {
     },
     cards: { deck: DEFAULT_DECK, request: null, draw: null, active: null, history: [] },
     stream: { url: '' },
+    situations: { scenes: {}, active: null, transition: true },
+    interview: { visible: false, id: '', name: '', role: '', team: null, question: '', sponsors: true },
+    sound: { enabled: true, auto: true, volume: 0.8, last: null },
+    stats: { home: emptyMatchStats(), away: emptyMatchStats() },
+    fanMsg: null,
+    notify: { auto: true },
   };
 }
 
@@ -100,6 +108,12 @@ export function normalizeObsState(raw: unknown): ObsState {
       history: Array.isArray(r.cards?.history) ? r.cards.history : [],
     },
     stream: { ...base.stream, ...r.stream },
+    situations: { ...base.situations, ...r.situations, scenes: { ...r.situations?.scenes } },
+    interview: { ...base.interview, ...r.interview },
+    sound: { ...base.sound, ...r.sound, last: r.sound?.last ?? null },
+    stats: { home: { ...emptyMatchStats(), ...r.stats?.home }, away: { ...emptyMatchStats(), ...r.stats?.away } },
+    fanMsg: r.fanMsg ?? null,
+    notify: { ...base.notify, ...r.notify },
   };
 }
 

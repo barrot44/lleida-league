@@ -13,7 +13,7 @@ import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLookups } from '@/hooks/useLeagueView';
 import { formatDateLong } from '@/lib/utils';
-import { useOpenPoll } from '@/lib/mvp';
+import { isPrediction, useOpenPoll } from '@/lib/mvp';
 import { MvpVoteBox } from '@/components/vote/MvpVoteBox';
 import { cn } from '@/lib/utils';
 
@@ -119,7 +119,7 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
             <h3 className="mb-1 flex items-center gap-2 font-display text-xl font-black uppercase text-white">
               <span className="h-2 w-2 animate-pulse-live rounded-full bg-red-500" /> {poll.title}
             </h3>
-            <p className="mb-4 text-xs text-slate-400">Votació en directe del públic. Tria el millor jugador del partit.</p>
+            <p className="mb-4 text-xs text-slate-400">{isPrediction(poll) ? 'Porra en directe: fes el teu pronòstic.' : 'Votació en directe del públic. Tria el millor jugador del partit.'}</p>
             <MvpVoteBox poll={poll} compact />
           </section>
         )}

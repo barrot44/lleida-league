@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Vote } from 'lucide-react';
 import { hrefFor } from '@/hooks/useHashRoute';
 import { useLookups } from '@/hooks/useLeagueView';
-import { myVote, useOpenPoll } from '@/lib/mvp';
+import { isPrediction, myVote, useOpenPoll } from '@/lib/mvp';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 
@@ -28,9 +28,9 @@ export function LiveVoteBanner() {
       </span>
       <span className="min-w-0 flex-1 basis-48">
         <span className="flex items-center gap-2 whitespace-nowrap text-[11px] font-black uppercase tracking-[0.2em] text-red-300">
-          <span className="h-2 w-2 animate-pulse-live rounded-full bg-red-500" /> Votació en directe
+          <span className="h-2 w-2 animate-pulse-live rounded-full bg-red-500" /> {isPrediction(poll) ? 'Porra en directe' : 'Votació en directe'}
         </span>
-        <span className="block font-display text-2xl font-black uppercase leading-tight text-white">{voted ? 'Mira com va la votació' : poll.title}</span>
+        <span className="block font-display text-2xl font-black uppercase leading-tight text-white">{voted ? (isPrediction(poll) ? 'Mira com va la porra' : 'Mira com va la votació') : poll.title}</span>
         {home && away && (
           <span className="mt-1 flex items-center gap-2 text-sm font-bold text-slate-300">
             <TeamCrest team={home} size={20} /> {home.shortName}
@@ -40,7 +40,7 @@ export function LiveVoteBanner() {
         )}
       </span>
       <span className="btn-gold w-full shrink-0 sm:w-auto">
-        {voted ? 'Resultats' : 'Vota ara'} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+        {voted ? 'Resultats' : isPrediction(poll) ? 'Participa' : 'Vota ara'} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
       </span>
     </motion.a>
   );

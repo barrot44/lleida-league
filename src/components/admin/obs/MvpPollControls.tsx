@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { Crown, ExternalLink, Loader2, Lock, MonitorUp, QrCode as QrIcon, Save, Vote } from 'lucide-react';
-import { candidateOf, openPoll, ranked, setPollStatus, useOpenPoll, useOpenPollStore, useTally, voteUrl, type MvpPoll } from '@/lib/mvp';
+import { candidateOf, isPrediction, openPoll, ranked, setPollStatus, useOpenPoll, useOpenPollStore, useTally, voteUrl, type MvpPoll } from '@/lib/mvp';
 import { squadOrder } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { SectionCard } from '@/components/admin/fields';
 import type { useObsActions } from '@/components/admin/obs/useObsActions';
+import { autoNotify } from '@/components/admin/obs/autoNotify';
 import { cn } from '@/lib/utils';
 
 type Actions = ReturnType<typeof useObsActions>;
@@ -21,7 +22,9 @@ export function MvpPollControls({ actions }: { actions: Actions }) {
   const matches = useLeagueStore((s) => s.matches);
   const upsertMatch = useLeagueStore((s) => s.upsertMatch);
   const toast = useUiStore((s) => s.toast);
-  const open = useOpenPoll();
+  const anyOpen = useOpenPoll();
+  // The live prediction uses the same machinery; this card only handles the MVP vote.
+  const open = anyOpen && !isPrediction(anyOpen) ? anyOpen : null;
   const [last, setLast] = useState<MvpPoll | null>(null);
   const poll = open ?? last;
   const tally = useTally(poll?.id, 3000);
@@ -57,6 +60,7 @@ export function MvpPollControls({ actions }: { actions: Actions }) {
       const p = await openPoll({ matchId: sb.matchId, title: title.trim() || 'Vota l’MVP del partit', candidates });
       setLast(p);
       toast('Votació oberta! Ja es pot votar des de la web.');
+      autoNotify('poll', useObsStore.getState().state, p.title);
     });
 
   const close = () =>

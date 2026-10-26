@@ -11,6 +11,10 @@ import { DICE_DURATION, DiceRoll } from '@/obs/overlay/DiceRoll';
 import { ActiveCardBug, CARD_REVEAL_MS, CardRequestAlert, CardReveal } from '@/obs/overlay/CardsLayer';
 import { cardIsLive } from '@/obs/cards';
 import { FitInside, boardMotion } from '@/obs/overlay/kit';
+import { FanMessageBubble, InterviewLayer } from '@/obs/overlay/Interview';
+
+/** How long an approved fan message stays on screen. */
+export const FAN_MSG_MS = 14_000;
 
 export const STAGE_W = 1920;
 export const STAGE_H = 1080;
@@ -35,7 +39,9 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
   const main = state.main;
   const showMain = on('grafics') && main.visible && !!main.graphic && (!main.hideAt || now < main.hideAt);
   const lt = state.lower;
-  const showLower = on('rotul') && lt.visible && !!lt.title.trim() && (!lt.hideAt || now < lt.hideAt) && !fx?.replay;
+  const iv = state.interview;
+  const showInterview = on('rotul') && iv.visible && !!iv.name.trim() && !fx?.replay;
+  const showLower = !showInterview && on('rotul') && lt.visible && !!lt.title.trim() && (!lt.hideAt || now < lt.hideAt) && !fx?.replay;
   const showTicker = on('barra') && state.ticker.visible && state.ticker.items.some((s) => s.trim());
   const showBrand = on('marca') && state.brand.visible;
   const showSponsors = on('marca') && state.sponsors.visible && state.sponsors.items.length > 0;
@@ -52,6 +58,8 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
   const showReveal = on('avisos') && !!cards.draw && now - cards.draw.at >= -2000 && now - cards.draw.at < CARD_REVEAL_MS;
   const showRequest = on('avisos') && !!cards.request && (!cards.draw || cards.draw.at < cards.request.at) && now - cards.request.at < 90_000;
   const showActiveCard = on('marcador') && cardIsLive(cards.active, sb.clock, now) && !showReveal;
+  const fan = state.fanMsg;
+  const showFan = on('avisos') && !!fan && now - fan.at >= -2000 && now - fan.at < FAN_MSG_MS && !showScreen && !showMain;
 
   return (
     <div
@@ -75,6 +83,8 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
       </AnimatePresence>
 
       <AnimatePresence>{showLower && <LowerThird key={lt.id} lt={lt} raised={showTicker} />}</AnimatePresence>
+      <AnimatePresence>{showInterview && <InterviewLayer key={iv.id} iv={iv} sponsors={state.sponsors.items} raised={showTicker} />}</AnimatePresence>
+      <AnimatePresence>{showFan && fan && <FanMessageBubble key={fan.id} name={fan.name} text={fan.text} low={showActiveCard} />}</AnimatePresence>
       <AnimatePresence>{showQr && <QrCorner key={`qr-${state.qr.url}`} url={state.qr.url} label={state.qr.label} raised={showTicker} />}</AnimatePresence>
       <AnimatePresence>{showTicker && <TickerBar key="ticker" ticker={state.ticker} />}</AnimatePresence>
       <AnimatePresence>{showActiveCard && activeDef && cards.active && <ActiveCardBug key={cards.active.id} active={cards.active} card={activeDef} clock={sb.clock} now={now} />}</AnimatePresence>

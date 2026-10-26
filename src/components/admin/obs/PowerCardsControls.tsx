@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, EyeOff, Hand, Layers, Send, Shuffle, Square, Trash2, X } from 'lucide-react';
+import { ChevronDown, EyeOff, Hand, Layers, Square, Trash2, X } from 'lucide-react';
 import type { ObsCardDef, ObsTeam } from '@/obs/types';
 import { cardIcon, cardIsLive, cardRemaining, mmss } from '@/obs/cards';
 import { clockElapsed } from '@/obs/state';
@@ -15,14 +15,12 @@ import { cn, uid } from '@/lib/utils';
 
 type Actions = ReturnType<typeof useObsActions>;
 
-/** Kings League-style power cards: a team asks, a card is drawn at random, its power applies. */
+/** Kings League-style power cards: a team asks, you choose the card, it comes out of the deck on screen. */
 export function PowerCardsControls({ actions }: { actions: Actions }) {
   const cards = useObsStore((s) => s.state.cards);
   const sb = useObsStore((s) => s.state.scoreboard);
   const toast = useUiStore((s) => s.toast);
   const now = useNow(500);
-  const [noRepeat, setNoRepeat] = useState(true);
-  const [manual, setManual] = useState('');
   const [editing, setEditing] = useState(false);
 
   const deck = cards.deck;
@@ -52,24 +50,14 @@ export function PowerCardsControls({ actions }: { actions: Actions }) {
     }));
   };
 
-  const drawRandom = () => {
+  /** You pick the card (no random draw): it still comes out of the shuffled deck on screen. */
+  const play = (card: ObsCardDef) => {
     const team = requester?.team;
-    if (!team) return toast('Primer un equip ha de demanar la carta.', 'error');
-    const enabled = deck.filter((c) => c.enabled);
-    if (!enabled.length) return toast('No hi ha cap carta activada a la baralla.', 'error');
-    const used = new Set(cards.history.filter((h) => h.teamId === team.id).map((h) => h.cardId));
-    const pool = noRepeat ? enabled.filter((c) => !used.has(c.id)) : enabled;
-    const from = pool.length ? pool : enabled;
-    draw(from[Math.floor(Math.random() * from.length)], team);
-  };
-
-  const drawManual = () => {
-    const card = byId(manual);
-    const team = requester?.team ?? null;
-    if (!card) return toast('Tria quina carta vols mostrar.', 'error');
-    if (!team) return toast('Primer un equip ha de demanar la carta.', 'error');
+    if (!team) return toast('Primer toca quin equip demana la carta (pas 1).', 'error');
     draw(card, team);
   };
+
+  const usedBy = (cardId: string) => cards.history.filter((h) => h.cardId === cardId).map((h) => h.teamShort);
 
   const patchDeck = (id: string, patch: Partial<ObsCardDef>) => setCards((c) => ({ deck: c.deck.map((d) => (d.id === id ? { ...d, ...patch } : d)) }));
 
@@ -110,29 +98,35 @@ export function PowerCardsControls({ actions }: { actions: Actions }) {
         </p>
       )}
 
-      {/* 2. Draw */}
+      {/* 2. Pick the card */}
       <p className="label mt-5 flex items-center gap-1.5">
-        <Shuffle size={12} /> 2 · Treu la carta
+        <Layers size={12} /> 2 · Tria la carta {requester ? `per a ${requester.team.shortName}` : ''}
       </p>
-      <button className="btn-gold w-full !py-3.5 text-base" disabled={!requester} onClick={drawRandom}>
-        <Shuffle size={18} /> Treu una carta a l’atzar
-      </button>
-      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <Toggle small checked={noRepeat} onChange={setNoRepeat} label="Que un equip no repeteixi carta" />
-        <div className="flex items-center gap-2">
-          <select className="input !w-auto !py-1.5 text-xs" value={manual} onChange={(e) => setManual(e.target.value)} aria-label="Triar carta a mà">
-            <option value="">Triar a mà…</option>
-            {deck.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <button className="btn-ghost !px-3 !py-1.5 text-xs" disabled={!manual || !requester} onClick={drawManual}>
-            <Send size={13} /> Mostra-la
-          </button>
-        </div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {deck
+          .filter((c) => c.enabled)
+          .map((c) => {
+            const Icon = cardIcon(c.id);
+            const used = usedBy(c.id);
+            return (
+              <button
+                key={c.id}
+                disabled={!requester}
+                onClick={() => play(c)}
+                className="group relative flex min-h-[92px] flex-col items-start gap-1.5 overflow-hidden rounded-2xl border border-white/10 p-3 text-left transition enabled:hover:-translate-y-0.5 enabled:hover:border-white/40 disabled:opacity-40"
+                style={{ background: `linear-gradient(150deg, ${c.color}55, rgba(8,11,17,.6) 70%)` }}
+              >
+                <span className="grid h-8 w-8 place-items-center rounded-lg" style={{ background: c.color }}>
+                  <Icon size={17} color="#fff" />
+                </span>
+                <span className="font-display text-sm font-black uppercase leading-tight text-white">{c.name}</span>
+                {c.minutes > 0 && <span className="text-[10px] font-bold uppercase tracking-wider text-amber-200">⏱ {c.minutes} min</span>}
+                {used.length > 0 && <span className="absolute right-2 top-2 rounded-full bg-black/60 px-1.5 text-[10px] font-bold text-slate-300">✓ {used.join(', ')}</span>}
+              </button>
+            );
+          })}
       </div>
+      {!requester && <p className="mt-2 text-xs text-slate-500">Primer toca quin equip la demana; després tria la carta i sortirà a la pantalla.</p>}
 
       {/* 3. Card in force */}
       {live && liveDef && (

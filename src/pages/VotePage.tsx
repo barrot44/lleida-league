@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/ui/Badges';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { hrefFor } from '@/hooks/useHashRoute';
 import { useLookups } from '@/hooks/useLeagueView';
-import { useOpenPoll } from '@/lib/mvp';
+import { isPrediction, useOpenPoll } from '@/lib/mvp';
 import { useLeagueStore } from '@/store/useLeagueStore';
 
 /** `/vota` — where the QR of the live stream sends people to choose the MVP. */
@@ -18,7 +18,7 @@ export default function VotePage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
-      <PageHeader eyebrow="Votació del públic" title={poll?.title ?? 'Vota l’MVP'} description="Tria el millor jugador del partit. Els resultats surten en directe a la retransmissió." actions={<Vote aria-hidden className="hidden text-amber-400/40 sm:block" size={56} />} />
+      <PageHeader eyebrow={isPrediction(poll) ? 'Porra en directe' : 'Votació del públic'} title={poll?.title ?? 'Vota l’MVP'} description={isPrediction(poll) ? 'Fes el teu pronòstic. Els resultats surten en directe a la retransmissió.' : 'Tria el millor jugador del partit. Els resultats surten en directe a la retransmissió.'} actions={<Vote aria-hidden className="hidden text-amber-400/40 sm:block" size={56} />} />
 
       {!poll ? (
         <EmptyState icon={<Vote />} title="Ara mateix no hi ha cap votació oberta" hint="Quan comenci una votació durant un directe, la trobaràs aquí i a la pàgina d’inici." />

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
 import { LiveVoteBanner } from '@/components/vote/LiveVoteBanner';
+import { AppCard } from '@/components/live/AppCard';
 import { LiveMatchBanner } from '@/components/live/LiveBadges';
 import { NewsList } from '@/components/home/NewsList';
 import { MatchCard } from '@/components/calendar/MatchCard';
@@ -65,6 +66,7 @@ export default function HomePage() {
       <div className="mx-auto max-w-7xl space-y-16 px-4 pt-14 sm:px-6">
         <LiveMatchBanner />
         <LiveVoteBanner />
+        <AppCard />
         <section>
           <SectionHead title="La jornada" to="calendar" label="Calendari complet" />
           <div className="grid gap-4 md:grid-cols-2">

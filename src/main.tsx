@@ -8,6 +8,7 @@ import '@fontsource-variable/inter';
 import './index.css';
 import App from './App';
 import { installRouter } from './hooks/useHashRoute';
+import { installPwa } from './lib/pwa';
 
 const root = createRoot(document.getElementById('root')!);
 
@@ -30,6 +31,7 @@ if (window.location.pathname.replace(/\/+$/, '') === '/obs') {
   );
 } else {
   installRouter();
+  installPwa();
   root.render(
     <StrictMode>
       <App />

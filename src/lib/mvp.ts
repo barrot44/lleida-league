@@ -22,6 +22,8 @@ export interface MvpCandidate {
   primaryColor: string;
   secondaryColor: string;
   logoUrl: string;
+  /** Prediction ("porra") answer instead of a player: shown as a team crest or a plain option. */
+  option?: boolean;
 }
 
 export interface MvpPoll {
@@ -49,6 +51,28 @@ export const candidateOf = (p: Player, t: Team): MvpCandidate => ({
   secondaryColor: t.secondaryColor,
   logoUrl: t.logoUrl,
 });
+
+/** One answer of a live prediction. With a team it shows that team's crest and colours. */
+export const optionCandidate = (id: string, label: string, color: string, team?: Pick<Team, 'id' | 'name' | 'shortName' | 'primaryColor' | 'secondaryColor' | 'logoUrl'>): MvpCandidate => ({
+  id,
+  name: label,
+  dorsal: 0,
+  position: 'Ala',
+  photoUrl: '',
+  teamId: team?.id ?? id,
+  teamName: team?.name ?? label,
+  teamShort: team?.shortName ?? label,
+  primaryColor: team?.primaryColor ?? color,
+  secondaryColor: team?.secondaryColor ?? '#0f172a',
+  logoUrl: team?.logoUrl ?? '',
+  option: true,
+});
+
+/** A live prediction ("porra") rather than the MVP vote. */
+export const isPrediction = (p: Pick<MvpPoll, 'candidates'> | null | undefined) => !!p?.candidates.some((c) => c.option);
+
+/** An option tied to a real team shows its crest; "Draw", "Nobody"… show their text. */
+export const optionHasTeam = (c: MvpCandidate) => c.option && c.teamId !== c.id;
 
 /** Team-like object for <TeamCrest/> / <PlayerAvatar/>. */
 export const candidateTeam = (c: MvpCandidate) => ({ name: c.teamName, shortName: c.teamShort, primaryColor: c.primaryColor, secondaryColor: c.secondaryColor, logoUrl: c.logoUrl });
@@ -289,9 +313,10 @@ export function useTally(pollId: string | null | undefined, intervalMs = 4000): 
 
 export function ranked(poll: MvpPoll, tally: Tally) {
   const total = Object.values(tally).reduce((a, b) => a + b, 0);
+  // Ties: players alphabetically, prediction answers in the order they were asked (home, draw, away…).
   const rows = poll.candidates
-    .map((c) => ({ c, votes: tally[c.id] ?? 0 }))
-    .sort((a, b) => b.votes - a.votes || a.c.name.localeCompare(b.c.name, 'es'))
+    .map((c, i) => ({ c, i, votes: tally[c.id] ?? 0 }))
+    .sort((a, b) => b.votes - a.votes || (a.c.option ? a.i - b.i : a.c.name.localeCompare(b.c.name, 'es')))
     .map((r) => ({ ...r, pct: total ? Math.round((r.votes / total) * 100) : 0 }));
   return { rows, total };
 }

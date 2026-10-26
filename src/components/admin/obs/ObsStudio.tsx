@@ -14,6 +14,13 @@ import { ProductionControls } from '@/components/admin/obs/ProductionControls';
 import { MvpPollControls } from '@/components/admin/obs/MvpPollControls';
 import { DiceControls } from '@/components/admin/obs/DiceControls';
 import { PowerCardsControls } from '@/components/admin/obs/PowerCardsControls';
+import { SituationsControls } from '@/components/admin/obs/SituationsControls';
+import { InterviewControls } from '@/components/admin/obs/InterviewControls';
+import { SoundControls } from '@/components/admin/obs/SoundControls';
+import { StatsControls } from '@/components/admin/obs/StatsControls';
+import { PredictionControls } from '@/components/admin/obs/PredictionControls';
+import { FanMessagesControls } from '@/components/admin/obs/FanMessagesControls';
+import { NotifyControls } from '@/components/admin/obs/NotifyControls';
 import { useObsActions, useSyncSetting } from '@/components/admin/obs/useObsActions';
 import { cn } from '@/lib/utils';
 
@@ -133,20 +140,27 @@ export function ObsStudio() {
       </div>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-        <div className="xl:sticky xl:top-24">
+        <div className="min-w-0 xl:sticky xl:top-24">
           <ObsPreview />
         </div>
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
+          <SituationsControls actions={actions} />
           <ScoreboardControls actions={actions} sync={sync} setSync={setSync} />
+          <StatsControls actions={actions} />
+          <SoundControls actions={actions} />
           <PowerCardsControls actions={actions} />
           <DiceControls actions={actions} />
           <ProductionControls actions={actions} />
           <GraphicsControls actions={actions} />
+          <FanMessagesControls actions={actions} />
+          <PredictionControls actions={actions} />
           <MvpPollControls actions={actions} />
+          <InterviewControls actions={actions} />
           <LowerThirdControls actions={actions} />
           <ScreenControls actions={actions} />
           <TickerControls actions={actions} />
           <BrandControls actions={actions} />
+          <NotifyControls actions={actions} />
         </div>
       </div>
     </div>
