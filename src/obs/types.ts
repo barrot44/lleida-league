@@ -170,10 +170,11 @@ export interface ObsMain {
   at?: number;
 }
 
-/** Compact item shown right under the scoreboard (live prediction, featured player). */
+/** Compact item shown right under the scoreboard (live prediction, featured player, "switch on the alerts"). */
 export type ObsStripItem =
   | { kind: 'poll'; pollId: string; title: string; candidates: MvpCandidate[]; closed: boolean; voteUrl: string }
-  | { kind: 'player'; player: ObsPlayer; team: ObsTeam; title: string; stats: ObsPlayerStats; matchLine: string };
+  | { kind: 'player'; player: ObsPlayer; team: ObsTeam; title: string; stats: ObsPlayerStats; matchLine: string }
+  | { kind: 'app'; title: string; text: string; url: string };
 
 export interface ObsStrip {
   visible: boolean;

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Crown, Smartphone, Star, Target } from 'lucide-react';
+import { BellRing, Crown, Smartphone, Star, Target } from 'lucide-react';
 import type { ObsStripItem } from '@/obs/types';
 import { isPrediction, ranked, useTally, type MvpPoll } from '@/lib/mvp';
 import { CandidateMark } from '@/components/vote/CandidateMark';
@@ -20,6 +20,7 @@ const shell = {
 
 type PollItem = Extract<ObsStripItem, { kind: 'poll' }>;
 type PlayerItem = Extract<ObsStripItem, { kind: 'player' }>;
+type AppItem = Extract<ObsStripItem, { kind: 'app' }>;
 
 function PollStrip({ it }: { it: PollItem }) {
   const tally = useTally(it.pollId, 2500);
@@ -122,7 +123,43 @@ function PlayerStrip({ it }: { it: PlayerItem }) {
   );
 }
 
+/** Invitation to switch on the phone alerts: app icon, the message and a QR to the live page. */
+function AppStrip({ it }: { it: AppItem }) {
+  return (
+    <div className="flex items-center overflow-hidden rounded-2xl border border-amber-400/30" style={{ width: STRIP_W, background: PANEL_BG, boxShadow: '0 18px 50px -12px rgba(0,0,0,.85)' }}>
+      <div className="flex min-w-0 flex-1 items-center gap-5 px-5 py-4">
+        <span className="relative shrink-0">
+          <img src="/icons/icon-192.png" alt="" className="h-[92px] w-[92px] rounded-[22px] border border-white/15 object-cover" />
+          <motion.span
+            className="absolute -right-2.5 -top-2.5 grid h-10 w-10 place-items-center rounded-full text-slate-950 ring-4 ring-[#080b11]"
+            style={{ background: GOLD_GRADIENT }}
+            animate={{ rotate: [0, -16, 14, -10, 8, 0] }}
+            transition={{ duration: 1.1, repeat: Infinity, repeatDelay: 1.6 }}
+          >
+            <BellRing size={20} strokeWidth={2.6} />
+          </motion.span>
+        </span>
+        <div className="min-w-0 flex-1 leading-none">
+          <p className="flex items-center gap-2 text-[15px] font-black uppercase tracking-[0.24em] text-amber-300">
+            <Smartphone size={15} /> L’app de la Lleida League
+          </p>
+          <p className="mt-2 text-[38px] font-black uppercase leading-[0.95]" style={goldText}>
+            {it.title}
+          </p>
+          {it.text && <p className="mt-2 text-[19px] font-semibold leading-snug text-slate-200">{it.text}</p>}
+        </div>
+      </div>
+      <div className="flex w-[150px] shrink-0 flex-col items-center justify-center gap-1.5 self-stretch border-l border-white/10 bg-white/[0.04] px-3 py-3">
+        <span className="rounded-lg bg-white p-1.5">
+          <QrCode value={it.url} size={104} border={1} />
+        </span>
+        <span className="text-[13px] font-black uppercase tracking-[0.14em] text-amber-300">Escaneja</span>
+      </div>
+    </div>
+  );
+}
+
 /** Compact graphic under the scoreboard. */
 export function UnderBug({ item }: { item: ObsStripItem }) {
-  return <motion.div {...shell}>{item.kind === 'poll' ? <PollStrip it={item} /> : <PlayerStrip it={item} />}</motion.div>;
+  return <motion.div {...shell}>{item.kind === 'poll' ? <PollStrip it={item} /> : item.kind === 'app' ? <AppStrip it={item} /> : <PlayerStrip it={item} />}</motion.div>;
 }

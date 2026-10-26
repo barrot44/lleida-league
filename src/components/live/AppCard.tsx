@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bell, BellOff, BellRing, Download, Loader2, Share, Smartphone } from 'lucide-react';
 import { currentSubscription, pushSupported, subscribePush, unsubscribePush } from '@/lib/push';
 import { isIos, isStandalone, promptInstall, usePwaStore } from '@/lib/pwa';
 import { useUiStore } from '@/store/useUiStore';
+import { cn } from '@/lib/utils';
+
+/** Arrived from the QR shown on the stream ("/directe?avisos"): point straight at the button. */
+const fromStreamQr = () => new URLSearchParams(window.location.search).has('avisos');
 
 /** "Lleida League on your phone": install the app and switch on the notifications (lives, goals, votes). */
 export function AppCard() {
@@ -13,10 +17,16 @@ export function AppCard() {
   const [busy, setBusy] = useState(false);
   const iosBrowser = isIos() && !isStandalone();
   const canPush = pushSupported();
+  const ref = useRef<HTMLElement>(null);
+  const [spotlight] = useState(fromStreamQr);
 
   useEffect(() => {
     void currentSubscription().then((s) => setSubscribed(!!s));
   }, []);
+
+  useEffect(() => {
+    if (spotlight) window.setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+  }, [spotlight]);
 
   const toggle = async () => {
     setBusy(true);
@@ -42,7 +52,10 @@ export function AppCard() {
   if (installed && subscribed) return null;
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-amber-400/[0.12] via-white/[0.02] to-cyan-400/[0.08] p-4 sm:p-5">
+    <section
+      ref={ref}
+      className={cn('relative overflow-hidden rounded-3xl border bg-gradient-to-br from-amber-400/[0.12] via-white/[0.02] to-cyan-400/[0.08] p-4 sm:p-5', spotlight ? 'border-amber-400 shadow-glow-lg ring-2 ring-amber-400/40' : 'border-white/10')}
+    >
       <div className="flex flex-wrap items-center gap-4">
         <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-pitch shadow-glow">
           <img src="/icons/icon-192.png" alt="" className="h-full w-full object-cover" />
