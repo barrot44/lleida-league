@@ -8,6 +8,8 @@ export function MobileNav({ route }: { route: RouteId }) {
   return (
     <nav
       aria-label="Navegació mòbil"
+      // Own compositing layer: stays glued to the bottom while the phone's browser bars show / hide.
+      style={{ transform: 'translateZ(0)' }}
       className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-pitch/90 backdrop-blur-xl lg:hidden"
     >
       <ul className="mx-auto grid max-w-xl grid-cols-6">

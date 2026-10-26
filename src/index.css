@@ -12,6 +12,12 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* No rubber-band / stretch at the ends of the page: on phones it dragged the fixed bottom menu along. */
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+
   body {
     @apply bg-pitch font-sans text-slate-200 antialiased;
     min-height: 100dvh;

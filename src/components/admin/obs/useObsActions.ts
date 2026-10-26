@@ -154,7 +154,15 @@ export function useObsActions(sync: boolean) {
   );
 
   const setFouls = useCallback(
-    (side: Side, value: number) => update((s) => ({ ...s, scoreboard: { ...s.scoreboard, [side === 'home' ? 'homeFouls' : 'awayFouls']: Math.max(0, Math.min(15, value)) } })),
+    (side: Side, value: number) =>
+      update((s) => {
+        const key = side === 'home' ? 'homeFouls' : 'awayFouls';
+        const next = Math.max(0, Math.min(15, value));
+        const delta = next - s.scoreboard[key];
+        // A foul added (or taken back) on the scoreboard also counts in the match statistics.
+        const stats = delta ? { ...s.stats, [side]: { ...s.stats[side], fouls: Math.max(0, s.stats[side].fouls + delta) } } : s.stats;
+        return { ...s, stats, scoreboard: { ...s.scoreboard, [key]: next } };
+      }),
     [update],
   );
 
