@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { ChevronDown, Coffee, Flag, Hourglass, Mic, Play, Settings2, Timer, type LucideIcon } from 'lucide-react';
-import type { ObsState, SfxKind } from '@/obs/types';
+import type { ObsState } from '@/obs/types';
 import { SCREEN_DEFAULTS, pauseClock } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
 import { useUiStore } from '@/store/useUiStore';
 import { SectionCard } from '@/components/admin/fields';
 import { Toggle } from '@/components/admin/obs/Toggle';
-import { useScenes } from '@/components/admin/obs/useScenes';
+import { useMusic, useScenes } from '@/components/admin/obs/useScenes';
 import { autoNotify } from '@/components/admin/obs/autoNotify';
 import type { useObsActions } from '@/components/admin/obs/useObsActions';
 import { cn, uid } from '@/lib/utils';
@@ -19,16 +19,15 @@ interface Situation {
   hint: string;
   icon: LucideIcon;
   color: string;
-  sound?: SfxKind;
 }
 
 export const SITUATIONS: Situation[] = [
-  { id: 'prepartit', label: 'Prepartit', hint: 'Pantalla «Comencem aviat» i barra inferior', icon: Hourglass, color: '#38BDF8', sound: 'sting' },
-  { id: 'partit', label: 'Partit', hint: 'Marcador en pantalla, fora pantalles (del descans passa a la 2a part)', icon: Play, color: '#22C55E', sound: 'whistle' },
-  { id: 'temps-mort', label: 'Temps mort', hint: 'Atura el rellotge i mostra les estadístiques', icon: Timer, color: '#F59E0B', sound: 'horn' },
-  { id: 'descans', label: 'Descans', hint: 'Període de descans i pantalla de descans', icon: Coffee, color: '#A855F7', sound: 'horn' },
+  { id: 'prepartit', label: 'Prepartit', hint: 'Pantalla «Comencem aviat» i barra inferior', icon: Hourglass, color: '#38BDF8' },
+  { id: 'partit', label: 'Partit', hint: 'Marcador en pantalla, fora pantalles (del descans passa a la 2a part)', icon: Play, color: '#22C55E' },
+  { id: 'temps-mort', label: 'Temps mort', hint: 'Atura el rellotge i mostra les estadístiques', icon: Timer, color: '#F59E0B' },
+  { id: 'descans', label: 'Descans', hint: 'Període de descans i pantalla de descans', icon: Coffee, color: '#A855F7' },
   { id: 'entrevista', label: 'Entrevista', hint: 'Treu el marcador i posa el rètol d’entrevista', icon: Mic, color: '#EF4444' },
-  { id: 'final', label: 'Final', hint: 'Període final i estadístiques finals', icon: Flag, color: '#FBBF24', sound: 'horn' },
+  { id: 'final', label: 'Final', hint: 'Període final i estadístiques finals', icon: Flag, color: '#FBBF24' },
 ];
 
 /** One tap per moment of the match: changes the OBS scene (with the logo transition) and sets the graphics. */
@@ -36,6 +35,7 @@ export function SituationsControls({ actions }: { actions: Actions }) {
   const sit = useObsStore((s) => s.state.situations);
   const toast = useUiStore((s) => s.toast);
   const { scenes, current, goScene, canSwitch } = useScenes(actions);
+  const music = useMusic(actions);
   const [config, setConfig] = useState(false);
 
   const setSit = (patch: Partial<ObsState['situations']>) => actions.update((s) => ({ ...s, situations: { ...s.situations, ...patch } }));
@@ -49,8 +49,7 @@ export function SituationsControls({ actions }: { actions: Actions }) {
 
     actions.update((s) => {
       const hidden = { main: { ...s.main, visible: false }, interview: { ...s.interview, visible: false }, screen: { ...s.screen, visible: false } };
-      const sound = x.sound && s.sound.auto ? { ...s.sound, last: { id: uid('sfx'), at: now, kind: x.sound } } : s.sound;
-      const base: ObsState = { ...s, ...hidden, sound, situations: { ...s.situations, active: x.id } };
+      const base: ObsState = { ...s, ...hidden, situations: { ...s.situations, active: x.id } };
       const stats = (title: string, sec: number) => {
         const g = actions.statsGraphic(s, title);
         return g ? { main: { visible: true, id: uid('g'), graphic: g, at: now, hideAt: sec ? now + sec * 1000 : null } } : {};
@@ -78,6 +77,11 @@ export function SituationsControls({ actions }: { actions: Actions }) {
       }
     });
 
+    // Music on before the match, at half-time and at the end; off while playing or talking.
+    if (st.music.auto && music.canControl) {
+      const want = x.id === 'prepartit' || x.id === 'descans' || x.id === 'final';
+      if (want !== st.music.on) music.setOn(want).catch((e: unknown) => toast(e instanceof Error ? e.message : 'Música: error.', 'error'));
+    }
     if (x.id === 'prepartit' && st.situations.active !== 'prepartit') autoNotify('start', useObsStore.getState().state);
     if (x.id === 'final' && st.situations.active !== 'final') autoNotify('final', useObsStore.getState().state);
     if (x.id === 'entrevista' && !st.interview.name.trim()) toast('Escriu qui parla a «Mode entrevista» i el rètol sortirà.', 'info');

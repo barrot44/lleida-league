@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { Match, MatchEventType, Player } from '@/types';
-import type { MatchStats, ObsCommand, ObsFlashKind, ObsGraphic, ObsPeriod, ObsScreenKind, ObsState, SfxKind } from '@/obs/types';
+import type { MatchStats, ObsCommand, ObsFlashKind, ObsGraphic, ObsPeriod, ObsScreenKind, ObsState, ObsStripItem } from '@/obs/types';
 import { clockElapsed, matchMinute, pauseClock, playerSnap, resetClock, teamSnap } from '@/obs/state';
 import { cardIsLive } from '@/obs/cards';
 import { useObsStore } from '@/obs/useObsStore';
@@ -186,11 +186,29 @@ export function useObsActions(sync: boolean) {
 
   const showGraphic = useCallback(
     (graphic: ObsGraphic, autoHideSec: number) =>
-      update((s) => ({ ...s, main: { visible: true, id: uid('g'), graphic, at: Date.now(), hideAt: autoHideSec > 0 ? Date.now() + autoHideSec * 1000 : null } })),
+      update((s) => ({
+        ...s,
+        main: { visible: true, id: uid('g'), graphic, at: Date.now(), hideAt: autoHideSec > 0 ? Date.now() + autoHideSec * 1000 : null },
+        // The same thing big replaces it under the scoreboard.
+        strip: s.strip.visible && s.strip.item?.kind === graphic.kind ? { ...s.strip, visible: false } : s.strip,
+      })),
     [update],
   );
 
   const hideGraphic = useCallback(() => update((s) => ({ ...s, main: { ...s.main, visible: false } })), [update]);
+
+  /** Under the scoreboard (replaces a big graphic of the same thing so they never overlap). */
+  const showStrip = useCallback(
+    (item: ObsStripItem, autoHideSec: number) =>
+      update((s) => ({
+        ...s,
+        main: s.main.visible && (s.main.graphic?.kind === item.kind || (item.kind === 'poll' && s.main.graphic?.kind === 'poll')) ? { ...s.main, visible: false } : s.main,
+        strip: { visible: true, id: uid('s'), item, hideAt: autoHideSec > 0 ? Date.now() + autoHideSec * 1000 : null },
+      })),
+    [update],
+  );
+
+  const hideStrip = useCallback(() => update((s) => ({ ...s, strip: { ...s.strip, visible: false } })), [update]);
 
   const showLower = useCallback(
     (title: string, subtitle: string, teamId: string | null, autoHideSec: number) => {
@@ -215,11 +233,11 @@ export function useObsActions(sync: boolean) {
         ...s,
         flash: null,
         main: { ...s.main, visible: false },
+        strip: { ...s.strip, visible: false },
         lower: { ...s.lower, visible: false },
         screen: { ...s.screen, visible: false },
         replay: { visible: false },
         interview: { ...s.interview, visible: false },
-        fanMsg: null,
       })),
     [update],
   );
@@ -267,8 +285,5 @@ export function useObsActions(sync: boolean) {
     return { kind: 'stats', title, home: sb.home, away: sb.away, homeScore: sb.homeScore, awayScore: sb.awayScore, homeStats: s.stats.home, awayStats: s.stats.away };
   }, []);
 
-  /** Plays an arena sound in OBS (the overlay synthesises it). */
-  const playSound = useCallback((kind: SfxKind) => update((s) => ({ ...s, sound: { ...s.sound, last: { id: uid('sfx'), at: Date.now(), kind } } })), [update]);
-
-  return { update, sendCmd, sting, bumpStat, statsGraphic, playSound, setScore, goal, sideFlash, setFouls, setPeriod, showGraphic, hideGraphic, showLower, hideLower, showScreen, hideScreen, clearAll, squadOf, patchMatch, teamMap };
+  return { update, sendCmd, sting, bumpStat, statsGraphic, setScore, goal, sideFlash, setFouls, setPeriod, showGraphic, hideGraphic, showStrip, hideStrip, showLower, hideLower, showScreen, hideScreen, clearAll, squadOf, patchMatch, teamMap };
 }

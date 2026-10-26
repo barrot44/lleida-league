@@ -23,17 +23,28 @@ export const CATEGORIES: CategoryMeta[] = [
 
 export const CATEGORY_BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c])) as Record<CategoryId, CategoryMeta>;
 
-/** Els valors de dades es mantenen (Portero/Cierre/Ala/Pívot); aquí hi ha el text en català. */
+/**
+ * Només es distingeix porter o jugador. Les dades antigues poden portar Cierre/Ala/Pívot: totes es mostren com a «Jugador».
+ * Els jugadors nous es desen com a 'Ala'.
+ */
 export const POSITIONS: Position[] = ['Portero', 'Cierre', 'Ala', 'Pívot'];
+
+export const isKeeper = (p: Position) => p === 'Portero';
+
+/** Opcions del formulari: porter o jugador. */
+export const ROLE_OPTIONS: { value: Position; label: string }[] = [
+  { value: 'Portero', label: 'Porter' },
+  { value: 'Ala', label: 'Jugador' },
+];
 
 export const POSITION_LABEL: Record<Position, string> = {
   Portero: 'Porter',
-  Cierre: 'Tancament',
-  Ala: 'Ala',
-  Pívot: 'Pivot',
+  Cierre: 'Jugador',
+  Ala: 'Jugador',
+  Pívot: 'Jugador',
 };
 
-export const POSITION_SHORT: Record<Position, string> = { Portero: 'POR', Cierre: 'TAN', Ala: 'ALA', Pívot: 'PIV' };
+export const POSITION_SHORT: Record<Position, string> = { Portero: 'POR', Cierre: 'JUG', Ala: 'JUG', Pívot: 'JUG' };
 
 export const NEWS_BADGES: NewsBadge[] = ['Oficial', 'Mercat', 'Sanció'];
 

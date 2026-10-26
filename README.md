@@ -179,16 +179,23 @@ l'enllaç (`/obs#obs=…`, que mai surt de l'ordinador) i passa a **controlar OB
 - **QR a la cantonada** (Marca, QR i patrocinadors): porta a la web, a la votació, a la classificació o al calendari.
 - Cal executar el `supabase/schema.sql` actualitzat (taules `mvp_polls`, `mvp_votes` i la funció `mvp_tally`).
 
-### Situacions, entrevista, sons, estadístiques, porra i afició
+### Situacions, música, entrevista, estadístiques i porra
+
+Cada apartat del panell es pot plegar (la fletxa del títol); el panell recorda quins tens oberts. El marcador ocupa tota
+l'amplada (local · rellotge · visitant) i el temps es pot corregir tocant-lo i escrivint-lo (p. ex. `12:34`).
 
 - **Situacions del partit**: Prepartit, Partit, Temps mort, Descans, Entrevista i Final. Cada botó canvia a l'escena d'OBS que hi
   hagis assignat (amb la transició del logo) i posa els gràfics que toquen. Les escenes es trien a «Escena d'OBS de cada situació».
-- **Mode entrevista**: rètol gran amb nom, càrrec i escut, la pregunta a dalt i una franja de patrocinadors.
-- **Sons del pavelló**: botzina, xiulet, ovació, redoble… generats per la mateixa capa (sense fitxers). Sonen sols amb els gols,
-  targetes, daus i cartes. Perquè entrin al directe, la font de navegador ha de tenir marcat «Controla l'àudio via OBS».
+- **Música**: OBS captura el so d'una sola app de l'ordinador (Spotify, Chrome amb YouTube, VLC…) amb una «Captura d'àudio
+  d'aplicació» (Windows 10/11). «Prepara la música a OBS» la crea a totes les escenes; després la fas sonar o l'apagues amb
+  una fosa, o deixes que ho facin les situacions (sona a Prepartit, Descans i Final).
+- **Mode entrevista**: rètol a baix al mig amb nom, càrrec i escut, la pregunta al costat i una franja de patrocinadors.
 - **Estadístiques en directe**: xuts, xuts a porta, parades, córners, faltes i targetes; surten en un gràfic i a `/directe`.
 - **Porra en directe**: preguntes ràpides (qui guanyarà, proper gol…) o la teva; es vota a `/vota` amb el mateix QR que l'MVP.
-- **Missatges de l'afició**: la gent n'envia des de `/directe`; tu els aproves i surten en una bombolla. Taula `fan_messages`.
+  Surt **sota el marcador** amb una línia i el % de cada resposta (o en gran amb QR). El jugador destacat també pot sortir
+  sota el marcador. Les faltes acumulades són a sobre de cada equip.
+- **Dau del públic**: el resultat diu directament «1 contra 1 durant 2 minuts», «2 contra 2»… (el 5 compta com a 1 i el 6 com a 2).
+- **Jugadors**: només es distingeix porter o jugador.
 
 ### App al mòbil i avisos
 

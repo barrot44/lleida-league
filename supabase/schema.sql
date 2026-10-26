@@ -226,30 +226,10 @@ $$;
 
 grant execute on function public.mvp_tally(text) to anon, authenticated;
 
--- 4e) Missatges de l'afició ---------------------------------------------------------
---    Qualsevol visitant n'envia un (queda «pendent»); només els admins els llegeixen, els aproven
---    i els posen en pantalla. Ningú de fora pot veure els missatges dels altres.
-create table if not exists public.fan_messages (
-  id         text primary key check (char_length(id) between 8 and 64),
-  name       text not null check (char_length(btrim(name)) between 1 and 30),
-  text       text not null check (char_length(btrim(text)) between 2 and 140),
-  status     text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
-  created_at timestamptz not null default now()
-);
+-- (Els missatges de l'afició ja no existeixen: si havies creat la taula, s'esborra.)
+drop table if exists public.fan_messages;
 
-alter table public.fan_messages enable row level security;
-
-drop policy if exists "Afició: envia"              on public.fan_messages;
-drop policy if exists "Afició: admins llegeixen"   on public.fan_messages;
-drop policy if exists "Afició: admins modifiquen"  on public.fan_messages;
-drop policy if exists "Afició: admins esborren"    on public.fan_messages;
-
-create policy "Afició: envia"             on public.fan_messages for insert to anon, authenticated with check (status = 'pending');
-create policy "Afició: admins llegeixen"  on public.fan_messages for select to authenticated using (public.is_admin());
-create policy "Afició: admins modifiquen" on public.fan_messages for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "Afició: admins esborren"   on public.fan_messages for delete to authenticated using (public.is_admin());
-
--- 4f) Avisos al mòbil (notificacions push de l'app) -----------------------------------
+-- 4e) Avisos al mòbil (notificacions push de l'app) -----------------------------------
 --    Els visitants s'hi apunten i se'n desapunten amb dues funcions (no poden llegir la taula);
 --    l'enviament el fa /api/push amb la sessió d'un admin.
 create table if not exists public.push_subscriptions (

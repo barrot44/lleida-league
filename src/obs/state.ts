@@ -1,6 +1,6 @@
 import type { CategoryId, LeagueData, Match, Player, Team } from '@/types';
 import type { MatchStats, ObsClock, ObsPeriod, ObsPlayer, ObsPlayerStats, ObsResult, ObsStandingRow, ObsState, ObsSummaryEvent, ObsTeam } from '@/obs/types';
-import { CATEGORY_BY_ID, POSITIONS } from '@/config/site';
+import { CATEGORY_BY_ID, isKeeper } from '@/config/site';
 import { DEFAULT_DECK, mergeDeck } from '@/obs/cards';
 import { computeStandings, playerRating, type StandingRow } from '@/lib/standings';
 import { matchTimestamp } from '@/lib/utils';
@@ -50,6 +50,7 @@ export function defaultObsState(): ObsState {
     lower: { visible: false, id: '', title: '', subtitle: '', team: null, hideAt: null },
     ticker: { visible: false, label: 'Lleida League', items: [] },
     main: { visible: false, id: '', graphic: null, hideAt: null },
+    strip: { visible: false, id: '', item: null, hideAt: null },
     screen: { visible: false, kind: 'starting', title: '', subtitle: '', targetAt: '' },
     brand: { visible: true },
     sponsors: { visible: false, items: [], seconds: 8 },
@@ -59,7 +60,6 @@ export function defaultObsState(): ObsState {
     cmds: [],
     clips: [],
     dice: {
-      labels: ['', '', '', ''],
       videos: ['DAU NUMERO 1.mp4', 'Dau numero 2.mp4', 'DAU NUMERO 3.mp4', 'DAU NUMERO 4.mp4'].map((f) => `C:/Users/ferra/Desktop/LLEIDA LEAGUE/VIDEOS I FOTOS/VIDEOS DAUS/${f}`),
       playVideo: false,
       last: null,
@@ -68,9 +68,8 @@ export function defaultObsState(): ObsState {
     stream: { url: '' },
     situations: { scenes: {}, active: null, transition: true },
     interview: { visible: false, id: '', name: '', role: '', team: null, question: '', sponsors: true },
-    sound: { enabled: true, auto: true, volume: 0.8, last: null },
     stats: { home: emptyMatchStats(), away: emptyMatchStats() },
-    fanMsg: null,
+    music: { app: 'Spotify.exe', on: false, volume: 0.7, auto: true },
     notify: { auto: true },
   };
 }
@@ -88,6 +87,7 @@ export function normalizeObsState(raw: unknown): ObsState {
     lower: { ...base.lower, ...r.lower },
     ticker: { ...base.ticker, ...r.ticker, items: Array.isArray(r.ticker?.items) ? r.ticker.items : [] },
     main: { ...base.main, ...r.main },
+    strip: { ...base.strip, ...r.strip },
     screen: { ...base.screen, ...r.screen },
     brand: { ...base.brand, ...r.brand },
     sponsors: { ...base.sponsors, ...r.sponsors, items: Array.isArray(r.sponsors?.items) ? r.sponsors.items : [] },
@@ -110,9 +110,8 @@ export function normalizeObsState(raw: unknown): ObsState {
     stream: { ...base.stream, ...r.stream },
     situations: { ...base.situations, ...r.situations, scenes: { ...r.situations?.scenes } },
     interview: { ...base.interview, ...r.interview },
-    sound: { ...base.sound, ...r.sound, last: r.sound?.last ?? null },
     stats: { home: { ...emptyMatchStats(), ...r.stats?.home }, away: { ...emptyMatchStats(), ...r.stats?.away } },
-    fanMsg: r.fanMsg ?? null,
+    music: { ...base.music, ...r.music },
     notify: { ...base.notify, ...r.notify },
   };
 }
@@ -146,6 +145,23 @@ export const resetClock = (c: ObsClock): ObsClock => ({ ...c, running: false, ba
 export function nudgeClock(c: ObsClock, deltaMs: number, now = Date.now()): ObsClock {
   const elapsed = Math.min(Math.max(0, clockElapsed(c, now) + deltaMs), periodMs(c));
   return c.running ? { ...c, baseMs: elapsed, startedAt: now } : { ...c, baseMs: elapsed };
+}
+
+/** Puts the clock exactly at what the scoreboard should read (`mm:ss` as shown: remaining time in countdown mode). */
+export function setClockShown(c: ObsClock, shownMs: number, now = Date.now()): ObsClock {
+  const shown = Math.min(Math.max(0, shownMs), periodMs(c));
+  const elapsed = c.countdown ? periodMs(c) - shown : shown;
+  return c.running ? { ...c, baseMs: elapsed, startedAt: now } : { ...c, baseMs: elapsed };
+}
+
+/** "12:34", "12.34", "1234" or "12" (minutes) → ms. Null when it can't be read. */
+export function parseClockText(text: string): number | null {
+  const t = text.trim();
+  let m: RegExpExecArray | null;
+  if ((m = /^(\d{1,2})\s*[:.,']\s*(\d{1,2})$/.exec(t))) return (Number(m[1]) * 60 + Math.min(59, Number(m[2]))) * 1000;
+  if ((m = /^(\d{1,2})(\d{2})$/.exec(t))) return (Number(m[1]) * 60 + Math.min(59, Number(m[2]))) * 1000;
+  if ((m = /^(\d{1,2})$/.exec(t))) return Number(m[1]) * 60_000;
+  return null;
 }
 
 // ───────────────────────── Snapshots from the league data ─────────────────────────
@@ -193,8 +209,8 @@ const rowSnap = (r: StandingRow): ObsStandingRow => ({
   form: r.form,
 });
 
-/** Goalkeepers first, then by position and number — the order a squad is read out on air. */
-export const squadOrder = (a: Player | ObsPlayer, b: Player | ObsPlayer) => POSITIONS.indexOf(a.position) - POSITIONS.indexOf(b.position) || a.dorsal - b.dorsal;
+/** Goalkeepers first, then by number — the order a squad is read out on air. */
+export const squadOrder = (a: Player | ObsPlayer, b: Player | ObsPlayer) => Number(!isKeeper(a.position)) - Number(!isKeeper(b.position)) || a.dorsal - b.dorsal;
 
 export function buildStandings(data: Pick<LeagueData, 'teams' | 'matches'>, category: CategoryId) {
   return computeStandings(data.teams, data.matches, category).map(rowSnap);

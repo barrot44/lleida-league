@@ -27,7 +27,20 @@ const AUTO_HIDE = [
 
 const PLAYER_TITLES = ['MVP del partit', 'Jugador destacat', 'Golejador del partit', 'Jugador de la jornada', 'El president'];
 
-function Tile({ icon, title, active, onShow, children, disabled }: { icon: ReactNode; title: string; active: boolean; onShow: () => void; children?: ReactNode; disabled?: boolean }) {
+interface TileProps {
+  icon: ReactNode;
+  title: string;
+  active: boolean;
+  onShow: () => void;
+  children?: ReactNode;
+  disabled?: boolean;
+  /** Text of the main button (default «Mostra»). */
+  showLabel?: string;
+  /** A second way of showing it (e.g. big instead of under the scoreboard). */
+  secondary?: { label: string; onClick: () => void };
+}
+
+function Tile({ icon, title, active, onShow, children, disabled, showLabel = 'Mostra', secondary }: TileProps) {
   return (
     <div className={cn('flex flex-col gap-3 rounded-2xl border p-3.5 transition', active ? 'border-amber-400/70 bg-amber-400/[0.07] shadow-glow' : 'border-white/[0.08] bg-white/[0.03]')}>
       <div className="flex items-center justify-between gap-2">
@@ -37,9 +50,16 @@ function Tile({ icon, title, active, onShow, children, disabled }: { icon: React
         {active && <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white">En antena</span>}
       </div>
       {children}
-      <button className={cn('mt-auto', active ? 'btn-ghost' : 'btn-gold')} disabled={disabled} onClick={onShow}>
-        <Send size={15} /> {active ? 'Torna a mostrar' : 'Mostra'}
-      </button>
+      <div className={cn('mt-auto grid gap-2', secondary && 'grid-cols-[1fr_auto]')}>
+        <button className={active ? 'btn-ghost' : 'btn-gold'} disabled={disabled} onClick={onShow}>
+          <Send size={15} /> {active && !secondary ? 'Torna a mostrar' : showLabel}
+        </button>
+        {secondary && (
+          <button className="btn-ghost" disabled={disabled} onClick={secondary.onClick}>
+            {secondary.label}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -84,6 +104,7 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
 
   const main = state.main;
   const onAir = (kind: ObsGraphicKind, extra?: (g: ObsGraphic) => boolean) => main.visible && main.graphic?.kind === kind && (!extra || extra(main.graphic));
+  const stripOn = (kind: 'player' | 'poll') => state.strip.visible && state.strip.item?.kind === kind;
   const show = (g: ObsGraphic, hideAfter = autoHide) => actions.showGraphic(g, hideAfter);
   const needTeams = () => {
     toast('Primer tria els dos equips al marcador.', 'error');
@@ -187,7 +208,14 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
     });
   };
 
-  const showPlayer = () => {
+  const showStats = () => {
+    const g = actions.statsGraphic(state, 'En directe');
+    if (!g) return needTeams();
+    show(g);
+  };
+
+  /** Under the scoreboard (compact) or as the big central card. */
+  const showPlayer = (where: 'under' | 'big') => {
     if (!featured) return toast('No hi ha jugadors per mostrar.', 'error');
     const team = teams.find((t) => t.id === featured.teamId);
     if (!team) return;
@@ -198,7 +226,9 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
       const parts = [g ? `${g} ${g === 1 ? 'gol' : 'gols'}` : '', a ? `${a} ${a === 1 ? 'assistència' : 'assistències'}` : ''].filter(Boolean);
       if (parts.length) matchLine = `En aquest partit: ${parts.join(' · ')}`;
     }
-    show({ kind: 'player', player: playerSnap(featured), team: teamSnap(team), title: playerTitle.trim() || 'Jugador destacat', stats: playerStatsSnap(featured), matchLine });
+    const item = { kind: 'player' as const, player: playerSnap(featured), team: teamSnap(team), title: playerTitle.trim() || 'Jugador destacat', stats: playerStatsSnap(featured), matchLine };
+    if (where === 'big') show(item);
+    else actions.showStrip(item, autoHide || 15);
   };
 
   const showStandings = () => {
@@ -251,13 +281,26 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
               ))}
             </select>
           </label>
-          <button className="btn-danger !py-2" disabled={!main.visible} onClick={actions.hideGraphic}>
+          <button
+            className="btn-danger !py-2"
+            disabled={!main.visible && !stripOn('player')}
+            onClick={() => {
+              actions.hideGraphic();
+              if (stripOn('player')) actions.hideStrip();
+            }}
+          >
             <EyeOff size={15} /> Amaga
           </button>
         </div>
       }
     >
       <div className="grid gap-3 md:grid-cols-2">
+        <Tile icon={<Swords size={18} />} title="Prèvia del partit" active={onAir('preview')} onShow={showPreview}>
+          <p className="text-xs text-slate-400">Els dos escuts cara a cara, posició a la taula, ratxa i data del partit.</p>
+        </Tile>
+        <Tile icon={<Crown size={18} />} title="Cara a cara de presidents" active={onAir('presidents')} onShow={showPresidents}>
+          <p className="text-xs text-slate-400">Els dos presidents amb Lleidalitos, títols, posició, ratxa i els seus duels anteriors. La foto es posa a Equips.</p>
+        </Tile>
         <Tile icon={<LayoutGrid size={18} />} title="Alineació" active={onAir('lineup', (g) => g.kind === 'lineup' && g.team.id === (lineupSide === 'home' ? sb.home?.id : sb.away?.id))} onShow={showLineup}>
           <div className="grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-pitch/60 p-1">
             {(['home', 'away'] as const).map((s) => (
@@ -284,7 +327,6 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
             <p className="text-xs text-slate-500">Tria els equips al marcador per veure’n els jugadors.</p>
           )}
         </Tile>
-
         <div className={cn('flex flex-col gap-3 rounded-2xl border p-3.5 transition', onAir('walkout') ? 'border-amber-400/70 bg-amber-400/[0.07] shadow-glow' : 'border-white/[0.08] bg-white/[0.03]')}>
           <span className="flex items-center justify-between gap-2 font-display text-base font-black uppercase tracking-wide text-white">
             <span className="flex items-center gap-2">
@@ -304,16 +346,30 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
             ))}
           </div>
         </div>
-
-        <Tile icon={<Crown size={18} />} title="Cara a cara de presidents" active={onAir('presidents')} onShow={showPresidents}>
-          <p className="text-xs text-slate-400">Els dos presidents amb Lleidalitos, títols, posició, ratxa i els seus duels anteriors. La foto es posa a Equips.</p>
+        <Tile icon={<ClipboardList size={18} />} title="Resum (descans / final)" active={onAir('summary')} onShow={showSummary}>
+          <p className="text-xs text-slate-400">Marcador amb golejadors i targetes{linked ? ' del partit carregat' : ''}. El títol segueix la part: Descans o Final.</p>
         </Tile>
-
-        <Tile icon={<Swords size={18} />} title="Prèvia del partit" active={onAir('preview')} onShow={showPreview}>
-          <p className="text-xs text-slate-400">Els dos escuts cara a cara, posició a la taula, ratxa i data del partit.</p>
+        <Tile icon={<BarChart3 size={18} />} title="Estadístiques en directe" active={onAir('stats')} onShow={showStats}>
+          <p className="text-xs text-slate-400">Xuts, parades, córners, faltes i targetes dels dos equips (es compten a «Estadístiques en directe»).</p>
         </Tile>
-
-        <Tile icon={<Star size={18} />} title="Jugador destacat / MVP" active={onAir('player')} onShow={showPlayer} disabled={!featured}>
+        <Tile icon={<CalendarDays size={18} />} title="Resultats de la jornada" active={onAir('results')} onShow={showResults} disabled={days.length === 0}>
+          <select className="input !py-2" value={day} onChange={(e) => setMatchday(Number(e.target.value))} aria-label="Jornada">
+            {days.map((d) => (
+              <option key={d} value={d}>
+                Jornada {d}
+              </option>
+            ))}
+          </select>
+        </Tile>
+        <Tile
+          icon={<Star size={18} />}
+          title="Jugador destacat / MVP"
+          active={onAir('player') || stripOn('player')}
+          onShow={() => showPlayer('under')}
+          showLabel="Sota el marcador"
+          disabled={!featured}
+          secondary={{ label: 'Gran', onClick: () => showPlayer('big') }}
+        >
           <select className="input !py-2" value={featured?.id ?? ''} onChange={(e) => setPlayerId(e.target.value)} aria-label="Jugador">
             {pickable.map((p) => (
               <option key={p.id} value={p.id}>
@@ -328,7 +384,12 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
             ))}
           </datalist>
         </Tile>
-
+        <Tile icon={<Medal size={18} />} title="Golejadors" active={onAir('scorers')} onShow={showScorers}>
+          <select className="input !py-2" value={scorersSize} onChange={(e) => setScorersSize(Number(e.target.value))} aria-label="Quants">
+            <option value={5}>Top 5</option>
+            <option value={8}>Top 8</option>
+          </select>
+        </Tile>
         <Tile icon={<Trophy size={18} />} title="Classificació" active={onAir('standings')} onShow={showStandings}>
           <select className="input !py-2" value={tableSize} onChange={(e) => setTableSize(e.target.value as 'all' | 'top8')} aria-label="Files">
             <option value="all">Tots els equips</option>
@@ -336,28 +397,6 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
           </select>
           <p className="text-xs text-slate-500">Els dos equips del marcador surten ressaltats.</p>
         </Tile>
-
-        <Tile icon={<Medal size={18} />} title="Golejadors" active={onAir('scorers')} onShow={showScorers}>
-          <select className="input !py-2" value={scorersSize} onChange={(e) => setScorersSize(Number(e.target.value))} aria-label="Quants">
-            <option value={5}>Top 5</option>
-            <option value={8}>Top 8</option>
-          </select>
-        </Tile>
-
-        <Tile icon={<CalendarDays size={18} />} title="Resultats de la jornada" active={onAir('results')} onShow={showResults} disabled={days.length === 0}>
-          <select className="input !py-2" value={day} onChange={(e) => setMatchday(Number(e.target.value))} aria-label="Jornada">
-            {days.map((d) => (
-              <option key={d} value={d}>
-                Jornada {d}
-              </option>
-            ))}
-          </select>
-        </Tile>
-
-        <Tile icon={<ClipboardList size={18} />} title="Resum (descans / final)" active={onAir('summary')} onShow={showSummary}>
-          <p className="text-xs text-slate-400">Marcador amb golejadors i targetes{linked ? ' del partit carregat' : ''}. El títol segueix la part: Descans o Final.</p>
-        </Tile>
-
         <div className="flex flex-col justify-center gap-2 rounded-2xl border border-dashed border-white/10 p-4 text-xs text-slate-500">
           <BarChart3 size={18} className="text-slate-600" />
           Cada gràfic es pot tornar a llançar per repetir l’animació. Només se’n veu un alhora: mostrar-ne un altre substitueix l’anterior.

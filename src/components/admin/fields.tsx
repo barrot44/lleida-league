@@ -1,5 +1,5 @@
-import { Loader2, Minus, Plus, Upload, X } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
+import { ChevronDown, Loader2, Minus, Plus, Upload, X } from 'lucide-react';
+import { createContext, useContext, useRef, useState, type ReactNode } from 'react';
 import { uploadImage, type UploadKind } from '@/lib/upload';
 import { useUiStore } from '@/store/useUiStore';
 import { cn } from '@/lib/utils';
@@ -106,14 +106,26 @@ export function Stepper({ value, onChange, min = 0, max = 99, label, big }: Step
   );
 }
 
+/** Inside this provider every SectionCard can be folded (the live control room, where screens get long). */
+export const SectionFoldContext = createContext<{ isOpen: (title: string) => boolean; toggle: (title: string) => void } | null>(null);
+
 export function SectionCard({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
+  const fold = useContext(SectionFoldContext);
+  const open = fold ? fold.isOpen(title) : true;
   return (
-    <section className="card p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-xl">{title}</h3>
-        {actions}
+    <section className={cn('card', fold && !open ? 'px-5 py-3' : 'p-5')}>
+      <div className={cn('flex flex-wrap items-center justify-between gap-3', open && 'mb-4')}>
+        {fold ? (
+          <button type="button" onClick={() => fold.toggle(title)} aria-expanded={open} className="group flex min-w-0 items-center gap-2 text-left">
+            <ChevronDown size={18} className={cn('shrink-0 text-slate-500 transition group-hover:text-amber-300', !open && '-rotate-90')} />
+            <h3 className="text-xl">{title}</h3>
+          </button>
+        ) : (
+          <h3 className="text-xl">{title}</h3>
+        )}
+        {open && actions}
       </div>
-      {children}
+      {open && children}
     </section>
   );
 }

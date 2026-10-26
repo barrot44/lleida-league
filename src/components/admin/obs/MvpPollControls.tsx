@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Crown, ExternalLink, Loader2, Lock, MonitorUp, QrCode as QrIcon, Save, Vote } from 'lucide-react';
+import { Crown, ExternalLink, Loader2, Lock, MonitorUp, PanelTop, QrCode as QrIcon, Save, Vote } from 'lucide-react';
 import { candidateOf, isPrediction, openPoll, ranked, setPollStatus, useOpenPoll, useOpenPollStore, useTally, voteUrl, type MvpPoll } from '@/lib/mvp';
 import { squadOrder } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
@@ -74,6 +74,11 @@ export function MvpPollControls({ actions }: { actions: Actions }) {
   const onAir = (closed: boolean) => {
     if (!poll) return;
     actions.showGraphic({ kind: 'poll', pollId: poll.id, title: poll.title, candidates: poll.candidates, closed, voteUrl: url }, 0);
+  };
+
+  const underBug = (closed: boolean) => {
+    if (!poll) return;
+    actions.showStrip({ kind: 'poll', pollId: poll.id, title: poll.title, candidates: poll.candidates, closed, voteUrl: url }, closed ? 15 : 0);
   };
 
   const saveMvp = () => {
@@ -154,7 +159,10 @@ export function MvpPollControls({ actions }: { actions: Actions }) {
                 <button className={pollOnAir ? 'btn-ghost' : 'btn-gold'} onClick={() => onAir(false)}>
                   <MonitorUp size={15} /> {pollOnAir ? 'Torna a mostrar' : 'Mostra amb QR i %'}
                 </button>
-                <button className="btn-danger" disabled={busy} onClick={() => void close()}>
+                <button className="btn-ghost" onClick={() => underBug(false)}>
+                  <PanelTop size={15} /> Sota el marcador
+                </button>
+                <button className="btn-danger sm:col-span-2" disabled={busy} onClick={() => void close()}>
                   <Lock size={15} /> Tanca la votació
                 </button>
               </>
@@ -163,7 +171,10 @@ export function MvpPollControls({ actions }: { actions: Actions }) {
                 <button className="btn-gold" onClick={() => onAir(true)}>
                   <Crown size={15} /> Mostra el guanyador
                 </button>
-                <button className="btn-ghost" onClick={saveMvp}>
+                <button className="btn-ghost" onClick={() => underBug(true)}>
+                  <PanelTop size={15} /> Guanyador sota el marcador
+                </button>
+                <button className="btn-ghost sm:col-span-2" onClick={saveMvp}>
                   <Save size={15} /> Desa’l com a MVP del partit
                 </button>
               </>

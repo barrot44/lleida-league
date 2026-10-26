@@ -123,11 +123,14 @@ export function Presidents({ g }: { g: G }) {
         <Side team={g.away} stats={g.awayStats} side="away" />
       </div>
 
-      {/* Lightning VS */}
-      <motion.div className="absolute left-1/2 top-[200px] -ml-[110px] flex h-[220px] w-[220px] items-center justify-center" initial={{ scale: 3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.7, type: 'spring', damping: 9, stiffness: 140 }}>
-        <motion.span className="absolute inset-0 rounded-full" animate={{ boxShadow: ['0 0 40px rgba(251,191,36,.4)', '0 0 120px rgba(251,191,36,.9)', '0 0 40px rgba(251,191,36,.4)'] }} transition={{ repeat: Infinity, duration: 1.6 }} />
-        <svg viewBox="0 0 100 100" className="absolute h-full w-full">
-          <path d="M58 4 26 56h20L38 96l38-56H54z" fill="url(#bolt)" stroke="#fff7d6" strokeWidth="1.5" />
+      {/* VS: a gold medallion on a lightning bolt, centred between the two portraits. */}
+      <motion.div
+        className="absolute left-1/2 top-[120px] -ml-[120px] grid h-[240px] w-[240px] place-items-center"
+        initial={{ scale: 3, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.7, type: 'spring', damping: 9, stiffness: 140 }}
+      >
+        <svg viewBox="0 0 100 100" className="absolute h-full w-full drop-shadow-[0_0_30px_rgba(251,191,36,.7)]">
           <defs>
             <linearGradient id="bolt" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0" stopColor="#fef3c7" />
@@ -135,14 +138,24 @@ export function Presidents({ g }: { g: G }) {
               <stop offset="1" stopColor="#b45309" />
             </linearGradient>
           </defs>
+          <path d="M60 0 22 58h24L36 100l42-62H54z" fill="url(#bolt)" stroke="#fff7d6" strokeWidth="1.2" />
         </svg>
-        <span className="relative mt-[200px] text-[64px] font-black italic" style={goldText}>
-          VS
-        </span>
+        <motion.span
+          className="relative grid h-[150px] w-[150px] place-items-center rounded-full p-[6px]"
+          style={{ background: GOLD_GRADIENT }}
+          animate={{ boxShadow: ['0 0 30px rgba(251,191,36,.45)', '0 0 90px rgba(251,191,36,.95)', '0 0 30px rgba(251,191,36,.45)'] }}
+          transition={{ repeat: Infinity, duration: 1.6 }}
+        >
+          <span className="grid h-full w-full place-items-center rounded-full bg-[#05070c]">
+            <span className="pr-[6px] text-[78px] font-black italic leading-none" style={goldText}>
+              VS
+            </span>
+          </span>
+        </motion.span>
       </motion.div>
 
       {/* Head to head, in the centre column under the VS */}
-      <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.6, duration: 0.5 }} className="absolute left-1/2 top-[470px] -ml-[170px] w-[340px] text-center">
+      <motion.div initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.6, duration: 0.5 }} className="absolute left-1/2 top-[400px] -ml-[170px] w-[340px] text-center">
         <p className="text-[18px] font-bold uppercase tracking-[0.3em] text-slate-300">Cara a cara</p>
         {total === 0 ? (
           <p className="mt-3 text-[34px] font-black uppercase leading-[0.95] text-white">

@@ -174,14 +174,13 @@ function Sparks({ x, big }: { x: number; big: boolean }) {
 }
 
 /** The public's dice throw: a 3D die is thrown, bounces, tumbles, settles on the face that came out and reveals the result. */
-export function DiceRoll({ face, result, label }: { face: number; result: number; label: string }) {
+export function DiceRoll({ face, result }: { face: number; result: number }) {
   const outer = useRef<HTMLDivElement>(null);
   const cube = useRef<HTMLDivElement>(null);
   const shadow = useRef<HTMLDivElement>(null);
   const faces = useRef<(HTMLDivElement | null)[]>([]);
   const [impacts, setImpacts] = useState<{ i: number; x: number }[]>([]);
   const [landed, setLanded] = useState(false);
-  const counts = face !== result;
 
   useEffect(() => {
     const start = performance.now();
@@ -279,37 +278,30 @@ export function DiceRoll({ face, result, label }: { face: number; result: number
         </>
       )}
 
-      {counts && (
-        <motion.p
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: revealAt, type: 'spring', damping: 12 }}
-          className="absolute inset-x-0 top-[610px] text-center text-[40px] font-black uppercase tracking-[0.2em] text-white"
-        >
-          Ha sortit un {face} <span className="text-amber-300">→ compta com a {result}</span>
-        </motion.p>
-      )}
-
+      {/* What happens now: 1 → 1 vs 1 … 4 → 4 vs 4 (5 counts as 1 and 6 as 2). */}
       <motion.div
         initial={{ y: 120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: revealAt + (counts ? 0.6 : 0.1), duration: 0.6, ease: EASE_OUT }}
-        className="absolute left-1/2 top-[690px] flex items-center gap-10 whitespace-nowrap rounded-[32px] border border-amber-400/50 px-14 py-6"
+        transition={{ delay: revealAt + 0.1, duration: 0.6, ease: EASE_OUT }}
+        className="absolute left-1/2 top-[640px] flex flex-col items-center whitespace-nowrap rounded-[32px] border border-amber-400/50 px-16 py-7 text-center"
         style={{ x: '-50%', background: PANEL_BG, boxShadow: '0 30px 90px -20px rgba(0,0,0,.9), 0 0 80px -20px rgba(251,191,36,.6)' }}
       >
-        <div className="text-center leading-none">
-          <p className="text-[22px] font-bold uppercase tracking-[0.3em] text-slate-400">Resultat</p>
-          <motion.p
-            className="digital text-[170px] leading-[0.9]"
-            style={goldText}
-            initial={{ scale: 1.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: revealAt + (counts ? 0.75 : 0.25), type: 'spring', damping: 10, stiffness: 160 }}
-          >
+        <p className="text-[26px] font-bold uppercase tracking-[0.35em] text-slate-300">Ara es juga</p>
+        <motion.p
+          className="mt-1 flex items-center gap-8 leading-none"
+          initial={{ scale: 1.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: revealAt + 0.3, type: 'spring', damping: 10, stiffness: 160 }}
+        >
+          <span className="digital text-[180px] leading-[0.9]" style={goldText}>
             {result}
-          </motion.p>
-        </div>
-        {label && <p className="max-w-[900px] text-[64px] font-black uppercase leading-[0.95] text-white">{label}</p>}
+          </span>
+          <span className="text-[84px] font-black uppercase italic text-white">contra</span>
+          <span className="digital text-[180px] leading-[0.9]" style={goldText}>
+            {result}
+          </span>
+        </motion.p>
+        <p className="mt-2 text-[44px] font-black uppercase tracking-[0.12em] text-amber-300">Durant 2 minuts</p>
       </motion.div>
     </motion.div>
   );

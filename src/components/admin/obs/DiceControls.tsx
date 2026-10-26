@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, Dices, EyeOff, Film } from 'lucide-react';
-import { diceResult } from '@/obs/types';
+import { diceResult, diceText } from '@/obs/types';
 import { clockElapsed, periodMs } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
 import { useNow } from '@/hooks/useNow';
@@ -38,7 +38,7 @@ export function DiceControls({ actions }: { actions: Actions }) {
   const onAir = !!dice.last && now - dice.last.at < DICE_DURATION;
 
   const setDice = (patch: Partial<typeof dice>) => actions.update((s) => ({ ...s, dice: { ...s.dice, ...patch } }));
-  const setAt = (key: 'labels' | 'videos', i: number, value: string) => setDice({ [key]: dice[key].map((v, j) => (j === i ? value : v)) });
+  const setVideo = (i: number, value: string) => setDice({ videos: dice.videos.map((v, j) => (j === i ? value : v)) });
 
   const throwDice = (face: number) => {
     const result = diceResult(face);
@@ -46,7 +46,7 @@ export function DiceControls({ actions }: { actions: Actions }) {
     const video = dice.videos[result - 1]?.trim();
     if (dice.playVideo && video) {
       // The overlay inside OBS waits for the animation to finish, then plays the video of that result.
-      actions.sendCmd({ type: 'video', path: video, title: `Dau · ${result}`, label: dice.labels[result - 1] || `Resultat ${result}`, delay: DICE_DURATION - 1500 }, (s) => ({
+      actions.sendCmd({ type: 'video', path: video, title: `Dau · ${result}`, label: diceText(result), delay: DICE_DURATION - 1500 }, (s) => ({
         dice: { ...s.dice, last: { id, at: Date.now(), face, result } },
       }));
     } else setDice({ last: { id, at: Date.now(), face, result } });
@@ -66,7 +66,7 @@ export function DiceControls({ actions }: { actions: Actions }) {
           <Dices size={16} /> Últims 2 minuts de la primera part: és l’hora del dau!
         </p>
       )}
-      <p className="mb-2 text-xs text-slate-400">Toca la cara que ha sortit. El dau rodola a la pantalla i en mostra el resultat (el 5 compta com a 1 i el 6 com a 2).</p>
+      <p className="mb-2 text-xs text-slate-400">Toca la cara que ha sortit. El dau rodola a la pantalla i diu quants jugadors per equip juguen durant 2 minuts (el 5 compta com a 1 i el 6 com a 2).</p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
         {[1, 2, 3, 4, 5, 6].map((f) => (
           <button
@@ -75,17 +75,8 @@ export function DiceControls({ actions }: { actions: Actions }) {
             className={cn('flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 transition hover:border-amber-400/70 hover:bg-amber-400/10 active:scale-95', dice.last?.face === f && onAir ? 'border-amber-400 bg-amber-400/15 shadow-glow' : 'border-white/10')}
           >
             <MiniFace n={f} />
-            <span className="text-xs font-black uppercase tracking-wide text-slate-300">{f > 4 ? `${f} = ${diceResult(f)}` : f}</span>
+            <span className="text-center text-[11px] font-black uppercase leading-tight tracking-wide text-slate-300">{diceResult(f)} contra {diceResult(f)}</span>
           </button>
-        ))}
-      </div>
-
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        {[1, 2, 3, 4].map((r) => (
-          <label key={r} className="flex items-center gap-2">
-            <span className="digital grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gold-gradient text-lg text-slate-950">{r}</span>
-            <input className="input !py-2" value={dice.labels[r - 1] ?? ''} onChange={(e) => setAt('labels', r - 1, e.target.value)} placeholder={`Què passa amb un ${r}?`} aria-label={`Significat del resultat ${r}`} />
-          </label>
         ))}
       </div>
 
@@ -99,7 +90,7 @@ export function DiceControls({ actions }: { actions: Actions }) {
             <label key={r} className="flex items-center gap-2">
               <Film size={14} className="shrink-0 text-slate-500" />
               <span className="w-5 shrink-0 text-xs font-black text-amber-300">{r}</span>
-              <input className="input !py-1.5 font-mono text-[11px]" value={dice.videos[r - 1] ?? ''} onChange={(e) => setAt('videos', r - 1, e.target.value)} placeholder="C:/…/DAU NUMERO 1.mp4" aria-label={`Vídeo del resultat ${r}`} />
+              <input className="input !py-1.5 font-mono text-[11px]" value={dice.videos[r - 1] ?? ''} onChange={(e) => setVideo(r - 1, e.target.value)} placeholder="C:/…/DAU NUMERO 1.mp4" aria-label={`Vídeo del resultat ${r}`} />
             </label>
           ))}
           <p className="text-[11px] text-slate-500">Ruta del fitxer a l’ordinador on hi ha OBS.</p>

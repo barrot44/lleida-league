@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
-import { AlertTriangle, Check, ChevronDown, Copy, ExternalLink, Eraser, Wifi, WifiOff } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { AlertTriangle, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Copy, ExternalLink, Eraser, Wifi, WifiOff } from 'lucide-react';
 import { OBS_LAYERS, type ObsLayerId } from '@/obs/types';
 import { useObsStore, useObsSync } from '@/obs/useObsStore';
 import { obsRemoteEnabled } from '@/obs/transport';
 import { useUiStore } from '@/store/useUiStore';
-import { SectionCard } from '@/components/admin/fields';
+import { SectionCard, SectionFoldContext } from '@/components/admin/fields';
 import { ObsPreview } from '@/components/admin/obs/ObsPreview';
 import { ScoreboardControls } from '@/components/admin/obs/ScoreboardControls';
 import { GraphicsControls } from '@/components/admin/obs/GraphicsControls';
@@ -15,11 +15,10 @@ import { MvpPollControls } from '@/components/admin/obs/MvpPollControls';
 import { DiceControls } from '@/components/admin/obs/DiceControls';
 import { PowerCardsControls } from '@/components/admin/obs/PowerCardsControls';
 import { SituationsControls } from '@/components/admin/obs/SituationsControls';
+import { MusicControls } from '@/components/admin/obs/MusicControls';
 import { InterviewControls } from '@/components/admin/obs/InterviewControls';
-import { SoundControls } from '@/components/admin/obs/SoundControls';
 import { StatsControls } from '@/components/admin/obs/StatsControls';
 import { PredictionControls } from '@/components/admin/obs/PredictionControls';
-import { FanMessagesControls } from '@/components/admin/obs/FanMessagesControls';
 import { NotifyControls } from '@/components/admin/obs/NotifyControls';
 import { useObsActions, useSyncSetting } from '@/components/admin/obs/useObsActions';
 import { cn } from '@/lib/utils';
@@ -116,22 +115,61 @@ function SetupCard({ overlayUrl }: { overlayUrl: string }) {
   );
 }
 
+const FOLD_KEY = 'lleida-league:obs-folded';
+
+/** Which cards of the control room are folded (remembered on this device). */
+function useFolded() {
+  const [folded, setFolded] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(FOLD_KEY) ?? '[]') as string[];
+    } catch {
+      return [];
+    }
+  });
+  const save = useCallback((next: string[]) => {
+    setFolded(next);
+    try {
+      localStorage.setItem(FOLD_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const ctx = useMemo(
+    () => ({
+      isOpen: (title: string) => !folded.includes(title),
+      toggle: (title: string) => save(folded.includes(title) ? folded.filter((t) => t !== title) : [...folded, title]),
+    }),
+    [folded, save],
+  );
+  return { ctx, foldAll: () => save([...document.querySelectorAll('[data-obs-studio] section.card h3')].map((h) => h.textContent ?? '')), openAll: () => save([]) };
+}
+
 /** Control room for the live streams: everything shown in OBS is driven from here. */
 export function ObsStudio() {
   useObsSync();
   const [sync, setSync] = useSyncSetting();
   const actions = useObsActions(sync);
   const overlayUrl = useMemo(() => `${window.location.origin}/obs`, []);
+  const { ctx, foldAll, openAll } = useFolded();
 
   return (
-    <div className="space-y-6">
+    <SectionFoldContext.Provider value={ctx}>
+    <div className="space-y-6" data-obs-studio>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-4 py-3">
         <p className="text-sm text-slate-400">
           Controla els gràfics del directe: marcador, gols animats, alineacions, rètols i pantalles. <span className="text-slate-500">Tot es veu a la vista prèvia tal com sortirà a OBS.</span>
         </p>
-        <button className="btn-danger !py-2" onClick={actions.clearAll}>
-          <Eraser size={15} /> Neteja la pantalla
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button className="btn-ghost !py-2 text-xs" onClick={foldAll}>
+            <ChevronsDownUp size={15} /> Plega-ho tot
+          </button>
+          <button className="btn-ghost !py-2 text-xs" onClick={openAll}>
+            <ChevronsUpDown size={15} /> Obre-ho tot
+          </button>
+          <button className="btn-danger !py-2" onClick={actions.clearAll}>
+            <Eraser size={15} /> Neteja la pantalla
+          </button>
+        </div>
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-2">
@@ -139,20 +177,20 @@ export function ObsStudio() {
         <ObsConnection overlayUrl={overlayUrl} />
       </div>
 
+      <ScoreboardControls actions={actions} sync={sync} setSync={setSync} />
+
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
         <div className="min-w-0 xl:sticky xl:top-24">
           <ObsPreview />
         </div>
         <div className="min-w-0 space-y-6">
           <SituationsControls actions={actions} />
-          <ScoreboardControls actions={actions} sync={sync} setSync={setSync} />
+          <MusicControls actions={actions} />
           <StatsControls actions={actions} />
-          <SoundControls actions={actions} />
           <PowerCardsControls actions={actions} />
           <DiceControls actions={actions} />
           <ProductionControls actions={actions} />
           <GraphicsControls actions={actions} />
-          <FanMessagesControls actions={actions} />
           <PredictionControls actions={actions} />
           <MvpPollControls actions={actions} />
           <InterviewControls actions={actions} />
@@ -164,5 +202,6 @@ export function ObsStudio() {
         </div>
       </div>
     </div>
+    </SectionFoldContext.Provider>
   );
 }

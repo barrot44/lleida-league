@@ -11,9 +11,8 @@ import { useLeagueView } from '@/hooks/useLeagueView';
 import { teamResults } from '@/lib/standings';
 import { KIND_LABEL, balances, newestFirst, signed } from '@/lib/lleidalitos';
 import { cn, formatDay, matchTimestamp } from '@/lib/utils';
-import type { Position } from '@/types';
+import { squadOrder } from '@/obs/state';
 
-const ORDER: Record<Position, number> = { Portero: 0, Cierre: 1, Ala: 2, Pívot: 3 };
 
 export function TeamModal({ id, open, onClose }: { id: string; open: boolean; onClose: () => void }) {
   const team = useLeagueStore((s) => s.teams.find((t) => t.id === id));
@@ -27,7 +26,7 @@ export function TeamModal({ id, open, onClose }: { id: string; open: boolean; on
     const row = view.standings.find((r) => r.team.id === team.id);
     const roster = view.catPlayers
       .filter((p) => p.teamId === team.id)
-      .sort((a, b) => ORDER[a.position] - ORDER[b.position] || a.dorsal - b.dorsal);
+      .sort(squadOrder);
     const results = teamResults(team.id, view.catMatches).reverse().slice(0, 5);
     const next = view.catMatches
       .filter((m) => m.status === 'scheduled' && (m.homeTeamId === team.id || m.awayTeamId === team.id))

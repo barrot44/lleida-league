@@ -107,7 +107,7 @@ export function CardRequestAlert({ team }: { team: ObsTeam }) {
       initial={{ y: -220, opacity: 0 }}
       animate={{ y: 0, opacity: 1, transition: { type: 'spring', damping: 16, stiffness: 160 } }}
       exit={{ y: -220, opacity: 0, transition: { duration: 0.35 } }}
-      className="absolute left-1/2 top-[160px] -ml-[470px] flex w-[940px] items-center gap-7 rounded-[28px] border-2 border-amber-400/70 px-8 py-5 font-display"
+      className="absolute right-[56px] top-[150px] flex w-[940px] items-center gap-7 rounded-[28px] border-2 border-amber-400/70 px-8 py-5 font-display"
       style={{ background: PANEL_BG }}
     >
       <motion.span
@@ -221,7 +221,7 @@ export function ActiveCardBug({ active, card, clock, now }: { active: ObsActiveC
       initial={{ x: -520, opacity: 0 }}
       animate={{ x: 0, opacity: 1, transition: { duration: 0.5, ease: EASE_OUT } }}
       exit={{ x: -520, opacity: 0, transition: { duration: 0.35 } }}
-      className="absolute left-[56px] top-[180px] w-[460px] overflow-hidden rounded-2xl border border-white/10 font-display"
+      className="w-[460px] overflow-hidden rounded-2xl border border-white/10 font-display"
       style={{ background: PANEL_BG, boxShadow: `0 18px 50px -12px rgba(0,0,0,.85), inset 6px 0 0 ${card.color}` }}
     >
       <div className="flex items-center gap-4 py-3 pl-5 pr-4">

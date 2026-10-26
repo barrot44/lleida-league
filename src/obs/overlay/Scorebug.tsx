@@ -76,8 +76,15 @@ export function Scorebug({ sb, now }: { sb: ObsScoreboard; now: number }) {
       initial={{ y: -140, opacity: 0 }}
       animate={{ y: 0, opacity: 1, transition: { duration: 0.6, ease: EASE_OUT } }}
       exit={{ y: -140, opacity: 0, transition: { duration: 0.35 } }}
-      className="absolute left-[56px] top-[44px] font-display"
+      className="absolute left-[56px] top-[24px] font-display"
     >
+      {/* Fouls on top of each team, so the space under the scoreboard is free for the compact graphics. */}
+      <div className="mb-1.5 flex">
+        <span className="w-[76px]" />
+        <Fouls count={sb.homeFouls} side="home" />
+        <span className="w-[2px]" />
+        <Fouls count={sb.awayFouls} side="away" />
+      </div>
       <div className="flex h-[70px] items-stretch overflow-hidden rounded-2xl border border-amber-400/30" style={{ background: PANEL_BG, boxShadow: '0 18px 50px -12px rgba(0,0,0,.8), 0 0 30px -10px rgba(245,158,11,.45)' }}>
         <div className="grid w-[76px] place-items-center border-r border-white/10 bg-[#0b1226]">
           <Logo size={52} />
@@ -94,12 +101,6 @@ export function Scorebug({ sb, now }: { sb: ObsScoreboard; now: number }) {
         {!halted && (
           <div className="grid min-w-[74px] place-items-center bg-[#0b1226] px-3 text-[24px] font-black uppercase tracking-wider text-amber-300">{PERIOD_SHORT[sb.period]}</div>
         )}
-      </div>
-      <div className="mt-2 flex">
-        <span className="w-[76px]" />
-        <Fouls count={sb.homeFouls} side="home" />
-        <span className="w-[2px]" />
-        <Fouls count={sb.awayFouls} side="away" />
       </div>
     </motion.div>
   );

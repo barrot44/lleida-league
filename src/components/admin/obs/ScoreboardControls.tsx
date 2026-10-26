@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Eye, EyeOff, Minus, Pause, Play, Plus, RotateCcw, Timer, Undo2 } from 'lucide-react';
+import { Check, Eye, EyeOff, Minus, Pause, Pencil, Play, Plus, RotateCcw, Timer, Undo2 } from 'lucide-react';
 import type { CategoryId, Player } from '@/types';
 import type { ObsPeriod } from '@/obs/types';
 import { CATEGORIES, CATEGORY_BY_ID } from '@/config/site';
-import { clockElapsed, clockText, matchMinute, nudgeClock, pauseClock, periodMs, PERIOD_LABEL, resetClock, startClock, teamSnap } from '@/obs/state';
+import { clockElapsed, clockText, matchMinute, nudgeClock, parseClockText, pauseClock, periodMs, PERIOD_LABEL, resetClock, setClockShown, startClock, teamSnap } from '@/obs/state';
 import { useObsStore } from '@/obs/useObsStore';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { TeamCrest } from '@/components/ui/TeamCrest';
@@ -31,6 +31,7 @@ export function ScoreboardControls({ actions, sync, setSync }: { actions: Action
   const [picker, setPicker] = useState<Picker>(null);
   const [ownGoalSide, setOwnGoalSide] = useState<Side | null>(null);
   const [category, setCategory] = useState<CategoryId>(sb.category);
+  const [clockDraft, setClockDraft] = useState<string | null>(null);
 
   const catMatches = useMemo(() => {
     const rank = (s: string) => (s === 'live' ? 0 : s === 'scheduled' ? 1 : 2);
@@ -101,6 +102,13 @@ export function ScoreboardControls({ actions, sync, setSync }: { actions: Action
       // Starting the clock puts a scheduled match live on the website.
       if (sync && linked?.status === 'scheduled') upsertMatch({ ...linked, status: 'live', homeScore: sb.homeScore, awayScore: sb.awayScore, liveMinute: 1 });
     }
+  };
+
+  /** Typed time (to fix a mistake): what the scoreboard must read from now on. */
+  const applyClockDraft = () => {
+    const ms = clockDraft === null ? null : parseClockText(clockDraft);
+    if (ms !== null) setClock((c) => setClockShown(c, ms));
+    setClockDraft(null);
   };
 
   const finishOnWeb = () => {
@@ -177,7 +185,8 @@ export function ScoreboardControls({ actions, sync, setSync }: { actions: Action
         </button>
       }
     >
-      <div className="grid gap-3 sm:grid-cols-[10rem_1fr]">
+      <div className="flex flex-wrap items-center gap-3">
+      <div className="grid min-w-0 flex-1 basis-[28rem] gap-3 sm:grid-cols-[10rem_1fr]">
         <select className="input" value={category} onChange={(e) => setCategory(e.target.value as CategoryId)} aria-label="Categoria">
           {CATEGORIES.map((c) => (
             <option key={c.id} value={c.id}>
@@ -194,7 +203,7 @@ export function ScoreboardControls({ actions, sync, setSync }: { actions: Action
           ))}
         </select>
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Toggle checked={sync} onChange={setSync} label="Sincronitza amb la web" hint={linked ? 'Gols, targetes i minut es guarden al partit.' : 'Carrega un partit del calendari per activar-ho.'} />
         {linked && sync && linked.status !== 'finished' && (
           <button className="btn-ghost !py-1.5 text-xs" onClick={finishOnWeb}>
@@ -202,14 +211,15 @@ export function ScoreboardControls({ actions, sync, setSync }: { actions: Action
           </button>
         )}
       </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {sideColumn('home')}
-        {sideColumn('away')}
       </div>
 
+      {/* Home · clock · away side by side on a computer screen. */}
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,30rem)_minmax(0,1fr)]">
+        <div className="order-1">{sideColumn('home')}</div>
+        <div className="order-2 xl:order-3">{sideColumn('away')}</div>
+
       {/* Clock */}
-      <div className="scoreboard mt-4 rounded-2xl border border-white/10 p-4">
+      <div className="scoreboard order-3 flex flex-col justify-center rounded-2xl border border-white/10 p-4 sm:col-span-2 xl:order-2 xl:col-span-1">
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button className="btn-ghost !px-2.5 !py-2 text-xs" onClick={() => setClock((c) => nudgeClock(c, c.countdown ? 60_000 : -60_000))} aria-label="Un minut enrere al rellotge">
             −1′
@@ -217,7 +227,25 @@ export function ScoreboardControls({ actions, sync, setSync }: { actions: Action
           <button className="btn-ghost !px-2.5 !py-2 text-xs" onClick={() => setClock((c) => nudgeClock(c, c.countdown ? 1000 : -1000))} aria-label="Un segon enrere al rellotge">
             −1″
           </button>
-          <span className={cn('digital min-w-[8.5rem] text-center text-6xl', timeUp ? 'text-red-400' : 'text-amber-300')}>{clockText(sb.clock, now)}</span>
+          {clockDraft !== null ? (
+            <form
+              className="flex items-center gap-1.5"
+              onSubmit={(e) => {
+                e.preventDefault();
+                applyClockDraft();
+              }}
+            >
+              <input autoFocus className="input digital !w-[8.5rem] !py-1 text-center text-5xl text-amber-300" value={clockDraft} onChange={(e) => setClockDraft(e.target.value)} onBlur={applyClockDraft} onKeyDown={(e) => e.key === 'Escape' && setClockDraft(null)} aria-label="Temps exacte (mm:ss)" placeholder="mm:ss" />
+              <button className="btn-gold !p-2.5" aria-label="Desa el temps">
+                <Check size={16} />
+              </button>
+            </form>
+          ) : (
+            <button type="button" title="Toca per escriure el temps exacte" onClick={() => setClockDraft(clockText(sb.clock, now))} className={cn('digital group relative min-w-[8.5rem] rounded-xl px-1 text-center text-6xl transition hover:bg-white/5', timeUp ? 'text-red-400' : 'text-amber-300')}>
+              {clockText(sb.clock, now)}
+              <Pencil size={13} className="absolute -right-1 top-1 text-slate-500 opacity-0 transition group-hover:opacity-100" />
+            </button>
+          )}
           <button className="btn-ghost !px-2.5 !py-2 text-xs" onClick={() => setClock((c) => nudgeClock(c, c.countdown ? -1000 : 1000))} aria-label="Un segon endavant al rellotge">
             +1″
           </button>
@@ -260,6 +288,8 @@ export function ScoreboardControls({ actions, sync, setSync }: { actions: Action
           <Toggle small checked={sb.clock.countdown} onChange={(v) => setClock((c) => ({ ...c, countdown: v }))} label="Compte enrere" />
           <Toggle small checked={state.replay.visible} onChange={(v) => actions.update((s) => ({ ...s, replay: { visible: v } }))} label="Rètol «Repetició»" />
         </div>
+        <p className="mt-3 text-center text-[11px] text-slate-500">T’has equivocat? Toca el temps i escriu el que ha de marcar (p. ex. 12:34).</p>
+      </div>
       </div>
 
       {linked && linked.events.length > 0 && sync && (

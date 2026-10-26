@@ -8,7 +8,7 @@ export interface QuintetSlot {
   points: number;
 }
 
-/** 1 goalkeeper, 1 "cierre", 2 wingers and 1 pivot — the futsal five. */
+/** 1 goalkeeper and 4 outfield players, drawn on the court in the classic futsal diamond. */
 const LINEUP: Position[] = ['Portero', 'Cierre', 'Ala', 'Ala', 'Pívot'];
 
 /**
@@ -48,7 +48,7 @@ export function buildQuintet(matches: Match[], players: Player[], teams: Map<str
   const slots: QuintetSlot[] = [];
   for (const role of LINEUP) {
     const best = players
-      .filter((p) => p.position === role && !used.has(p.id) && score.has(p.id))
+      .filter((p) => (role === 'Portero') === (p.position === 'Portero') && !used.has(p.id) && score.has(p.id))
       .sort((a, b) => (score.get(b.id) ?? 0) - (score.get(a.id) ?? 0) || b.stats.goals - a.stats.goals || a.name.localeCompare(b.name, 'es'))[0];
     if (!best) continue;
     used.add(best.id);

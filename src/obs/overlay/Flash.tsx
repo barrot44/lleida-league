@@ -12,7 +12,7 @@ export const FLASH_DURATION: Record<ObsFlash['kind'], number> = { goal: 7500, ye
 export const flashActive = (f: ObsFlash | null, now: number): f is ObsFlash => !!f && now - f.at >= -2000 && now - f.at < FLASH_DURATION[f.kind];
 
 /** Big goal celebration band across the screen. */
-function GoalFlash({ f }: { f: ObsFlash }) {
+export function GoalFlash({ f }: { f: ObsFlash }) {
   const color = f.team.primaryColor;
   const title = f.ownGoal ? 'Gol en pròpia' : f.double ? 'Gol doble!' : 'Gooool!';
   return (
@@ -99,8 +99,8 @@ function GoalFlash({ f }: { f: ObsFlash }) {
   );
 }
 
-/** Yellow / red card and time-out notice, under the scoreboard. */
-function SideFlash({ f, low }: { f: ObsFlash; low: boolean }) {
+/** Yellow / red card and time-out notice, under the scoreboard (placed by the stage's column). */
+export function SideFlash({ f }: { f: ObsFlash }) {
   const card = f.kind === 'yellow_card' || f.kind === 'red_card';
   const cardColor = f.kind === 'red_card' ? '#EF4444' : '#FACC15';
   const title = f.kind === 'timeout' ? 'Temps mort' : f.kind === 'red_card' ? 'Targeta vermella' : 'Targeta groga';
@@ -109,8 +109,8 @@ function SideFlash({ f, low }: { f: ObsFlash; low: boolean }) {
       initial={{ x: -520, opacity: 0 }}
       animate={{ x: 0, opacity: 1, transition: { duration: 0.55, ease: EASE_OUT } }}
       exit={{ x: -520, opacity: 0, transition: { duration: 0.35 } }}
-      className="absolute left-[56px] flex items-center gap-5 overflow-hidden rounded-2xl border border-white/10 py-4 pl-5 pr-8 font-display"
-      style={{ top: low ? 300 : 200, background: PANEL_BG, boxShadow: `0 20px 60px -10px rgba(0,0,0,.85), inset 6px 0 0 ${card ? cardColor : '#FBBF24'}` }}
+      className="flex w-fit items-center gap-5 overflow-hidden rounded-2xl border border-white/10 py-4 pl-5 pr-8 font-display"
+      style={{ background: PANEL_BG, boxShadow: `0 20px 60px -10px rgba(0,0,0,.85), inset 6px 0 0 ${card ? cardColor : '#FBBF24'}` }}
     >
       {card ? (
         <motion.span
@@ -145,6 +145,3 @@ function SideFlash({ f, low }: { f: ObsFlash; low: boolean }) {
   );
 }
 
-export function Flash({ flash, low = false }: { flash: ObsFlash; low?: boolean }) {
-  return flash.kind === 'goal' ? <GoalFlash f={flash} /> : <SideFlash f={flash} low={low} />;
-}

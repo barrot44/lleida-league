@@ -5,7 +5,6 @@ import { defaultObsState } from '@/obs/state';
 import { subscribeObs } from '@/obs/transport';
 import { ObsExecutor, execConfigFromHash, type ExecFx } from '@/obs/executor';
 import { useNow } from '@/hooks/useNow';
-import { useArenaSounds } from '@/obs/useArenaSounds';
 import { STAGE_H, STAGE_W, Stage } from '@/obs/overlay/Stage';
 
 /** `?capes=marcador,rotul` → only those layers (lets advanced users split graphics into several OBS sources). */
@@ -49,7 +48,6 @@ export default function OverlayApp() {
   }, [executor]);
 
   useEffect(() => subscribeObs({ onState: setState }), []);
-  useArenaSounds(state);
 
   useEffect(() => {
     executor?.handle(state.cmds);

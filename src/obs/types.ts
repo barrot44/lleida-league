@@ -170,6 +170,18 @@ export interface ObsMain {
   at?: number;
 }
 
+/** Compact item shown right under the scoreboard (live prediction, featured player). */
+export type ObsStripItem =
+  | { kind: 'poll'; pollId: string; title: string; candidates: MvpCandidate[]; closed: boolean; voteUrl: string }
+  | { kind: 'player'; player: ObsPlayer; team: ObsTeam; title: string; stats: ObsPlayerStats; matchLine: string };
+
+export interface ObsStrip {
+  visible: boolean;
+  id: string;
+  item: ObsStripItem | null;
+  hideAt: number | null;
+}
+
 export type ObsScreenKind = 'starting' | 'brb' | 'halftime' | 'ending';
 
 export interface ObsScreen {
@@ -197,6 +209,8 @@ export interface ObsState {
   lower: ObsLowerThird;
   ticker: ObsTicker;
   main: ObsMain;
+  /** Under the scoreboard: live prediction or featured player. */
+  strip: ObsStrip;
   screen: ObsScreen;
   brand: { visible: boolean };
   sponsors: { visible: boolean; items: ObsSponsorItem[]; seconds: number };
@@ -219,12 +233,10 @@ export interface ObsState {
   situations: { scenes: Record<string, string>; active: string | null; transition: boolean };
   /** Interview at the side of the court. */
   interview: ObsInterview;
-  /** Arena sounds played by the overlay inside OBS. */
-  sound: { enabled: boolean; auto: boolean; volume: number; last: { id: string; at: number; kind: SfxKind } | null };
   /** Live match statistics (tapped from the panel). */
   stats: { home: MatchStats; away: MatchStats };
-  /** A fan message approved for the screen. */
-  fanMsg: { id: string; at: number; name: string; text: string } | null;
+  /** Background music captured from an app of the OBS computer (Spotify…). */
+  music: { app: string; on: boolean; volume: number; auto: boolean };
   /** Phone notifications sent automatically (goals, start, final, votes). */
   notify: { auto: boolean };
 }
@@ -263,8 +275,6 @@ export interface ObsCards {
 }
 
 export interface ObsDice {
-  /** What each result (1–4) means, shown under the number. */
-  labels: string[];
   /** Optional video file (on the OBS computer) for each result, played after the animation. */
   videos: string[];
   playVideo: boolean;
@@ -275,6 +285,9 @@ export interface ObsDice {
 /** Faces 5 and 6 count as 1 and 2: the die only has four real results. */
 export const diceResult = (face: number) => (face === 5 ? 1 : face === 6 ? 2 : face);
 
+/** What each result means: that many players a side for two minutes. */
+export const diceText = (result: number) => `${result} contra ${result} durant 2 minuts`;
+
 export type ObsCommand =
   | { id: string; at: number; type: 'scene'; scene: string; transition: boolean }
   | { id: string; at: number; type: 'replay'; clipId: string; label: string; slow: boolean }
@@ -282,7 +295,9 @@ export type ObsCommand =
   | { id: string; at: number; type: 'save'; clipId: string }
   /** Plays a video file of the OBS computer (e.g. the dice result videos) in the replay scene. */
   | { id: string; at: number; type: 'video'; path: string; title: string; label: string; delay?: number }
-  | { id: string; at: number; type: 'play'; clipIds: string[]; labels?: string[]; title: string; slow: boolean };
+  | { id: string; at: number; type: 'play'; clipIds: string[]; labels?: string[]; title: string; slow: boolean }
+  /** Background music: prepare the capture of an app (Spotify…), or fade it in / out. */
+  | { id: string; at: number; type: 'music'; action: 'setup' | 'on' | 'off'; app: string; volume: number };
 
 export interface ObsClip {
   id: string;
@@ -304,6 +319,8 @@ export interface ObsExecStatus {
   busy: string | null;
   /** Clips whose video file this OBS knows (others were saved elsewhere or forgotten). */
   clips: string[];
+  /** Background music: app captured (empty = not prepared) and last error. */
+  music?: { app: string; error: string | null };
 }
 
 /** Layers that can be switched on/off in the overlay URL (`/obs?capes=marcador,rotul`). */
@@ -318,8 +335,6 @@ export const OBS_LAYERS = [
 ] as const;
 
 export type ObsLayerId = (typeof OBS_LAYERS)[number]['id'];
-
-export type SfxKind = 'horn' | 'whistle' | 'cheer' | 'drumroll' | 'card' | 'sting' | 'dice';
 
 export interface MatchStats {
   shots: number;

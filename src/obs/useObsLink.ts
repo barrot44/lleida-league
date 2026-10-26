@@ -50,6 +50,8 @@ interface ObsLinkStore {
   /** Creates (or reuses) the browser source with the overlay in the current scene. Returns a message for the user. */
   installOverlay: (overlayUrl: string) => Promise<string>;
   refreshOverlay: () => Promise<string>;
+  /** Raw obs-websocket request (only while connected). */
+  request: <T = Record<string, unknown>>(type: string, data?: Record<string, unknown>) => Promise<T>;
 }
 
 const socket = new ObsSocket();
@@ -66,8 +68,7 @@ const browserSettings = (url: string) => ({
   url,
   width: 1920,
   height: 1080,
-  // The arena sounds go through the OBS mixer (and can be turned down there).
-  reroute_audio: true,
+  reroute_audio: false,
   restart_when_active: false,
   shutdown: false,
   css: 'body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }',
@@ -112,6 +113,7 @@ export const useObsLink = create<ObsLinkStore>()((set, get) => {
   };
 
   return {
+    request: (type, data) => socket.request(type, data),
     settings: loadSettings(),
     status: 'off',
     error: null,

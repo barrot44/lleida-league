@@ -6,7 +6,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
 import { PositionTag } from '@/components/ui/Badges';
 import { Field, ImageInput, Stepper } from '@/components/admin/fields';
-import { CATEGORIES, POSITIONS, POSITION_LABEL } from '@/config/site';
+import { CATEGORIES, ROLE_OPTIONS, isKeeper } from '@/config/site';
 import { emptyStats } from '@/lib/standings';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -74,11 +74,11 @@ function PlayerEditor({ initial, isNew, onClose }: { initial: Player; isNew: boo
                 ))}
               </select>
             </Field>
-            <Field label="Posició">
-              <select className="input" value={p.position} onChange={(e) => patch({ position: e.target.value as Position })}>
-                {POSITIONS.map((pos) => (
-                  <option key={pos} value={pos}>
-                    {POSITION_LABEL[pos]}
+            <Field label="Porter o jugador">
+              <select className="input" value={isKeeper(p.position) ? 'Portero' : 'Ala'} onChange={(e) => patch({ position: e.target.value as Position })}>
+                {ROLE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
                   </option>
                 ))}
               </select>

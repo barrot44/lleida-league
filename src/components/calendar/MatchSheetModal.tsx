@@ -8,7 +8,7 @@ import { ShareMatchModal } from '@/components/social/ShareMatchModal';
 import { StatusBadge } from '@/components/ui/Badges';
 import { TeamCrest } from '@/components/ui/TeamCrest';
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar';
-import { CATEGORY_BY_ID } from '@/config/site';
+import { CATEGORY_BY_ID, POSITION_LABEL } from '@/config/site';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useLookups } from '@/hooks/useLeagueView';
@@ -136,7 +136,7 @@ export function MatchSheetModal({ id, open, onClose }: { id: string; open: boole
               </p>
               <p className="truncate font-display text-2xl font-black uppercase text-white">{mvp.name}</p>
               <p className="text-xs text-slate-400">
-                {mvpTeam?.name} · #{mvp.dorsal} · {mvp.position}
+                {mvpTeam?.name} · #{mvp.dorsal} · {POSITION_LABEL[mvp.position]}
               </p>
             </div>
           </button>

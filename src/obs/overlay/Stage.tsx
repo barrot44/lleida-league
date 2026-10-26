@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import type { ObsLayerId, ObsState } from '@/obs/types';
 import type { ExecFx } from '@/obs/executor';
 import { Scorebug } from '@/obs/overlay/Scorebug';
-import { Flash, flashActive } from '@/obs/overlay/Flash';
+import { GoalFlash, SideFlash, flashActive } from '@/obs/overlay/Flash';
 import { BrandBug, LowerThird, QrCorner, ReplayTag, SponsorBug, TickerBar } from '@/obs/overlay/Chrome';
 import { MainGraphic } from '@/obs/overlay/Graphics';
 import { FullScreen } from '@/obs/overlay/Screens';
@@ -11,10 +11,8 @@ import { DICE_DURATION, DiceRoll } from '@/obs/overlay/DiceRoll';
 import { ActiveCardBug, CARD_REVEAL_MS, CardRequestAlert, CardReveal } from '@/obs/overlay/CardsLayer';
 import { cardIsLive } from '@/obs/cards';
 import { FitInside, boardMotion } from '@/obs/overlay/kit';
-import { FanMessageBubble, InterviewLayer } from '@/obs/overlay/Interview';
-
-/** How long an approved fan message stays on screen. */
-export const FAN_MSG_MS = 14_000;
+import { InterviewLayer } from '@/obs/overlay/Interview';
+import { UnderBug } from '@/obs/overlay/UnderBug';
 
 export const STAGE_W = 1920;
 export const STAGE_H = 1080;
@@ -58,8 +56,8 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
   const showReveal = on('avisos') && !!cards.draw && now - cards.draw.at >= -2000 && now - cards.draw.at < CARD_REVEAL_MS;
   const showRequest = on('avisos') && !!cards.request && (!cards.draw || cards.draw.at < cards.request.at) && now - cards.request.at < 90_000;
   const showActiveCard = on('marcador') && cardIsLive(cards.active, sb.clock, now) && !showReveal;
-  const fan = state.fanMsg;
-  const showFan = on('avisos') && !!fan && now - fan.at >= -2000 && now - fan.at < FAN_MSG_MS && !showScreen && !showMain;
+  const strip = state.strip;
+  const showStrip = on('grafics') && strip.visible && !!strip.item && (!strip.hideAt || now < strip.hideAt) && !showScreen && !showMain;
 
   return (
     <div
@@ -74,7 +72,7 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
 
       <AnimatePresence mode="wait">
         {showMain && main.graphic && (
-          <motion.div key={main.id} {...boardMotion} className="absolute inset-x-[60px]" style={{ top: showScore ? 165 : 60, bottom: showTicker ? 96 : 50 }}>
+          <motion.div key={main.id} {...boardMotion} className="absolute inset-x-[60px]" style={{ top: showScore ? 150 : 60, bottom: showTicker ? 96 : 50 }}>
             <FitInside className="h-full w-full">
               <MainGraphic graphic={main.graphic} accent={state.accent} />
             </FitInside>
@@ -84,14 +82,18 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
 
       <AnimatePresence>{showLower && <LowerThird key={lt.id} lt={lt} raised={showTicker} />}</AnimatePresence>
       <AnimatePresence>{showInterview && <InterviewLayer key={iv.id} iv={iv} sponsors={state.sponsors.items} raised={showTicker} />}</AnimatePresence>
-      <AnimatePresence>{showFan && fan && <FanMessageBubble key={fan.id} name={fan.name} text={fan.text} low={showActiveCard} />}</AnimatePresence>
       <AnimatePresence>{showQr && <QrCorner key={`qr-${state.qr.url}`} url={state.qr.url} label={state.qr.label} raised={showTicker} />}</AnimatePresence>
       <AnimatePresence>{showTicker && <TickerBar key="ticker" ticker={state.ticker} />}</AnimatePresence>
-      <AnimatePresence>{showActiveCard && activeDef && cards.active && <ActiveCardBug key={cards.active.id} active={cards.active} card={activeDef} clock={sb.clock} now={now} />}</AnimatePresence>
+      {/* Under the scoreboard, stacked: prediction / featured player, card in force, card or time-out notice. */}
+      <div className="absolute left-[56px] flex flex-col items-start gap-3" style={{ top: showScore ? 142 : 44 }}>
+        <AnimatePresence mode="popLayout">{showStrip && strip.item && <UnderBug key={strip.id} item={strip.item} />}</AnimatePresence>
+        <AnimatePresence mode="popLayout">{showActiveCard && activeDef && cards.active && <ActiveCardBug key={cards.active.id} active={cards.active} card={activeDef} clock={sb.clock} now={now} />}</AnimatePresence>
+        <AnimatePresence mode="popLayout">{flash && flash.kind !== 'goal' && <SideFlash key={flash.id} f={flash} />}</AnimatePresence>
+      </div>
       <AnimatePresence>{showRequest && cards.request && <CardRequestAlert key={cards.request.id} team={cards.request.team} />}</AnimatePresence>
-      <AnimatePresence>{flash && <Flash key={flash.id} flash={flash} low={showActiveCard} />}</AnimatePresence>
+      <AnimatePresence>{flash?.kind === 'goal' && <GoalFlash key={flash.id} f={flash} />}</AnimatePresence>
       <AnimatePresence>{showReveal && drawDef && cards.draw && <CardReveal key={cards.draw.id} card={drawDef} team={cards.draw.team} />}</AnimatePresence>
-      <AnimatePresence>{showDice && dice && <DiceRoll key={dice.id} face={dice.face} result={dice.result} label={state.dice.labels[dice.result - 1] ?? ''} />}</AnimatePresence>
+      <AnimatePresence>{showDice && dice && <DiceRoll key={dice.id} face={dice.face} result={dice.result} />}</AnimatePresence>
 
       <AnimatePresence>
         {showScreen && <FullScreen key={`screen-${state.screen.kind}`} screen={state.screen} sb={sb} sponsors={state.sponsors.items} accent={state.accent} now={now} />}

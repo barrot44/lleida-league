@@ -3,6 +3,8 @@ import type { ObsExecStatus } from '@/obs/types';
 import { onExecStatus } from '@/obs/bus';
 import { REPLAY_SCENE } from '@/obs/executor';
 import { useObsLink } from '@/obs/useObsLink';
+import { useObsStore } from '@/obs/useObsStore';
+import { fadeMusic, setupMusic } from '@/obs/music';
 import { useNow } from '@/hooks/useNow';
 import type { useObsActions } from '@/components/admin/obs/useObsActions';
 
@@ -34,4 +36,28 @@ export function useScenes(actions: Actions) {
   };
 
   return { exec, execOn, link, scenes, current, goScene, canSwitch: execOn || link.status === 'on' };
+}
+
+/** Background music (Spotify or any app captured by OBS): through the overlay that controls OBS, or this panel's link. */
+export function useMusic(actions: Actions) {
+  const { exec, execOn, link } = useScenes(actions);
+  const music = useObsStore((s) => s.state.music);
+
+  const run = async (action: 'setup' | 'on' | 'off', app: string, volume: number) => {
+    if (execOn) {
+      actions.sendCmd({ type: 'music', action, app, volume });
+      return;
+    }
+    if (link.status !== 'on') throw new Error('Connecta OBS (a «Connexió amb OBS») per controlar la música.');
+    if (action === 'setup') await setupMusic(link.request, app);
+    else await fadeMusic(link.request, action === 'on', volume);
+  };
+
+  /** Fades in / out and remembers it, so every panel shows the same. */
+  const setOn = async (on: boolean) => {
+    actions.update((s) => ({ ...s, music: { ...s.music, on } }));
+    await run(on ? 'on' : 'off', music.app, music.volume);
+  };
+
+  return { music, run, setOn, canControl: execOn || link.status === 'on', execStatus: exec?.music ?? null };
 }

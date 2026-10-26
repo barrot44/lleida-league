@@ -1,6 +1,7 @@
 import type { ObsCommand, ObsExecStatus } from '@/obs/types';
 import { ObsRequestError, ObsSocket } from '@/obs/obsSocket';
 import { sendExecStatus } from '@/obs/bus';
+import { fadeMusic, setupMusic } from '@/obs/music';
 
 /**
  * Runs INSIDE OBS (in the overlay browser source) when its URL carries the obs-websocket address in the hash
@@ -186,6 +187,17 @@ export class ObsExecutor {
         this.files[cmd.clipId] = path;
         save(FILES_KEY, this.files);
         await this.play([{ id: cmd.clipId, label: cmd.label }], cmd.slow, 'Repetició');
+      } else if (cmd.type === 'music') {
+        const req = this.req.bind(this) as Parameters<typeof setupMusic>[0];
+        try {
+          if (cmd.action === 'setup') {
+            this.patch({ busy: 'Preparant la música…' });
+            const name = await setupMusic(req, cmd.app);
+            this.patch({ music: { app: name, error: null } });
+          } else await fadeMusic(req, cmd.action === 'on', cmd.volume);
+        } catch (e) {
+          this.patch({ music: { app: this.status.music?.app ?? '', error: e instanceof Error ? e.message : 'Error amb la música.' } });
+        }
       } else if (cmd.type === 'play') {
         await this.play(
           cmd.clipIds.map((id, i) => ({ id, label: cmd.labels?.[i] ?? '' })),

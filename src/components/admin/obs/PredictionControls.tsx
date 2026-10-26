@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EyeOff, Loader2, Lock, MonitorUp, Plus, QrCode as QrIcon, Target, Trophy, X } from 'lucide-react';
+import { EyeOff, Loader2, Lock, Maximize2, PanelTop, Plus, QrCode as QrIcon, Target, Trophy, X } from 'lucide-react';
 import { isPrediction, openPoll, optionCandidate, ranked, setPollStatus, useOpenPoll, useOpenPollStore, useTally, voteUrl, type MvpCandidate, type MvpPoll } from '@/lib/mvp';
 import type { ObsTeam } from '@/obs/types';
 import { useObsStore } from '@/obs/useObsStore';
@@ -30,6 +30,7 @@ const PRESETS: Preset[] = [
 export function PredictionControls({ actions }: { actions: Actions }) {
   const sb = useObsStore((s) => s.state.scoreboard);
   const main = useObsStore((s) => s.state.main);
+  const strip = useObsStore((s) => s.state.strip);
   const qr = useObsStore((s) => s.state.qr);
   const toast = useUiStore((s) => s.toast);
   const anyOpen = useOpenPoll();
@@ -41,7 +42,10 @@ export function PredictionControls({ actions }: { actions: Actions }) {
   const [busy, setBusy] = useState(false);
   const url = voteUrl();
   const { rows, total } = poll ? ranked(poll, tally) : { rows: [], total: 0 };
-  const onAirId = main.visible && main.graphic?.kind === 'poll' ? main.graphic.pollId : null;
+  const bigId = main.visible && main.graphic?.kind === 'poll' ? main.graphic.pollId : null;
+  const stripId = strip.visible && strip.item?.kind === 'poll' ? strip.item.pollId : null;
+  const under = (p: MvpPoll, closed: boolean, sec = 0) => actions.showStrip({ kind: 'poll', pollId: p.id, title: p.title, candidates: p.candidates, closed, voteUrl: url }, sec);
+  const big = (p: MvpPoll, closed: boolean, sec = 0) => actions.showGraphic({ kind: 'poll', pollId: p.id, title: p.title, candidates: p.candidates, closed, voteUrl: url }, sec);
   const qrIsVote = qr.visible && qr.url === url;
 
   const start = async (title: string, candidates: MvpCandidate[]) => {
@@ -51,8 +55,8 @@ export function PredictionControls({ actions }: { actions: Actions }) {
       if (anyOpen && !isPrediction(anyOpen)) toast('S’ha tancat la votació de l’MVP que estava oberta.', 'info');
       const p = await openPoll({ matchId: sb.matchId, title, candidates });
       setLast(p);
-      actions.showGraphic({ kind: 'poll', pollId: p.id, title: p.title, candidates: p.candidates, closed: false, voteUrl: url }, 0);
-      toast('Porra oberta i en pantalla amb el QR!');
+      under(p, false);
+      toast('Porra oberta i en pantalla sota el marcador!');
       autoNotify('poll', useObsStore.getState().state, title);
     } catch (e) {
       toast(e instanceof Error ? e.message : 'No s’ha pogut obrir.', 'error');
@@ -69,7 +73,8 @@ export function PredictionControls({ actions }: { actions: Actions }) {
       await setPollStatus(poll.id, 'closed');
       const closed = { ...poll, status: 'closed' as const };
       setLast(closed);
-      actions.showGraphic({ kind: 'poll', pollId: poll.id, title: poll.title, candidates: poll.candidates, closed: true, voteUrl: url }, 15);
+      if (bigId === poll.id) big(closed, true, 15);
+      else under(closed, true, 15);
     } catch (e) {
       toast(e instanceof Error ? e.message : 'No s’ha pogut tancar.', 'error');
     } finally {
@@ -162,23 +167,29 @@ export function PredictionControls({ actions }: { actions: Actions }) {
           <div className="grid gap-2 sm:grid-cols-2">
             {poll.status === 'open' ? (
               <>
-                {onAirId === poll.id ? (
-                  <button className="btn-ghost" onClick={actions.hideGraphic}>
+                {stripId === poll.id || bigId === poll.id ? (
+                  <button className="btn-ghost" onClick={() => (bigId === poll.id ? actions.hideGraphic() : actions.hideStrip())}>
                     <EyeOff size={15} /> Amaga-la (segueix oberta)
                   </button>
                 ) : (
-                  <button className="btn-gold" onClick={() => actions.showGraphic({ kind: 'poll', pollId: poll.id, title: poll.title, candidates: poll.candidates, closed: false, voteUrl: url }, 0)}>
-                    <MonitorUp size={15} /> Mostra amb QR i %
+                  <button className="btn-gold" onClick={() => under(poll, false)}>
+                    <PanelTop size={15} /> Sota el marcador
                   </button>
                 )}
+                <button className="btn-ghost" onClick={() => big(poll, false)}>
+                  <Maximize2 size={15} /> Gran amb QR
+                </button>
                 <button className="btn-danger" disabled={busy} onClick={() => void close()}>
                   <Lock size={15} /> Tanca i mostra el resultat
                 </button>
               </>
             ) : (
               <>
-                <button className="btn-gold" onClick={() => actions.showGraphic({ kind: 'poll', pollId: poll.id, title: poll.title, candidates: poll.candidates, closed: true, voteUrl: url }, 15)}>
-                  <Trophy size={15} /> Torna a mostrar el resultat
+                <button className="btn-gold" onClick={() => under(poll, true, 15)}>
+                  <Trophy size={15} /> Resultat sota el marcador
+                </button>
+                <button className="btn-ghost" onClick={() => big(poll, true, 15)}>
+                  <Maximize2 size={15} /> Resultat en gran
                 </button>
                 <button className="btn-ghost" onClick={() => setLast(null)}>
                   <Plus size={15} /> Porra nova
