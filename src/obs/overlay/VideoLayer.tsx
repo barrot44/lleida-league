@@ -26,13 +26,15 @@ export function VideoLayer({ playing, volume, now, preview }: { playing: Playing
   const item = playing.items[index];
   const next = playing.items[index + 1];
   const over = started && !pos;
+  const gap = !!pos?.gap;
 
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
     v.volume = Math.max(0, Math.min(1, volume));
-    if (!started || over) {
+    if (!started || over || gap) {
       if (!v.paused) v.pause();
+      if (gap && v.currentTime > 0.05) v.currentTime = 0;
       return;
     }
     const want = pos?.offset ?? 0;
@@ -60,10 +62,11 @@ export function VideoLayer({ playing, volume, now, preview }: { playing: Playing
 
   return (
     <div className="absolute inset-0 z-[60] bg-black transition-opacity duration-300" style={{ opacity: Math.min(fadeIn, fadeOut) }}>
-      <video key={`${playing.id}-${index}`} ref={ref} src={item.url} preload="auto" playsInline muted={preview} className="h-full w-full object-contain" />
+      {/* Between two videos: a short black screen (the next one waits, already loaded, underneath). */}
+      <video key={`${playing.id}-${index}`} ref={ref} src={item.url} preload="auto" playsInline muted={preview} className="h-full w-full object-contain" style={{ opacity: gap ? 0 : 1 }} />
       {/* Next file loading in the background, so the cut is instant. */}
       {next && <video key={`pre-${playing.id}-${index + 1}`} src={next.url} preload="auto" muted className="hidden" />}
-      {hasAds && started && pos && (
+      {hasAds && started && pos && !gap && (
         <div className="absolute right-[48px] top-[40px] flex items-center gap-3 font-display">
           {item.kind === 'ad' && <span className="rounded-lg bg-black/55 px-4 py-1.5 text-[22px] font-black uppercase tracking-[0.25em] text-white/85">Publicitat</span>}
           <span className="rounded-lg px-4 py-1.5 text-[22px] font-black uppercase tracking-wider text-slate-950" style={{ background: GOLD_GRADIENT }}>

@@ -110,6 +110,8 @@ En mode local, les dades només existeixen al navegador de qui edita. Per **comp
   (`src/data/initialLeagueData.ts`). Els colors, forces i històries curtes són orientatius.
 - Els **partits, resultats i jugadors** (i les categories Juvenil, Junior i Femenina) són **d'exemple**, generats de forma determinista i relativa a «avui» perquè la web no sigui buida.
 - Quan estiguis a punt: **Admin → Ajustos → «Començar temporada en blanc»** esborra partits i jugadors d'exemple i conserva els equips.
+- **«Buida la lliga»** (al mateix lloc) esborra equips, jugadors, partits i Lleidalitos (i, si ho marques, comunicats i galeria),
+  i abans et descarrega una còpia. Els equips nous entren amb les inscripcions dels presidents.
 - Les imatges dels col·laboradors i de *La nostra grada* s'enllacen des de la web antiga (Wix). Quan la tanquis, descarrega-les i
   puja-les a un altre lloc (p. ex. la galeria o Supabase Storage) i actualitza les URL des de l'admin; si una imatge falla, la web mostra un text/illustració de reserva.
 
@@ -206,7 +208,8 @@ anuncis dels patrocinadors. Es pugen des del mateix panell (MP4 fins a 50 MB, al
 a executar `supabase/schema.sql` el primer cop) o s'hi enganxa un enllaç directe a un `.mp4`.
 
 - **Emet** posa un vídeo; **Reprodueix-ho tot** els passa tots seguits; **Seleccionats** només els que tinguis marcats; **Només la
-  tanda d'anuncis**, els anuncis. Amb anuncis surt «Publicitat · Tornem en 0:25» a la cantonada. L'apartat és al final del panell.
+  tanda d'anuncis**, els anuncis. Amb anuncis surt «Publicitat · Tornem en 0:25» a la cantonada; entre un vídeo i el següent hi ha 0,8 s de negre.
+  L'apartat és al final del panell.
 - La reproducció va pel rellotge: si es recarrega la capa a mig vídeo, continua pel mateix punt. «Neteja la pantalla» l'atura.
 - Perquè el so vagi al directe, a la font de navegador d'OBS marca **«Controla l'àudio mitjançant OBS»**.
 - Els vídeos promocionals es generen amb Remotion a `videos-promo/` (vegeu el seu README).

@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { useUiStore, type ModalState } from '@/store/useUiStore';
-import { TeamModal } from '@/components/standings/TeamModal';
-import { PlayerModal } from '@/components/stats/PlayerModal';
-import { MatchSheetModal } from '@/components/calendar/MatchSheetModal';
+
+// Loaded the first time one is opened (they bring the cards, stats and social-image code with them).
+const TeamModal = lazy(() => import('@/components/standings/TeamModal').then((m) => ({ default: m.TeamModal })));
+const PlayerModal = lazy(() => import('@/components/stats/PlayerModal').then((m) => ({ default: m.PlayerModal })));
+const MatchSheetModal = lazy(() => import('@/components/calendar/MatchSheetModal').then((m) => ({ default: m.MatchSheetModal })));
 
 /** Renders the top of the modal stack (team → player → match sheets can chain and go back). */
 export function GlobalModals() {
@@ -17,10 +19,10 @@ export function GlobalModals() {
 
   if (!shown) return null;
   return (
-    <>
+    <Suspense fallback={null}>
       {shown.kind === 'team' && <TeamModal id={shown.id} open={top?.kind === 'team'} onClose={closeModal} />}
       {shown.kind === 'player' && <PlayerModal id={shown.id} open={top?.kind === 'player'} onClose={closeModal} />}
       {shown.kind === 'match' && <MatchSheetModal id={shown.id} open={top?.kind === 'match'} onClose={closeModal} />}
-    </>
+    </Suspense>
   );
 }

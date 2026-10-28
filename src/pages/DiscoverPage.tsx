@@ -66,7 +66,7 @@ function QuiSom() {
           </div>
           <div>
             <p className="label !mb-0.5">Àrea audiovisual</p>
-            <p className="font-display text-xl font-black uppercase text-white">Pau Pascual</p>
+            <p className="font-display text-xl font-black uppercase text-white">Ferran Barrot</p>
           </div>
         </div>
       </div>

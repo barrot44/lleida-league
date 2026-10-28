@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Cloud, CloudOff, Download, Eraser, KeyRound, RefreshCw, RotateCcw, Upload } from 'lucide-react';
+import { Cloud, CloudOff, Download, Eraser, KeyRound, RefreshCw, RotateCcw, Trash2, Upload } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Field, SectionCard } from '@/components/admin/fields';
 import { downloadRemoteToLocal, publishLocalToRemote } from '@/hooks/useRemoteSync';
@@ -17,13 +17,22 @@ const SYNC_LABEL: Record<SyncStatus, string> = {
   conflict: 'Un altre administrador ha canviat les dades. S’ha carregat l’última versió.',
 };
 
-type Confirm = 'reset' | 'blank' | 'publish' | 'download' | null;
+type Confirm = 'reset' | 'blank' | 'clear' | 'publish' | 'download' | null;
 
 export function SettingsPanel() {
   const exportData = useLeagueStore((s) => s.exportData);
   const importData = useLeagueStore((s) => s.importData);
   const resetToSeed = useLeagueStore((s) => s.resetToSeed);
   const startBlankSeason = useLeagueStore((s) => s.startBlankSeason);
+  const clearLeague = useLeagueStore((s) => s.clearLeague);
+  const counts = {
+    teams: useLeagueStore((s) => s.teams.length),
+    players: useLeagueStore((s) => s.players.length),
+    matches: useLeagueStore((s) => s.matches.length),
+    news: useLeagueStore((s) => s.news.length),
+    gallery: useLeagueStore((s) => s.gallery.length),
+  };
+  const [also, setAlso] = useState({ news: false, gallery: false });
   const toast = useUiStore((s) => s.toast);
   const sync = useUiStore((s) => s.syncStatus);
   const email = useUiStore((s) => s.adminEmail);
@@ -74,6 +83,11 @@ export function SettingsPanel() {
     } else if (action === 'blank') {
       startBlankSeason();
       toast('Temporada en blanc: s’han esborrat partits i jugadors d’exemple.', 'info');
+    } else if (action === 'clear') {
+      // Always a copy first: this cannot be undone otherwise.
+      downloadTextFile(`lleida-league-abans-de-buidar-${toISODate(new Date())}.json`, exportData());
+      clearLeague(also);
+      toast('Lliga buidada. Se t’ha descarregat una còpia del que hi havia.', 'info');
     } else if (action === 'publish') {
       toast((await publishLocalToRemote()) ? 'Dades publicades a Supabase.' : 'No s’ha pogut publicar a Supabase.', 'info');
     } else if (action === 'download') {
@@ -83,6 +97,12 @@ export function SettingsPanel() {
 
   const CONFIRM_TEXT: Record<Exclude<Confirm, null>, { title: string; message: string; label: string; danger: boolean }> = {
     reset: { title: 'Restableix les dades originals', message: 'Es reemplaçaran totes les dades actuals per les d’exemple (equips, jugadors, partits, galeria, comunicats i club). Et recomanem exportar una còpia abans.', label: 'Sí, restableix', danger: true },
+    clear: {
+      title: 'Buidar la lliga',
+      message: `S’esborraran ${counts.teams} equips, ${counts.players} jugadors i ${counts.matches} partits, i els moviments de Lleidalitos${also.news ? `, els ${counts.news} comunicats` : ''}${also.gallery ? `, les ${counts.gallery} fotos de la galeria` : ''}. Es mantenen el palmarès, els col·laboradors, els àrbitres i els ajustos. Abans d’esborrar es descarregarà una còpia de seguretat.`,
+      label: 'Sí, buida-la',
+      danger: true,
+    },
     blank: { title: 'Començar temporada en blanc', message: 'S’esborraran tots els partits i jugadors, i es mantindran els equips, la galeria, els comunicats i la informació del club. Ideal per començar la temporada real amb els equips reals.', label: 'Esborra partits i jugadors', danger: true },
     publish: { title: 'Publica les dades a Supabase', message: 'Se sobreescriurà la còpia compartida amb les dades d’aquest navegador. Tots els visitants veuran aquestes dades.', label: 'Publica', danger: false },
     download: { title: 'Carrega des de Supabase', message: 'Es descartaran les dades d’aquest navegador i es carregarà la còpia compartida.', label: 'Carrega', danger: true },
@@ -107,7 +127,20 @@ export function SettingsPanel() {
       </SectionCard>
 
       <SectionCard title="Dades de la lliga">
-        <p className="mb-4 text-sm text-slate-400">Els partits, resultats i jugadors inclosos són d’exemple. Quan estiguis a punt, comença la temporada real conservant els equips.</p>
+        <p className="mb-4 text-sm text-slate-400">Ara hi ha {counts.teams} equips, {counts.players} jugadors i {counts.matches} partits. Per començar de zero, buida la lliga: els equips nous entraran amb les inscripcions dels presidents.</p>
+        <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/[0.05] p-3">
+          <div className="mb-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-300">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="h-4 w-4 accent-amber-400" checked={also.news} onChange={(e) => setAlso((a) => ({ ...a, news: e.target.checked }))} /> També els comunicats ({counts.news})
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="h-4 w-4 accent-amber-400" checked={also.gallery} onChange={(e) => setAlso((a) => ({ ...a, gallery: e.target.checked }))} /> També la galeria ({counts.gallery})
+            </label>
+          </div>
+          <button className="btn-danger w-full" onClick={() => setConfirm('clear')}>
+            <Trash2 size={16} /> Buida la lliga (equips, jugadors i partits)
+          </button>
+        </div>
         <div className="flex flex-wrap gap-3">
           <button className="btn-gold" onClick={() => setConfirm('blank')}>
             <Eraser size={16} /> Començar temporada en blanc

@@ -65,5 +65,16 @@ export default defineConfig(({ mode }) => ({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: { port: 5173 },
-  build: { chunkSizeWarningLimit: 900 },
+  build: {
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        // Libraries in their own files: they rarely change, so phones keep them cached between deploys.
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          motion: ['framer-motion'],
+        },
+      },
+    },
+  },
 }));

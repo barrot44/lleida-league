@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -13,13 +13,38 @@ import { useRemoteSync } from '@/hooks/useRemoteSync';
 import { useDocumentMeta } from '@/lib/seo';
 import { useUiStore } from '@/store/useUiStore';
 import HomePage from '@/pages/HomePage';
-import StandingsPage from '@/pages/StandingsPage';
-import CalendarPage from '@/pages/CalendarPage';
-import StatsPage from '@/pages/StatsPage';
-import GalleryPage from '@/pages/GalleryPage';
-import DiscoverPage from '@/pages/DiscoverPage';
-import VotePage from '@/pages/VotePage';
-import LivePage from '@/pages/LivePage';
+
+// Only the home page ships in the first download; every other page is its own small file, fetched when it is opened
+// (and prefetched once the browser is idle, so moving around still feels instant).
+const pages = {
+  standings: () => import('@/pages/StandingsPage'),
+  calendar: () => import('@/pages/CalendarPage'),
+  stats: () => import('@/pages/StatsPage'),
+  gallery: () => import('@/pages/GalleryPage'),
+  club: () => import('@/pages/DiscoverPage'),
+  vote: () => import('@/pages/VotePage'),
+  live: () => import('@/pages/LivePage'),
+};
+const StandingsPage = lazy(pages.standings);
+const CalendarPage = lazy(pages.calendar);
+const StatsPage = lazy(pages.stats);
+const GalleryPage = lazy(pages.gallery);
+const DiscoverPage = lazy(pages.club);
+const VotePage = lazy(pages.vote);
+const LivePage = lazy(pages.live);
+
+function usePrefetchPages() {
+  useEffect(() => {
+    const run = () => Object.values(pages).forEach((load) => void load().catch(() => {}));
+    // Safari has no requestIdleCallback: a timer does the same job there.
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(run, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const t = window.setTimeout(run, 2500);
+    return () => window.clearTimeout(t);
+  }, []);
+}
 
 // The back-office is only needed by admins, so it ships as its own chunk.
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
@@ -33,6 +58,8 @@ function PageFallback() {
     </div>
   );
 }
+
+const page = (el: ReactNode) => <Suspense fallback={<PageFallback />}>{el}</Suspense>;
 
 const admin = (
   <Suspense fallback={<PageFallback />}>
@@ -65,6 +92,7 @@ export default function App() {
   useRemoteSync();
   useDocumentMeta(route);
   const remoteReady = useUiStore((s) => s.remoteReady);
+  usePrefetchPages();
 
   if (!remoteReady) return <Splash />;
 
@@ -94,13 +122,13 @@ export default function App() {
               className="flex-1"
             >
               {route === 'home' && <HomePage />}
-              {route === 'standings' && <StandingsPage />}
-              {route === 'calendar' && <CalendarPage />}
-              {route === 'stats' && <StatsPage />}
-              {route === 'gallery' && <GalleryPage />}
-              {route === 'club' && <DiscoverPage />}
-              {route === 'vote' && <VotePage />}
-              {route === 'live' && <LivePage />}
+              {route === 'standings' && page(<StandingsPage />)}
+              {route === 'calendar' && page(<CalendarPage />)}
+              {route === 'stats' && page(<StatsPage />)}
+              {route === 'gallery' && page(<GalleryPage />)}
+              {route === 'club' && page(<DiscoverPage />)}
+              {route === 'vote' && page(<VotePage />)}
+              {route === 'live' && page(<LivePage />)}
               {route === 'admin' && admin}
               {route === 'registration' && registration}
             </motion.main>

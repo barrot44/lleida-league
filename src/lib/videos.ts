@@ -79,20 +79,29 @@ export async function deleteVideoFile(url: string) {
 
 export const newVideoItem = (title: string, url: string, kind: ObsVideoItem['kind'], seconds: number): ObsVideoItem => ({ id: uid('v'), title, url, kind, seconds });
 
-export const totalSeconds = (items: ObsVideoItem[]) => items.reduce((s, v) => s + Math.max(0, v.seconds), 0);
+/** Black screen between two videos of a list (ad breaks), in seconds. */
+export const VIDEO_GAP_S = 0.8;
 
-/** Where a playback is at `now`: which item and how far into it (null before the start and once it is over). */
-export function videoPosition(playing: ObsVideos['playing'], now: number): { index: number; offset: number; left: number } | null {
+export const totalSeconds = (items: ObsVideoItem[]) => items.reduce((s, v) => s + Math.max(0, v.seconds), 0) + Math.max(0, items.length - 1) * VIDEO_GAP_S;
+
+/**
+ * Where a playback is at `now`: which item and how far into it (null before the start and once it is over).
+ * `gap` = the black pause before item `index` (its video waits at the start).
+ */
+export function videoPosition(playing: ObsVideos['playing'], now: number): { index: number; offset: number; left: number; gap: boolean } | null {
   if (!playing || !playing.items.length) return null;
   let t = (now - playing.at) / 1000;
   const total = totalSeconds(playing.items);
   if (t > total + 0.5) return null;
   const left = Math.max(0, total - t);
   t = Math.max(0, t);
-  for (let i = 0; i < playing.items.length; i++) {
+  const last = playing.items.length - 1;
+  for (let i = 0; i <= last; i++) {
     const len = Math.max(0, playing.items[i].seconds);
-    if (t < len || i === playing.items.length - 1) return { index: i, offset: Math.min(t, len), left };
+    if (t < len || i === last) return { index: i, offset: Math.min(t, len), left, gap: false };
     t -= len;
+    if (t < VIDEO_GAP_S) return { index: i + 1, offset: 0, left, gap: true };
+    t -= VIDEO_GAP_S;
   }
   return null;
 }

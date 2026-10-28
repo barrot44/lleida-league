@@ -35,6 +35,8 @@ interface LeagueActions {
   setGate: (patch: Partial<GateSettings>) => void;
   /** Removes every match and player (keeps teams, gallery, news and club info) to start a real season. */
   startBlankSeason: () => void;
+  /** Empties the league: teams, players, matches and Lleidalitos (optionally news and gallery). Keeps the club info, honours, sponsors, referees and settings. */
+  clearLeague: (also: { news: boolean; gallery: boolean }) => void;
   resetToSeed: () => void;
   importData: (raw: unknown) => boolean;
   exportData: () => string;
@@ -150,6 +152,8 @@ export const useLeagueStore = create<LeagueStore>()(
       setGate: (patch) => set({ settings: { ...get().settings, gate: { ...get().settings.gate, ...patch } } }),
 
       startBlankSeason: () => set({ matches: [], players: [] }),
+
+      clearLeague: (also) => set({ teams: [], players: [], matches: [], lleidalitoTx: [], ...(also.news ? { news: [] } : {}), ...(also.gallery ? { gallery: [] } : {}) }),
 
       // The access gate is site configuration, not league data: it survives a reset.
       resetToSeed: () => set({ ...createInitialLeagueData(), settings: get().settings }),
