@@ -3,6 +3,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { motion } from 'framer-motion';
 import { Camera, ClipboardSignature, Coins, DoorClosed, Film, Image as ImageIcon, LogOut, MonitorPlay, Newspaper, Settings, Shield, Sparkles, Swords, Users, Wrench } from 'lucide-react';
 import { AdminGate } from '@/components/admin/AdminGate';
+import { AdminsManager } from '@/components/admin/AdminsManager';
 import { ClubManager } from '@/components/admin/ClubManager';
 import { GateManager } from '@/components/admin/GateManager';
 import { LleidalitosManager } from '@/components/admin/LleidalitosManager';
@@ -153,7 +154,7 @@ export default function AdminPage() {
         <Tabs.Content value="lleidalitos" className="outline-none"><LleidalitosManager /></Tabs.Content>
         <Tabs.Content value="news" className="outline-none"><NewsManager /></Tabs.Content>
         <Tabs.Content value="club" className="outline-none"><ClubManager /></Tabs.Content>
-        <Tabs.Content value="access" className="outline-none"><GateManager /></Tabs.Content>
+        <Tabs.Content value="access" className="space-y-6 outline-none"><GateManager /><AdminsManager /></Tabs.Content>
         <Tabs.Content value="settings" className="outline-none"><SettingsPanel /></Tabs.Content>
       </Tabs.Root>
 

@@ -79,6 +79,9 @@ En mode local, les dades només existeixen al navegador de qui edita. Per **comp
    on conflict do nothing;
    ```
 
+   Això només cal per al primer. La resta d'administradors s'afegeixen (i es treuen) des del tauler: **Accés → Administradors**
+   (necessita `SUPABASE_SERVICE_ROLE_KEY` a Vercel, com la inscripció d'equips).
+
 5. **Settings → API Keys**: copia la *Project URL* i la clau **Publishable** (`sb_publishable_…`; també val la clau *anon* antiga `eyJ…`).
    **Mai** facis servir la clau *secret* / *service_role*. En local, crea `.env.local` (a partir de `.env.example`):
 
