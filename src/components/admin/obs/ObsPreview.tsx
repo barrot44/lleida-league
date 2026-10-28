@@ -75,7 +75,7 @@ export function ObsPreview() {
       <div ref={box} className="relative w-full overflow-hidden rounded-2xl border border-white/10 shadow-card" style={{ height: STAGE_H * scale, background: CHECKER_BG }}>
         {bg === 'court' && <CourtBackdrop />}
         <div className="pointer-events-none absolute left-0 top-0">
-          <Stage state={state} now={now} scale={scale} />
+          <Stage state={state} now={now} scale={scale} preview />
         </div>
       </div>
     </div>

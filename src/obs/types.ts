@@ -240,6 +240,26 @@ export interface ObsState {
   music: { app: string; on: boolean; volume: number; auto: boolean };
   /** Phone notifications sent automatically (goals, start, final, votes). */
   notify: { auto: boolean };
+  /** Videos and sponsor ads played full screen by the overlay. */
+  videos: ObsVideos;
+}
+
+/** A video file stored online (Supabase bucket «videos» or any direct link). */
+export interface ObsVideoItem {
+  id: string;
+  title: string;
+  url: string;
+  kind: 'video' | 'ad';
+  /** Length, read when it was added: lets every overlay and the panel agree on where the playback is. */
+  seconds: number;
+}
+
+export interface ObsVideos {
+  library: ObsVideoItem[];
+  /** On air: played one after another from `at` (a single video or an ad break). A new `id` on each start. */
+  playing: { id: string; at: number; items: ObsVideoItem[] } | null;
+  /** 0–1. */
+  volume: number;
 }
 
 export interface ObsCardDef {
@@ -333,6 +353,7 @@ export const OBS_LAYERS = [
   { id: 'barra', label: 'Barra inferior' },
   { id: 'marca', label: 'Marca i patrocinadors' },
   { id: 'pantalles', label: 'Pantalles completes' },
+  { id: 'videos', label: 'Vídeos i anuncis' },
 ] as const;
 
 export type ObsLayerId = (typeof OBS_LAYERS)[number]['id'];

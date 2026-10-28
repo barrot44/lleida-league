@@ -422,5 +422,27 @@ create table if not exists public.launch_notifications (
 -- Sense polítiques: des de la web no s'hi pot llegir ni escriure; només el servidor.
 alter table public.launch_notifications enable row level security;
 
+-- 4h) Vídeos i anuncis del directe: bucket públic «videos» (la capa d'OBS els reprodueix; només els admins en pugen) ----
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('videos', 'videos', true, 52428800, array['video/mp4', 'video/webm', 'video/quicktime'])
+on conflict (id) do update
+  set public = true, file_size_limit = 52428800, allowed_mime_types = array['video/mp4', 'video/webm', 'video/quicktime'];
+
+drop policy if exists "Vídeos: lectura pública"  on storage.objects;
+drop policy if exists "Vídeos: admins pugen"     on storage.objects;
+drop policy if exists "Vídeos: admins esborren"  on storage.objects;
+
+create policy "Vídeos: lectura pública"
+  on storage.objects for select to anon, authenticated
+  using (bucket_id = 'videos');
+
+create policy "Vídeos: admins pugen"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'videos' and public.is_admin());
+
+create policy "Vídeos: admins esborren"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'videos' and public.is_admin());
+
 -- 5) (Opcional) Temps real: perquè els visitants rebin els canvis sense recarregar
 -- alter publication supabase_realtime add table public.league_state;

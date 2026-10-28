@@ -13,6 +13,8 @@ import { cardIsLive } from '@/obs/cards';
 import { FitInside, boardMotion } from '@/obs/overlay/kit';
 import { InterviewLayer } from '@/obs/overlay/Interview';
 import { UnderBug } from '@/obs/overlay/UnderBug';
+import { VideoLayer } from '@/obs/overlay/VideoLayer';
+import { totalSeconds } from '@/lib/videos';
 
 export const STAGE_W = 1920;
 export const STAGE_H = 1080;
@@ -25,10 +27,12 @@ interface Props {
   scale?: number;
   /** Effects driven by the OBS executor of this page (logo transition, replay labels). */
   fx?: ExecFx;
+  /** The admin panel's copy: videos play muted. */
+  preview?: boolean;
 }
 
 /** The whole 1920×1080 broadcast canvas. Used by the OBS page and by the live preview of the admin panel. */
-export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
+export function Stage({ state, now, layers = null, scale = 1, fx, preview }: Props) {
   const on = (id: ObsLayerId) => !layers || layers.has(id);
   const sting = useSting(state.transition);
   const sb = state.scoreboard;
@@ -58,6 +62,9 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
   const showActiveCard = on('marcador') && cardIsLive(cards.active, sb.clock, now) && !showReveal;
   const strip = state.strip;
   const showStrip = on('grafics') && strip.visible && !!strip.item && (!strip.hideAt || now < strip.hideAt) && !showScreen && !showMain;
+  const playing = state.videos.playing;
+  // A few seconds of margin: each overlay starts it on its own clock (see VideoLayer) and fades itself out.
+  const showVideo = on('videos') && !!playing && playing.items.length > 0 && now < playing.at + totalSeconds(playing.items) * 1000 + 6000;
 
   return (
     <div
@@ -98,6 +105,7 @@ export function Stage({ state, now, layers = null, scale = 1, fx }: Props) {
       <AnimatePresence>
         {showScreen && <FullScreen key={`screen-${state.screen.kind}`} screen={state.screen} sb={sb} sponsors={state.sponsors.items} accent={state.accent} now={now} />}
       </AnimatePresence>
+      <AnimatePresence>{showVideo && playing && <VideoLayer key={playing.id} playing={playing} volume={state.videos.volume} now={now} preview={preview} />}</AnimatePresence>
       <AnimatePresence>{covered && <Stinger key="sting" accent={state.accent} />}</AnimatePresence>
     </div>
   );

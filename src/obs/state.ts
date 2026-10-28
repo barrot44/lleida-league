@@ -71,6 +71,7 @@ export function defaultObsState(): ObsState {
     stats: { home: emptyMatchStats(), away: emptyMatchStats() },
     music: { app: 'Spotify.exe', on: false, volume: 0.7, auto: true },
     notify: { auto: true },
+    videos: { library: [], playing: null, volume: 1 },
   };
 }
 
@@ -113,6 +114,12 @@ export function normalizeObsState(raw: unknown): ObsState {
     stats: { home: { ...emptyMatchStats(), ...r.stats?.home }, away: { ...emptyMatchStats(), ...r.stats?.away } },
     music: { ...base.music, ...r.music },
     notify: { ...base.notify, ...r.notify },
+    videos: {
+      ...base.videos,
+      ...r.videos,
+      library: Array.isArray(r.videos?.library) ? r.videos.library : [],
+      playing: r.videos?.playing && Array.isArray(r.videos.playing.items) ? r.videos.playing : null,
+    },
   };
 }
 

@@ -246,6 +246,7 @@ export function useObsActions(sync: boolean) {
         screen: { ...s.screen, visible: false },
         replay: { visible: false },
         interview: { ...s.interview, visible: false },
+        videos: { ...s.videos, playing: null },
       })),
     [update],
   );

@@ -20,6 +20,7 @@ import { InterviewControls } from '@/components/admin/obs/InterviewControls';
 import { StatsControls } from '@/components/admin/obs/StatsControls';
 import { PredictionControls } from '@/components/admin/obs/PredictionControls';
 import { NotifyControls } from '@/components/admin/obs/NotifyControls';
+import { VideoControls } from '@/components/admin/obs/VideoControls';
 import { useObsActions, useSyncSetting } from '@/components/admin/obs/useObsActions';
 import { cn } from '@/lib/utils';
 
@@ -185,6 +186,7 @@ export function ObsStudio() {
         </div>
         <div className="min-w-0 space-y-6">
           <SituationsControls actions={actions} />
+          <VideoControls actions={actions} />
           <MusicControls actions={actions} />
           <StatsControls actions={actions} />
           <PowerCardsControls actions={actions} />

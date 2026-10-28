@@ -200,6 +200,17 @@ l'amplada (local · rellotge · visitant) i el temps es pot corregir tocant-lo i
 - **Dau del públic**: el resultat diu directament «1 contra 1 durant 2 minuts», «2 contra 2»… (el 5 compta com a 1 i el 6 com a 2).
 - **Jugadors**: només es distingeix porter o jugador.
 
+### Anuncis i vídeos
+
+L'apartat «Anuncis i vídeos» del panell posa vídeos a pantalla completa a la capa d'OBS (intro, promos de l'app…) i els
+anuncis dels patrocinadors. Es pugen des del mateix panell (MP4 fins a 50 MB, al bucket públic `videos` de Supabase: torna
+a executar `supabase/schema.sql` el primer cop) o s'hi enganxa un enllaç directe a un `.mp4`.
+
+- **Emet** posa un vídeo; **Tanda d'anuncis** passa tots els anuncis seguits, amb «Publicitat · Tornem en 0:25» a la cantonada.
+- La reproducció va pel rellotge: si es recarrega la capa a mig vídeo, continua pel mateix punt. «Neteja la pantalla» l'atura.
+- Perquè el so vagi al directe, a la font de navegador d'OBS marca **«Controla l'àudio mitjançant OBS»**.
+- Els vídeos promocionals es generen amb Remotion a `videos-promo/` (vegeu el seu README).
+
 ### App al mòbil i avisos
 
 La web es pot instal·lar com a app (Android/ordinador: botó «Instal·la-la»; iPhone: Compartir → Afegeix a la pantalla d'inici).
