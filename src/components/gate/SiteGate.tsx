@@ -3,12 +3,13 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Crown, Lock, Mail, Rocket, Wrench, X } from 'lucide-react';
 import type { GateSettings } from '@/types';
 import { Particles } from '@/components/home/Particles';
+import { AppCard } from '@/components/live/AppCard';
 import { SOCIAL_ICONS } from '@/components/ui/BrandIcons';
 import { Logo } from '@/components/ui/Logo';
 import { SITE } from '@/config/site';
 import { hrefFor } from '@/hooks/useHashRoute';
 import { splitDuration, useNow } from '@/hooks/useNow';
-import { gateCopy, gateTarget } from '@/lib/gate';
+import { gateCopy, gateTarget, pingLaunch } from '@/lib/gate';
 import { celebrate } from '@/lib/confetti';
 import { cn } from '@/lib/utils';
 
@@ -63,6 +64,11 @@ export function SiteGate({ gate, preview, onClose }: Props) {
     previous.current = remaining;
   }, [remaining, gate.mode]);
 
+  // Whoever is watching when it reaches zero triggers the "we're open" notification (sent once, server side).
+  useEffect(() => {
+    if (done && !preview && gate.mode === 'countdown' && target !== null) pingLaunch(target);
+  }, [done, preview, gate.mode, target]);
+
   const watermark = days > 0 ? days : hours;
 
   return (
@@ -116,6 +122,12 @@ export function SiteGate({ gate, preview, onClose }: Props) {
           )
         )}
         {maintenance && showClock && <p className="text-sm font-bold uppercase tracking-[0.25em] text-slate-400">Temps estimat per tornar</p>}
+        {/* Before the launch: get the app on the home screen and a notification the day the site opens. */}
+        {!maintenance && !done && (
+          <div className="mt-2 w-full max-w-2xl text-left">
+            <AppCard launch />
+          </div>
+        )}
       </main>
 
       <footer className="flex flex-col items-center gap-4 px-4 pb-8 pt-4">

@@ -38,6 +38,34 @@ export function gateTarget(gate: GateSettings): number | null {
   return Number.isFinite(t) ? t : null;
 }
 
+/** Phone notification sent once when the launch countdown reaches zero (by /api/launch). */
+export const LAUNCH_PUSH = {
+  title: '🚀 La Lleida League ja és oberta!',
+  body: 'Entra ara: equips, calendari, classificació i els directes.',
+};
+
+/** For 3 days after the launch moment, each browser asks the server (once) to send the launch notification. */
+const LAUNCH_WINDOW_MS = 3 * 24 * 3600 * 1000;
+
+export function launchJustHappened(gate: GateSettings, now: number): number | null {
+  const target = gateTarget(gate);
+  if (target === null || gate.mode === 'maintenance' || now < target || now - target > LAUNCH_WINDOW_MS) return null;
+  return target;
+}
+
+/** The server sends it only the first time for that launch date, however many browsers call. */
+export function pingLaunch(target: number) {
+  if (!import.meta.env.PROD) return;
+  const key = `lleida-league:launch-ping:${target}`;
+  try {
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, '1');
+  } catch {
+    /* storage unavailable: still ping */
+  }
+  void fetch('/api/launch', { method: 'POST', keepalive: true }).catch(() => {});
+}
+
 /** Is the gate hiding the site from visitors at instant `now`? */
 export function isGateActive(gate: GateSettings, now: number): boolean {
   if (gate.mode === 'off') return false;

@@ -160,6 +160,9 @@ export interface GateSettings {
   message: string;
   /** Countdown only: let visitors in by themselves when the countdown reaches zero. */
   autoOpen: boolean;
+  /** Countdown only: texts of the phone notification sent (once) when it reaches zero. Empty = defaults. */
+  pushTitle?: string;
+  pushBody?: string;
 }
 
 export interface SiteSettings {

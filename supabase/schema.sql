@@ -412,5 +412,15 @@ create policy "Privat: el president i els admins l'esborren"
   on storage.objects for delete to authenticated
   using (bucket_id = 'privat' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
 
+-- 4g) Avís al mòbil del dia de l'obertura: s'envia UNA sola vegada per data de llançament --------------
+--     La fila és el «pany»: /api/launch (amb la clau secreta) només envia l'avís si la pot inserir.
+create table if not exists public.launch_notifications (
+  launch_at timestamptz primary key,
+  sent_at   timestamptz not null default now()
+);
+
+-- Sense polítiques: des de la web no s'hi pot llegir ni escriure; només el servidor.
+alter table public.launch_notifications enable row level security;
+
 -- 5) (Opcional) Temps real: perquè els visitants rebin els canvis sense recarregar
 -- alter publication supabase_realtime add table public.league_state;

@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { DoorOpen, Eye, Hourglass, Save, Wrench } from 'lucide-react';
+import { BellRing, DoorOpen, Eye, Hourglass, Save, Wrench } from 'lucide-react';
 import type { GateMode, GateSettings } from '@/types';
 import { Field, SectionCard } from '@/components/admin/fields';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { SiteGate } from '@/components/gate/SiteGate';
-import { GATE_DEFAULTS, GATE_LABEL, fromLocalInput, toLocalInput } from '@/lib/gate';
+import { GATE_DEFAULTS, GATE_LABEL, LAUNCH_PUSH, fromLocalInput, toLocalInput } from '@/lib/gate';
+import { getSupabase, supabaseEnabled } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -22,6 +23,16 @@ export function GateManager() {
   const [draft, setDraft] = useState<GateSettings>(gate);
   const [preview, setPreview] = useState(false);
   const [confirm, setConfirm] = useState(false);
+  const [phones, setPhones] = useState<number | null>(null);
+
+  // How many phones will get the launch notification.
+  useEffect(() => {
+    if (!supabaseEnabled) return;
+    void getSupabase()
+      .then((sb) => sb.rpc('push_targets'))
+      .then(({ data }) => setPhones(Array.isArray(data) ? data.length : null))
+      .catch(() => {});
+  }, []);
 
   // Keep the form in sync when the mode is changed elsewhere (e.g. the quick maintenance button).
   useEffect(() => setDraft(gate), [gate]);
@@ -100,6 +111,25 @@ export function GateManager() {
                   <span className="text-xs text-slate-400">Si ho desmarques, la pantalla es queda en zeros fins que tu passis a «Web oberta».</span>
                 </span>
               </label>
+            )}
+            {draft.mode === 'countdown' && (
+              <div className="rounded-2xl border border-amber-400/30 bg-amber-400/[0.05] p-4 sm:col-span-2">
+                <p className="mb-1 flex items-center gap-2 font-display text-lg font-black uppercase text-white">
+                  <BellRing size={18} className="text-amber-300" /> Avís al mòbil quan arribi a zero
+                </p>
+                <p className="mb-3 text-xs text-slate-400">
+                  Al comptador, la gent pot posar l’app a la pantalla d’inici i activar els avisos. Quan arribi a zero, s’envia sol <strong className="text-slate-200">una sola vegada</strong> a tots els que els tinguin activats.
+                  {phones !== null && <strong className="text-amber-200"> Ara mateix: {phones} {phones === 1 ? 'mòbil' : 'mòbils'}.</strong>}
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Títol de l’avís" hint="Buit = text per defecte.">
+                    <input className="input" maxLength={80} value={draft.pushTitle ?? ''} onChange={(e) => patch({ pushTitle: e.target.value })} placeholder={LAUNCH_PUSH.title} />
+                  </Field>
+                  <Field label="Text de l’avís" hint="Buit = text per defecte.">
+                    <input className="input" maxLength={200} value={draft.pushBody ?? ''} onChange={(e) => patch({ pushBody: e.target.value })} placeholder={LAUNCH_PUSH.body} />
+                  </Field>
+                </div>
+              </div>
             )}
           </div>
         </SectionCard>

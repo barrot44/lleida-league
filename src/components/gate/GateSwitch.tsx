@@ -4,7 +4,8 @@ import type { RouteId } from '@/config/nav';
 import { SiteGate } from '@/components/gate/SiteGate';
 import { hrefFor } from '@/hooks/useHashRoute';
 import { useNow } from '@/hooks/useNow';
-import { GATE_LABEL, gateTarget, isGateActive } from '@/lib/gate';
+import { useEffect } from 'react';
+import { GATE_LABEL, gateTarget, isGateActive, launchJustHappened, pingLaunch } from '@/lib/gate';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import type { GateSettings } from '@/types';
@@ -35,6 +36,12 @@ export function GateSwitch({ route, adminView, registrationView, children }: { r
   const unlocked = useUiStore((s) => s.adminUnlocked);
   const timed = gate.mode === 'countdown' && gate.autoOpen && gateTarget(gate) !== null;
   const now = useNow(timed ? 1000 : null);
+
+  // The moment the countdown reaches zero (or the first visit after it), make sure the "we're open" notification goes out.
+  const launched = launchJustHappened(gate, now);
+  useEffect(() => {
+    if (launched !== null) pingLaunch(launched);
+  }, [launched]);
 
   if (!isGateActive(gate, now)) return <>{children}</>;
 
