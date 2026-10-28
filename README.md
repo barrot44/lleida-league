@@ -182,7 +182,7 @@ l'enllaç (`/obs#obs=…`, que mai surt de l'ordinador) i passa a **controlar OB
 - **QR a la cantonada** (Marca, QR i patrocinadors): porta a la web, a la votació, a la classificació o al calendari.
 - Cal executar el `supabase/schema.sql` actualitzat (taules `mvp_polls`, `mvp_votes` i la funció `mvp_tally`).
 
-### Situacions, música, entrevista, estadístiques i porra
+### Situacions, música, entrevista i porra
 
 Cada apartat del panell es pot plegar (la fletxa del títol); el panell recorda quins tens oberts. El marcador ocupa tota
 l'amplada (local · rellotge · visitant) i el temps es pot corregir tocant-lo i escrivint-lo (p. ex. `12:34`).
@@ -193,7 +193,6 @@ l'amplada (local · rellotge · visitant) i el temps es pot corregir tocant-lo i
   d'aplicació» (Windows 10/11). «Prepara la música a OBS» la crea a totes les escenes; després la fas sonar o l'apagues amb
   una fosa, o deixes que ho facin les situacions (sona a Prepartit, Descans i Final).
 - **Mode entrevista**: rètol a baix al mig amb nom, càrrec i escut, la pregunta al costat i una franja de patrocinadors.
-- **Estadístiques en directe**: xuts, xuts a porta, parades, córners, faltes i targetes; surten en un gràfic i a `/directe`.
 - **Porra en directe**: preguntes ràpides (qui guanyarà, proper gol…) o la teva; es vota a `/vota` amb el mateix QR que l'MVP.
   Surt **sota el marcador** amb una línia i el % de cada resposta (o en gran amb QR). El jugador destacat també pot sortir
   sota el marcador. Les faltes acumulades són a sobre de cada equip.

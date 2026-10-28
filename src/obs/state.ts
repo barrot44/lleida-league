@@ -1,5 +1,5 @@
 import type { CategoryId, LeagueData, Match, Player, Team } from '@/types';
-import type { MatchStats, ObsClock, ObsPeriod, ObsPlayer, ObsPlayerStats, ObsResult, ObsStandingRow, ObsState, ObsSummaryEvent, ObsTeam } from '@/obs/types';
+import type { ObsClock, ObsPeriod, ObsPlayer, ObsPlayerStats, ObsResult, ObsStandingRow, ObsState, ObsSummaryEvent, ObsTeam } from '@/obs/types';
 import { CATEGORY_BY_ID, isKeeper } from '@/config/site';
 import { DEFAULT_DECK, mergeDeck } from '@/obs/cards';
 import { computeStandings, playerRating, type StandingRow } from '@/lib/standings';
@@ -23,8 +23,6 @@ export const SCREEN_DEFAULTS = {
   halftime: { title: 'Descans', subtitle: 'Tornem amb la segona part' },
   ending: { title: 'Gràcies per veure’ns', subtitle: 'Segueix-nos a les xarxes per no perdre’t res' },
 } as const;
-
-export const emptyMatchStats = (): MatchStats => ({ shots: 0, onTarget: 0, fouls: 0, corners: 0, saves: 0, cards: 0 });
 
 export function defaultObsState(): ObsState {
   return {
@@ -68,7 +66,6 @@ export function defaultObsState(): ObsState {
     stream: { url: '' },
     situations: { scenes: {}, active: null, transition: true },
     interview: { visible: false, id: '', name: '', role: '', team: null, question: '', sponsors: true },
-    stats: { home: emptyMatchStats(), away: emptyMatchStats() },
     music: { app: 'Spotify.exe', on: false, volume: 0.7, auto: true },
     notify: { auto: true },
     videos: { library: [], playing: null, volume: 1 },
@@ -79,7 +76,9 @@ export function defaultObsState(): ObsState {
 export function normalizeObsState(raw: unknown): ObsState {
   const base = defaultObsState();
   if (!raw || typeof raw !== 'object') return base;
-  const r = raw as Partial<ObsState>;
+  // Old copies may still carry the match statistics (removed): drop them, and a statistics graphic left on air.
+  const { stats: _stats, ...r } = raw as Partial<ObsState> & { stats?: unknown };
+  const staleMain = (r.main?.graphic as { kind?: string } | null | undefined)?.kind === 'stats';
   return {
     ...base,
     ...r,
@@ -87,7 +86,7 @@ export function normalizeObsState(raw: unknown): ObsState {
     scoreboard: { ...base.scoreboard, ...r.scoreboard, clock: { ...base.scoreboard.clock, ...r.scoreboard?.clock } },
     lower: { ...base.lower, ...r.lower },
     ticker: { ...base.ticker, ...r.ticker, items: Array.isArray(r.ticker?.items) ? r.ticker.items : [] },
-    main: { ...base.main, ...r.main },
+    main: staleMain ? base.main : { ...base.main, ...r.main },
     strip: { ...base.strip, ...r.strip },
     screen: { ...base.screen, ...r.screen },
     brand: { ...base.brand, ...r.brand },
@@ -111,7 +110,6 @@ export function normalizeObsState(raw: unknown): ObsState {
     stream: { ...base.stream, ...r.stream },
     situations: { ...base.situations, ...r.situations, scenes: { ...r.situations?.scenes } },
     interview: { ...base.interview, ...r.interview },
-    stats: { home: { ...emptyMatchStats(), ...r.stats?.home }, away: { ...emptyMatchStats(), ...r.stats?.away } },
     music: { ...base.music, ...r.music },
     notify: { ...base.notify, ...r.notify },
     videos: {

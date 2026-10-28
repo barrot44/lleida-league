@@ -24,10 +24,10 @@ interface Situation {
 export const SITUATIONS: Situation[] = [
   { id: 'prepartit', label: 'Prepartit', hint: 'Pantalla «Comencem aviat» i barra inferior', icon: Hourglass, color: '#38BDF8' },
   { id: 'partit', label: 'Partit', hint: 'Marcador en pantalla, fora pantalles (del descans passa a la 2a part)', icon: Play, color: '#22C55E' },
-  { id: 'temps-mort', label: 'Temps mort', hint: 'Atura el rellotge i mostra les estadístiques', icon: Timer, color: '#F59E0B' },
+  { id: 'temps-mort', label: 'Temps mort', hint: 'Atura el rellotge i deixa el marcador en pantalla', icon: Timer, color: '#F59E0B' },
   { id: 'descans', label: 'Descans', hint: 'Període de descans i pantalla de descans', icon: Coffee, color: '#A855F7' },
   { id: 'entrevista', label: 'Entrevista', hint: 'Treu el marcador i posa el rètol d’entrevista', icon: Mic, color: '#EF4444' },
-  { id: 'final', label: 'Final', hint: 'Període final i estadístiques finals', icon: Flag, color: '#FBBF24' },
+  { id: 'final', label: 'Final', hint: 'Període final i atura el rellotge', icon: Flag, color: '#FBBF24' },
 ];
 
 /** One tap per moment of the match: changes the OBS scene (with the logo transition) and sets the graphics. */
@@ -50,10 +50,6 @@ export function SituationsControls({ actions }: { actions: Actions }) {
     actions.update((s) => {
       const hidden = { main: { ...s.main, visible: false }, interview: { ...s.interview, visible: false }, screen: { ...s.screen, visible: false } };
       const base: ObsState = { ...s, ...hidden, situations: { ...s.situations, active: x.id } };
-      const stats = (title: string, sec: number) => {
-        const g = actions.statsGraphic(s, title);
-        return g ? { main: { visible: true, id: uid('g'), graphic: g, at: now, hideAt: sec ? now + sec * 1000 : null } } : {};
-      };
       switch (x.id) {
         case 'prepartit':
           return {
@@ -65,13 +61,13 @@ export function SituationsControls({ actions }: { actions: Actions }) {
         case 'partit':
           return { ...base, scoreboard: { ...s.scoreboard, visible: true }, lower: { ...s.lower, visible: false } };
         case 'temps-mort':
-          return { ...base, scoreboard: { ...s.scoreboard, visible: true, clock: pauseClock(s.scoreboard.clock, now) }, ...stats('Temps mort', 25) };
+          return { ...base, scoreboard: { ...s.scoreboard, visible: true, clock: pauseClock(s.scoreboard.clock, now) } };
         case 'descans':
           return { ...base, screen: { ...s.screen, visible: true, kind: 'halftime', title: SCREEN_DEFAULTS.halftime.title, subtitle: SCREEN_DEFAULTS.halftime.subtitle } };
         case 'entrevista':
           return { ...base, scoreboard: { ...s.scoreboard, visible: false }, lower: { ...s.lower, visible: false }, interview: { ...s.interview, visible: !!s.interview.name.trim(), id: uid('iv') } };
         case 'final':
-          return { ...base, scoreboard: { ...s.scoreboard, visible: true, clock: pauseClock(s.scoreboard.clock, now) }, ...stats('Final del partit', 0) };
+          return { ...base, scoreboard: { ...s.scoreboard, visible: true, clock: pauseClock(s.scoreboard.clock, now) } };
         default:
           return base;
       }
@@ -123,7 +119,7 @@ export function SituationsControls({ actions }: { actions: Actions }) {
           );
         })}
       </div>
-      <p className="mt-2 text-xs text-slate-500">Cada botó canvia l’escena d’OBS amb la transició del logo i posa els gràfics que toquen (marcador, pantalla, estadístiques, entrevista…).</p>
+      <p className="mt-2 text-xs text-slate-500">Cada botó canvia l’escena d’OBS amb la transició del logo i posa els gràfics que toquen (marcador, pantalla, entrevista…).</p>
 
       <button className="mt-4 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white" onClick={() => setConfig((v) => !v)}>
         <ChevronDown size={14} className={cn('transition', config && 'rotate-180')} /> <Settings2 size={13} /> Escena d’OBS de cada situació

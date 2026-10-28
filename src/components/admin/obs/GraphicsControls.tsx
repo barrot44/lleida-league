@@ -208,12 +208,6 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
     });
   };
 
-  const showStats = () => {
-    const g = actions.statsGraphic(state, 'En directe');
-    if (!g) return needTeams();
-    show(g);
-  };
-
   /** Under the scoreboard (compact) or as the big central card. */
   const showPlayer = (where: 'under' | 'big') => {
     if (!featured) return toast('No hi ha jugadors per mostrar.', 'error');
@@ -348,9 +342,6 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
         </div>
         <Tile icon={<ClipboardList size={18} />} title="Resum (descans / final)" active={onAir('summary')} onShow={showSummary}>
           <p className="text-xs text-slate-400">Marcador amb golejadors i targetes{linked ? ' del partit carregat' : ''}. El títol segueix la part: Descans o Final.</p>
-        </Tile>
-        <Tile icon={<BarChart3 size={18} />} title="Estadístiques en directe" active={onAir('stats')} onShow={showStats}>
-          <p className="text-xs text-slate-400">Xuts, parades, córners, faltes i targetes dels dos equips (es compten a «Estadístiques en directe»).</p>
         </Tile>
         <Tile icon={<CalendarDays size={18} />} title="Resultats de la jornada" active={onAir('results')} onShow={showResults} disabled={days.length === 0}>
           <select className="input !py-2" value={day} onChange={(e) => setMatchday(Number(e.target.value))} aria-label="Jornada">

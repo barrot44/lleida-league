@@ -17,7 +17,6 @@ import { PowerCardsControls } from '@/components/admin/obs/PowerCardsControls';
 import { SituationsControls } from '@/components/admin/obs/SituationsControls';
 import { MusicControls } from '@/components/admin/obs/MusicControls';
 import { InterviewControls } from '@/components/admin/obs/InterviewControls';
-import { StatsControls } from '@/components/admin/obs/StatsControls';
 import { PredictionControls } from '@/components/admin/obs/PredictionControls';
 import { NotifyControls } from '@/components/admin/obs/NotifyControls';
 import { VideoControls } from '@/components/admin/obs/VideoControls';
@@ -187,7 +186,6 @@ export function ObsStudio() {
         <div className="min-w-0 space-y-6">
           <SituationsControls actions={actions} />
           <MusicControls actions={actions} />
-          <StatsControls actions={actions} />
           <PowerCardsControls actions={actions} />
           <DiceControls actions={actions} />
           <ProductionControls actions={actions} />

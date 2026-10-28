@@ -146,8 +146,6 @@ export type ObsGraphic =
   | { kind: 'poll'; pollId: string; title: string; candidates: MvpCandidate[]; closed: boolean; voteUrl: string }
   /** Players presented one by one with their collectible card. */
   | { kind: 'walkout'; team: ObsTeam; title: string; players: { player: Player; edition: Edition }[] }
-  /** Live match statistics face to face. */
-  | { kind: 'stats'; title: string; home: ObsTeam; away: ObsTeam; homeScore: number; awayScore: number; homeStats: MatchStats; awayStats: MatchStats }
   /** The two presidents face to face. */
   | { kind: 'presidents'; home: ObsTeam; away: ObsTeam; homeStats: PresidentStats; awayStats: PresidentStats; h2h: { homeWins: number; draws: number; awayWins: number; last: string | null }; categoryLabel: string };
 
@@ -234,8 +232,6 @@ export interface ObsState {
   situations: { scenes: Record<string, string>; active: string | null; transition: boolean };
   /** Interview at the side of the court. */
   interview: ObsInterview;
-  /** Live match statistics (tapped from the panel). */
-  stats: { home: MatchStats; away: MatchStats };
   /** Background music captured from an app of the OBS computer (Spotify…). */
   music: { app: string; on: boolean; volume: number; auto: boolean };
   /** Phone notifications sent automatically (goals, start, final, votes). */
@@ -357,16 +353,6 @@ export const OBS_LAYERS = [
 ] as const;
 
 export type ObsLayerId = (typeof OBS_LAYERS)[number]['id'];
-
-export interface MatchStats {
-  shots: number;
-  onTarget: number;
-  fouls: number;
-  corners: number;
-  saves: number;
-  /** Yellow + red cards shown. */
-  cards: number;
-}
 
 export interface ObsInterview {
   visible: boolean;

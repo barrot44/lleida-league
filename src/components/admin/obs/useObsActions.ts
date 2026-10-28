@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { Match, MatchEventType, Player } from '@/types';
-import type { MatchStats, ObsCommand, ObsFlashKind, ObsGraphic, ObsPeriod, ObsScreenKind, ObsState, ObsStripItem } from '@/obs/types';
+import type { ObsCommand, ObsFlashKind, ObsGraphic, ObsPeriod, ObsScreenKind, ObsState, ObsStripItem } from '@/obs/types';
 import { clockElapsed, matchMinute, pauseClock, playerSnap, resetClock, teamSnap } from '@/obs/state';
 import { cardIsLive } from '@/obs/cards';
 import { useObsStore } from '@/obs/useObsStore';
@@ -139,9 +139,7 @@ export function useObsActions(sync: boolean) {
       update((s) => {
         const team = side === 'home' ? s.scoreboard.home : s.scoreboard.away;
         if (!team) return s;
-        const isCard = kind === 'yellow_card' || kind === 'red_card';
-        const stats = isCard ? { ...s.stats, [side]: { ...s.stats[side], cards: s.stats[side].cards + 1 } } : s.stats;
-        return { ...s, stats, flash: { id: uid('f'), kind, at: now, team, player: player ? playerSnap(player) : undefined, minute: kind === 'timeout' ? undefined : matchMinute(s.scoreboard.clock, s.scoreboard.period, now) } };
+        return { ...s, flash: { id: uid('f'), kind, at: now, team, player: player ? playerSnap(player) : undefined, minute: kind === 'timeout' ? undefined : matchMinute(s.scoreboard.clock, s.scoreboard.period, now) } };
       });
       if ((kind === 'yellow_card' || kind === 'red_card') && player) {
         patchMatch((m, s) => {
@@ -157,11 +155,7 @@ export function useObsActions(sync: boolean) {
     (side: Side, value: number) =>
       update((s) => {
         const key = side === 'home' ? 'homeFouls' : 'awayFouls';
-        const next = Math.max(0, Math.min(15, value));
-        const delta = next - s.scoreboard[key];
-        // A foul added (or taken back) on the scoreboard also counts in the match statistics.
-        const stats = delta ? { ...s.stats, [side]: { ...s.stats[side], fouls: Math.max(0, s.stats[side].fouls + delta) } } : s.stats;
-        return { ...s, stats, scoreboard: { ...s.scoreboard, [key]: next } };
+        return { ...s, scoreboard: { ...s.scoreboard, [key]: Math.max(0, Math.min(15, value)) } };
       }),
     [update],
   );
@@ -270,29 +264,5 @@ export function useObsActions(sync: boolean) {
   /** Visual-only logo transition (no scene change). */
   const sting = useCallback(() => update((s) => ({ ...s, transition: { id: uid('t'), at: Date.now() } })), [update]);
 
-  /** Adds to one live statistic. Fouls also move the futsal accumulated fouls of the scoreboard. */
-  const bumpStat = useCallback(
-    (side: Side, key: keyof MatchStats, delta: number) =>
-      update((s) => {
-        const prev = s.stats[side][key];
-        const value = Math.max(0, prev + delta);
-        const sb = s.scoreboard;
-        const foulKey = side === 'home' ? 'homeFouls' : 'awayFouls';
-        return {
-          ...s,
-          stats: { ...s.stats, [side]: { ...s.stats[side], [key]: value } },
-          scoreboard: key === 'fouls' && value !== prev ? { ...sb, [foulKey]: Math.max(0, Math.min(15, sb[foulKey] + value - prev)) } : sb,
-        };
-      }),
-    [update],
-  );
-
-  /** Snapshot of the live statistics for the big graphic. */
-  const statsGraphic = useCallback((s: ObsState, title: string): ObsGraphic | null => {
-    const sb = s.scoreboard;
-    if (!sb.home || !sb.away) return null;
-    return { kind: 'stats', title, home: sb.home, away: sb.away, homeScore: sb.homeScore, awayScore: sb.awayScore, homeStats: s.stats.home, awayStats: s.stats.away };
-  }, []);
-
-  return { update, sendCmd, sting, bumpStat, statsGraphic, setScore, goal, sideFlash, setFouls, setPeriod, showGraphic, hideGraphic, showStrip, hideStrip, showLower, hideLower, showScreen, hideScreen, clearAll, squadOf, patchMatch, teamMap };
+  return { update, sendCmd, sting, setScore, goal, sideFlash, setFouls, setPeriod, showGraphic, hideGraphic, showStrip, hideStrip, showLower, hideLower, showScreen, hideScreen, clearAll, squadOf, patchMatch, teamMap };
 }
