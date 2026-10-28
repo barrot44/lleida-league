@@ -14,6 +14,7 @@ import {
   Pencil,
   Plus,
   Printer,
+  Save,
   Send,
   Shield,
   Trash2,
@@ -138,6 +139,7 @@ function Login({ note, onDone }: { note?: string; onDone: () => void }) {
               <>Afegeix els <strong>jugadors</strong>: dorsal, porter o jugador, una foto de cara i una foto del DNI.</>,
               <>Imprimeix el paper de <strong>drets d’imatge</strong>, feu-lo signar i puja’n una foto.</>,
               <>Envia-la. La revisem i, quan l’aprovem, el teu equip ja surt a la web.</>,
+              <>Tot <strong>es desa sol</strong>: no cal fer-ho d’una tirada, pots tornar a entrar un altre dia i continuar on ho vas deixar.</>,
             ]}
           />
           <p className="flex gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.05] p-3 text-xs text-emerald-100">
@@ -182,11 +184,12 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
 
   const change = (fn: (d: RegData) => RegData) => {
     dirty.current = true;
+    setSave('saving');
     setData(fn);
   };
 
   const flush = async () => {
-    if (!dirty.current) return;
+    if (!dirty.current) return setSave((v) => (v === 'saving' ? 'saved' : v));
     dirty.current = false;
     setSave('saving');
     try {
@@ -206,6 +209,26 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
+
+  // Closing the tab or switching app on the phone saves what is pending straight away.
+  useEffect(() => {
+    const now = () => void flush();
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') void flush();
+    };
+    window.addEventListener('pagehide', now);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      window.removeEventListener('pagehide', now);
+      document.removeEventListener('visibilitychange', onHide);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const saveForLater = async () => {
+    await flush();
+    if (!dirty.current) toast('Desat! Pots tancar i continuar un altre dia amb el mateix correu i contrasenya.');
+  };
 
   const issues = regIssues(data);
   const team = data.team;
@@ -238,17 +261,9 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
         title={team.name || 'El teu equip'}
         description={`Sessió iniciada com a ${session.email}.`}
         actions={
-          <div className="flex items-center gap-3">
-            {editable && (
-              <span className={cn('flex items-center gap-1.5 text-xs font-bold', save === 'error' ? 'text-red-300' : 'text-slate-400')}>
-                {save === 'saving' ? <Loader2 size={13} className="animate-spin" /> : save === 'error' ? <AlertTriangle size={13} /> : <CheckCircle2 size={13} className="text-emerald-400" />}
-                {save === 'saving' ? 'Desant…' : save === 'error' ? 'No s’ha desat' : 'Tot desat'}
-              </span>
-            )}
-            <button className="btn-ghost" onClick={() => void flush().then(onSignOut)}>
-              <LogOut size={16} /> Surt
-            </button>
-          </div>
+          <button className="btn-ghost" onClick={() => void flush().then(onSignOut)}>
+            <LogOut size={16} /> Desa i surt
+          </button>
         }
       />
 
@@ -453,6 +468,21 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
         )}
       </fieldset>
 
+      {editable && (
+        // Always in sight while scrolling: what is saved and how to leave it for another day.
+        <div className="sticky bottom-20 z-30 mt-6 flex justify-center lg:bottom-4">
+          <div className="glass-strong flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-2xl px-4 py-2.5 shadow-card">
+            <span className={cn('flex items-center gap-1.5 text-sm font-bold', save === 'error' ? 'text-red-300' : save === 'saving' ? 'text-slate-300' : 'text-emerald-300')}>
+              {save === 'saving' ? <Loader2 size={15} className="animate-spin" /> : save === 'error' ? <AlertTriangle size={15} /> : <CheckCircle2 size={15} />}
+              {save === 'saving' ? 'Desant…' : save === 'error' ? 'No s’ha pogut desar' : 'Tot desat'}
+            </span>
+            <button className="btn-ghost !px-3 !py-1.5 text-xs" disabled={save === 'saving' && !dirty.current} onClick={() => void saveForLater()}>
+              <Save size={14} /> {save === 'error' ? 'Torna-ho a provar' : 'Desa i continua un altre dia'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {editing && (
         <PlayerEditor
           initial={editing.player}
@@ -496,7 +526,7 @@ function StatusBanner({ status, note }: { status: Registration['status']; note: 
     approved: 'border-emerald-400/50 bg-emerald-400/10 text-emerald-100',
   }[status];
   const text = {
-    draft: 'Es desa sola mentre l’omples. Quan ho tinguis tot, envia-la al final de la pàgina.',
+    draft: 'Es desa sola mentre l’omples: la pots deixar a mitges i continuar un altre dia entrant amb el mateix correu i contrasenya. Quan ho tinguis tot, envia-la al final de la pàgina.',
     submitted: 'L’hem rebut i l’estem revisant. Mentrestant no es pot modificar.',
     changes: 'L’organització t’ha demanat que corregeixis alguna cosa. Corregeix-la i torna-la a enviar.',
     approved: 'El teu equip ja és a la lliga! Si cal canviar alguna cosa, parla amb l’organització.',
