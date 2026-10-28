@@ -7,7 +7,7 @@ import webpush from 'web-push';
  */
 
 const PUBLIC_KEY = process.env.VITE_VAPID_PUBLIC_KEY || 'BLOljxZjIJuZj_8cFWFVqWbFUt5hnbchBmCuLXZLkbhgy8Mu2giFzAY3Ik869CzKn8HUGexsL0VRz3QPVinoZ2Y';
-const SITE = 'https://lleida-league.vercel.app';
+const SITE = 'https://www.lleidaleague.com';
 
 const clip = (v, n) => String(v ?? '').trim().slice(0, n);
 

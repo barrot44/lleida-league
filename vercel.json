@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "lleida-league.vercel.app" }],
+      "destination": "https://www.lleidaleague.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/((?!assets/|api/|.*\\..*).*)", "destination": "/index.html" }],
   "headers": [
     {

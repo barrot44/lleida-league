@@ -269,6 +269,10 @@ No cal comprar cap domini. Els tres hostings següents regalen una adreça pròp
 3. A *Environment Variables* afegeix `VITE_SUPABASE_URL` i `VITE_SUPABASE_ANON_KEY` (mateixos valors que el `.env.local`) i desplega.
 4. Obre l'adreça i comprova que `/classificacio`, `/calendari`… carreguen directament (el fitxer `vercel.json` ho garanteix).
 
+**Domini propi (`www.lleidaleague.com`):** comprat a Cloudflare i afegit a Vercel (Settings → Domains). A Cloudflare, els registres
+DNS que indica Vercel (A per a `@`, CNAME per a `www`) han d'estar en gris, «DNS only». `lleida-league.vercel.app` redirigeix al
+domini (`vercel.json`) i l'adreça pública per a SEO és a `.env.production` (`VITE_SITE_URL`).
+
 **Perquè Google la trobi:**
 
 1. Entra a [Google Search Console](https://search.google.com/search-console) → *Afegeix una propietat* → *Prefix de l'URL* i escriu la teva adreça.
