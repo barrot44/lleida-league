@@ -320,9 +320,9 @@ returns text
 language sql
 stable
 set search_path = public
-as $
+as $$
   select lower(coalesce(auth.jwt() ->> 'email', ''));
-$;
+$$;
 
 create or replace function public.is_president()
 returns boolean
@@ -330,9 +330,9 @@ language sql
 stable
 security definer
 set search_path = public
-as $
+as $$
   select exists (select 1 from public.registrations where email = public.my_email());
-$;
+$$;
 
 revoke all on function public.is_president() from public;
 grant execute on function public.is_president() to authenticated;
@@ -358,7 +358,7 @@ returns text
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_status text;
 begin
@@ -376,7 +376,7 @@ begin
   end if;
   return v_status;
 end;
-$;
+$$;
 
 revoke all on function public.registration_save(jsonb, boolean) from public;
 grant execute on function public.registration_save(jsonb, boolean) to authenticated;
