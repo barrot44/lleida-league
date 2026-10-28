@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Mail, Rocket, Wrench, X } from 'lucide-react';
+import { Crown, Lock, Mail, Rocket, Wrench, X } from 'lucide-react';
 import type { GateSettings } from '@/types';
 import { Particles } from '@/components/home/Particles';
 import { SOCIAL_ICONS } from '@/components/ui/BrandIcons';
@@ -140,9 +140,15 @@ export function SiteGate({ gate, preview, onClose }: Props) {
           <Mail size={15} /> {SITE.email}
         </a>
         {!preview && (
-          <a href={hrefFor('admin')} className="text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-700 transition hover:text-slate-400">
-            Accés administració
-          </a>
+          // Presidents register their teams (and the image rights) before the launch; admins manage everything.
+          <nav aria-label="Accessos" className="flex flex-wrap justify-center gap-2.5">
+            <a href={hrefFor('registration')} className="btn border border-amber-400/50 bg-amber-400/10 text-amber-200 hover:bg-amber-400/20 hover:shadow-glow">
+              <Crown size={16} /> Accés presidents
+            </a>
+            <a href={hrefFor('admin')} className="btn-ghost">
+              <Lock size={16} /> Accés administrador
+            </a>
+          </nav>
         )}
       </footer>
     </div>
