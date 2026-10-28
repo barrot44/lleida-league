@@ -37,8 +37,11 @@ export default async function handler(req, res) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Correu no vàlid.' });
   if ((action === 'create' || action === 'password') && password.length < 8) return res.status(400).json({ error: 'La contrasenya ha de tenir 8 caràcters o més.' });
 
+  // Legacy service_role keys are JWTs (eyJ…) and also go as Bearer; the new sb_secret_… keys only go as apikey.
+  const serviceHeaders = service.startsWith('eyJ') ? { apikey: service, Authorization: `Bearer ${service}` } : { apikey: service };
+
   const admin = (path, init = {}) =>
-    fetch(`${url}/auth/v1/admin${path}`, { ...init, headers: { apikey: service, Authorization: `Bearer ${service}`, 'Content-Type': 'application/json', ...(init.headers || {}) } });
+    fetch(`${url}/auth/v1/admin${path}`, { ...init, headers: { ...serviceHeaders, 'Content-Type': 'application/json', ...(init.headers || {}) } });
 
   /** The admin API has no lookup by e-mail: walk the (small) user list. */
   const findUser = async () => {
@@ -66,7 +69,7 @@ export default async function handler(req, res) {
       const user = await findUser();
       if (!user) return res.status(action === 'delete' ? 200 : 404).json(action === 'delete' ? { ok: true } : { error: 'no-user' });
       // Never touch an administrator's login from here.
-      const isAdmin = await fetch(`${url}/rest/v1/admins?select=user_id&user_id=eq.${user.id}`, { headers: { apikey: service, Authorization: `Bearer ${service}` } });
+      const isAdmin = await fetch(`${url}/rest/v1/admins?select=user_id&user_id=eq.${user.id}`, { headers: serviceHeaders });
       if (!isAdmin.ok || (await isAdmin.json()).length) return res.status(403).json({ error: 'is-admin' });
       const r =
         action === 'password'
