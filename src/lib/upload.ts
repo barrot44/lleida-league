@@ -10,7 +10,7 @@ const MAX_SIDE: Record<UploadKind, number> = { photo: 1600, avatar: 600, logo: 6
 /** Without Supabase the image travels inside the saved data, so keep it tiny. */
 const INLINE_SIDE = 420;
 
-function loadImage(file: File): Promise<HTMLImageElement> {
+export function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -31,7 +31,7 @@ function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promi
 }
 
 /** Scales the image down (phone photos are huge) and re-encodes it as WebP, keeping PNG transparency. */
-async function shrink(file: File, maxSide: number): Promise<{ blob: Blob; ext: string }> {
+export async function shrink(file: File, maxSide: number): Promise<{ blob: Blob; ext: string }> {
   const img = await loadImage(file);
   const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
   const canvas = document.createElement('canvas');
@@ -47,7 +47,7 @@ async function shrink(file: File, maxSide: number): Promise<{ blob: Blob; ext: s
   return { blob: jpeg, ext: 'jpg' };
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
+export function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));

@@ -30,6 +30,11 @@ export function Footer() {
                 </a>
               </li>
             ))}
+            <li>
+              <a href={hrefFor('registration')} className="text-slate-300 transition hover:text-amber-300">
+                Inscripció d’equips
+              </a>
+            </li>
           </ul>
         </div>
 

@@ -298,5 +298,119 @@ grant execute on function public.push_unsubscribe(text) to anon, authenticated;
 grant execute on function public.push_targets() to authenticated;
 grant execute on function public.push_forget(text[]) to authenticated;
 
+-- 4f) Inscripcions d'equips: cada president entra amb el seu correu i omple NOMÉS el seu equip ------------------
+--    · La fila la crea un admin (correu + categoria); el compte d'usuari, el panell (o Authentication → Users).
+--    · El president llegeix la seva fila i la desa amb registration_save() (mai no en pot canviar l'estat a «aprovada»).
+--    · DNI i drets d'imatge signats: bucket PRIVAT «privat» (només el president que els puja i els admins).
+create table if not exists public.registrations (
+  email      text primary key check (email = lower(email)),
+  category   text not null,
+  status     text not null default 'draft' check (status in ('draft', 'submitted', 'changes', 'approved')),
+  data       jsonb not null default '{}'::jsonb,
+  admin_note text not null default '',
+  team_id    text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.registrations enable row level security;
+
+create or replace function public.my_email()
+returns text
+language sql
+stable
+set search_path = public
+as $
+  select lower(coalesce(auth.jwt() ->> 'email', ''));
+$;
+
+create or replace function public.is_president()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select exists (select 1 from public.registrations where email = public.my_email());
+$;
+
+revoke all on function public.is_president() from public;
+grant execute on function public.is_president() to authenticated;
+
+drop policy if exists "Inscripcions: el president i els admins llegeixen" on public.registrations;
+drop policy if exists "Inscripcions: admins creen"                         on public.registrations;
+drop policy if exists "Inscripcions: admins actualitzen"                   on public.registrations;
+drop policy if exists "Inscripcions: admins esborren"                      on public.registrations;
+
+create policy "Inscripcions: el president i els admins llegeixen"
+  on public.registrations for select to authenticated
+  using (email = public.my_email() or public.is_admin());
+create policy "Inscripcions: admins creen"
+  on public.registrations for insert to authenticated with check (public.is_admin());
+create policy "Inscripcions: admins actualitzen"
+  on public.registrations for update to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "Inscripcions: admins esborren"
+  on public.registrations for delete to authenticated using (public.is_admin());
+
+-- El president desa (i, si vol, envia) la seva inscripció mentre és un esborrany o li han demanat canvis.
+create or replace function public.registration_save(p_data jsonb, p_submit boolean default false)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  v_status text;
+begin
+  if octet_length(p_data::text) > 300000 then
+    raise exception 'too big' using errcode = '22023';
+  end if;
+  update public.registrations
+     set data = p_data,
+         status = case when p_submit then 'submitted' else status end,
+         updated_at = now()
+   where email = public.my_email() and status in ('draft', 'changes')
+  returning status into v_status;
+  if v_status is null then
+    raise exception 'locked' using errcode = 'P0001';
+  end if;
+  return v_status;
+end;
+$;
+
+revoke all on function public.registration_save(jsonb, boolean) from public;
+grant execute on function public.registration_save(jsonb, boolean) to authenticated;
+
+-- Fotos públiques (escut, cara dels jugadors): cada president puja a «fotos/inscripcions/<el seu id>/».
+drop policy if exists "Fotos: els presidents pugen a la seva carpeta" on storage.objects;
+create policy "Fotos: els presidents pugen a la seva carpeta"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'fotos'
+    and (storage.foldername(name))[1] = 'inscripcions'
+    and (storage.foldername(name))[2] = auth.uid()::text
+    and public.is_president()
+  );
+
+-- Documents privats (DNI, drets d'imatge signats): bucket NO públic.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('privat', 'privat', false, 10485760, array['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+on conflict (id) do update
+  set public = false, file_size_limit = 10485760, allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+drop policy if exists "Privat: el president puja a la seva carpeta"   on storage.objects;
+drop policy if exists "Privat: el president i els admins el veuen"    on storage.objects;
+drop policy if exists "Privat: el president i els admins l'esborren"  on storage.objects;
+
+create policy "Privat: el president puja a la seva carpeta"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'privat' and (storage.foldername(name))[1] = auth.uid()::text and public.is_president());
+create policy "Privat: el president i els admins el veuen"
+  on storage.objects for select to authenticated
+  using (bucket_id = 'privat' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+create policy "Privat: el president i els admins l'esborren"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'privat' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
+
 -- 5) (Opcional) Temps real: perquè els visitants rebin els canvis sense recarregar
 -- alter publication supabase_realtime add table public.league_state;

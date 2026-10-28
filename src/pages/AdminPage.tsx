@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
 import { motion } from 'framer-motion';
-import { Camera, Coins, DoorClosed, Film, Image as ImageIcon, LogOut, MonitorPlay, Newspaper, Settings, Shield, Sparkles, Swords, Users, Wrench } from 'lucide-react';
+import { Camera, ClipboardSignature, Coins, DoorClosed, Film, Image as ImageIcon, LogOut, MonitorPlay, Newspaper, Settings, Shield, Sparkles, Swords, Users, Wrench } from 'lucide-react';
 import { AdminGate } from '@/components/admin/AdminGate';
 import { ClubManager } from '@/components/admin/ClubManager';
 import { GateManager } from '@/components/admin/GateManager';
@@ -13,6 +13,7 @@ import { GalleryManager } from '@/components/admin/GalleryManager';
 import { MatchManager } from '@/components/admin/MatchManager';
 import { NewsManager } from '@/components/admin/NewsManager';
 import { PlayerManager } from '@/components/admin/PlayerManager';
+import { RegistrationManager } from '@/components/admin/RegistrationManager';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SocialStudio } from '@/components/admin/SocialStudio';
 import { TeamManager } from '@/components/admin/TeamManager';
@@ -27,6 +28,7 @@ const TABS = [
   { id: 'live', label: 'Directe (OBS)', icon: MonitorPlay },
   { id: 'teams', label: 'Equips', icon: Shield },
   { id: 'players', label: 'Jugadors', icon: Users },
+  { id: 'registrations', label: 'Inscripcions', icon: ClipboardSignature },
   { id: 'social', label: 'Xarxes', icon: Camera },
   { id: 'gallery', label: 'Galeria', icon: ImageIcon },
   { id: 'videos', label: 'Vídeos', icon: Film },
@@ -144,6 +146,7 @@ export default function AdminPage() {
         <Tabs.Content value="live" className="outline-none"><ObsStudio /></Tabs.Content>
         <Tabs.Content value="teams" className="outline-none"><TeamManager /></Tabs.Content>
         <Tabs.Content value="players" className="outline-none"><PlayerManager /></Tabs.Content>
+        <Tabs.Content value="registrations" className="outline-none"><RegistrationManager /></Tabs.Content>
         <Tabs.Content value="social" className="outline-none"><SocialStudio /></Tabs.Content>
         <Tabs.Content value="gallery" className="outline-none"><GalleryManager /></Tabs.Content>
         <Tabs.Content value="videos" className="outline-none"><VideoManager /></Tabs.Content>

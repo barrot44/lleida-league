@@ -207,6 +207,27 @@ des de **Directe → Avisos al mòbil**). Necessita:
 2. La variable `VAPID_PRIVATE_KEY` a Vercel (la clau privada és a `.env.local`, que no es puja mai a GitHub):
    `npx vercel env add VAPID_PRIVATE_KEY production --sensitive` i torna a publicar.
 
+## Inscripció d'equips (presidents)
+
+Cada president entra a **`/inscripcio`** amb el correu i la contrasenya que li dona l'organització i omple només el seu equip:
+escut, nom, sigles i colors; les seves dades; i els jugadors (nom, dorsal, porter o jugador, data de naixement, foto de cara
+tipus DNI i foto del DNI). També imprimeix el paper de drets d'imatge (ja surt amb els jugadors), el fa signar i en puja la foto.
+La pàgina s'obre encara que el comptador de llançament estigui actiu.
+
+- **Públic**: escut, nom de l'equip, president i la seva foto, i de cada jugador el nom, el dorsal, el rol i la foto de cara.
+- **Privat** (només l'organització): DNI, dates de naixement, telèfon i papers signats, en el bucket privat `privat` de Supabase.
+  Des de la inscripció, «Esborra els DNI» els elimina un cop comprovada l'edat.
+
+Al tauler, **Inscripcions**: «Dona d'alta un president» (correu + categoria + contrasenya generada) crea l'accés i et prepara el
+missatge per enviar-li. Després revises cada inscripció, mires els DNI i els papers, i l'aproves (l'equip i els jugadors passen a
+la lliga) o li demanes canvis amb una nota. Necessita:
+
+1. El `supabase/schema.sql` actualitzat (secció 4f: taula `registrations`, funcions i bucket `privat`).
+2. Per crear els comptes amb un clic, la variable `SUPABASE_SERVICE_ROLE_KEY` a Vercel (Supabase → Project Settings →
+   API Keys → `service_role` / secret): `npx vercel env add SUPABASE_SERVICE_ROLE_KEY production --sensitive` i torna a publicar.
+   Sense aquesta clau, el compte es crea a mà: Supabase → Authentication → Users → Add user → Create new user, amb
+   «Auto Confirm User» marcat.
+
 ## Estructura del projecte
 
 ```

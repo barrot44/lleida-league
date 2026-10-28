@@ -1,6 +1,6 @@
-import { CalendarDays, House, ImageIcon, Lock, Medal, Radio, Sparkles, Trophy, Vote, type LucideIcon } from 'lucide-react';
+import { CalendarDays, ClipboardSignature, House, ImageIcon, Lock, Medal, Radio, Sparkles, Trophy, Vote, type LucideIcon } from 'lucide-react';
 
-export type RouteId = 'home' | 'standings' | 'calendar' | 'stats' | 'gallery' | 'club' | 'admin' | 'vote' | 'live';
+export type RouteId = 'home' | 'standings' | 'calendar' | 'stats' | 'gallery' | 'club' | 'admin' | 'vote' | 'live' | 'registration';
 
 export interface NavItem {
   id: RouteId;
@@ -29,4 +29,7 @@ export const VOTE_NAV: NavItem = { id: 'vote', path: '/vota', label: 'Vota l’M
 /** Live page of the streamed match (reached from the header badge or the home banner while a match is live). */
 export const LIVE_NAV: NavItem = { id: 'live', path: '/directe', label: 'En directe', short: 'Directe', icon: Radio };
 
-export const ALL_ROUTES: NavItem[] = [...NAV, ADMIN_NAV, VOTE_NAV, LIVE_NAV];
+/** Team registration by the presidents (with the login the organization gives them; reachable even behind the launch countdown). */
+export const REGISTRATION_NAV: NavItem = { id: 'registration', path: '/inscripcio', label: 'Inscripció d’equips', short: 'Inscripció', icon: ClipboardSignature };
+
+export const ALL_ROUTES: NavItem[] = [...NAV, ADMIN_NAV, VOTE_NAV, LIVE_NAV, REGISTRATION_NAV];

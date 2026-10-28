@@ -23,6 +23,8 @@ import LivePage from '@/pages/LivePage';
 
 // The back-office is only needed by admins, so it ships as its own chunk.
 const AdminPage = lazy(() => import('@/pages/AdminPage'));
+// Only presidents use the registration portal.
+const RegistrationPage = lazy(() => import('@/pages/RegistrationPage'));
 
 function PageFallback() {
   return (
@@ -35,6 +37,12 @@ function PageFallback() {
 const admin = (
   <Suspense fallback={<PageFallback />}>
     <AdminPage />
+  </Suspense>
+);
+
+const registration = (
+  <Suspense fallback={<PageFallback />}>
+    <RegistrationPage />
   </Suspense>
 );
 
@@ -62,14 +70,14 @@ export default function App() {
 
   return (
     <>
-      <GateSwitch route={route} adminView={admin}>
+      <GateSwitch route={route} adminView={admin} registrationView={registration}>
         <div className="flex min-h-dvh flex-col">
           <a href="#contingut" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-xl focus:bg-amber-400 focus:px-4 focus:py-2 focus:text-slate-950">
             Salta al contingut
           </a>
           <Header route={route} />
 
-          {route !== 'admin' && route !== 'club' && route !== 'vote' && route !== 'live' && (
+          {route !== 'admin' && route !== 'club' && route !== 'vote' && route !== 'live' && route !== 'registration' && (
             <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
               <CategorySwitcher className="w-full sm:w-fit" />
             </div>
@@ -94,6 +102,7 @@ export default function App() {
               {route === 'vote' && <VotePage />}
               {route === 'live' && <LivePage />}
               {route === 'admin' && admin}
+              {route === 'registration' && registration}
             </motion.main>
           </AnimatePresence>
 

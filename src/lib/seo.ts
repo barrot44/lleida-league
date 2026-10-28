@@ -33,6 +33,10 @@ const META: Record<RouteId, { title: string; description: string }> = {
     title: `En directe · ${BASE_TITLE}`,
     description: 'Segueix en directe el partit de la Lleida League que s’està retransmetent: marcador, rellotge, cartes de poder i el vídeo.',
   },
+  registration: {
+    title: `Inscripció d’equips · ${BASE_TITLE}`,
+    description: 'Espai dels presidents per inscriure el seu equip i els jugadors a la Lleida League.',
+  },
   vote: {
     title: `Vota l’MVP · ${BASE_TITLE}`,
     description: 'Vota el millor jugador del partit de la Lleida League que s’està jugant i segueix els resultats en directe.',

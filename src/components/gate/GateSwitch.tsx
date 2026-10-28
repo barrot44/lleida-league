@@ -30,7 +30,7 @@ function AdminBanner({ gate }: { gate: GateSettings }) {
  * Signed-in admins always see the site; `#/admin` stays reachable so they can sign in and switch it off.
  * Only this small component ticks every second, so the rest of the app never re-renders because of the clock.
  */
-export function GateSwitch({ route, adminView, children }: { route: RouteId; adminView: ReactNode; children: ReactNode }) {
+export function GateSwitch({ route, adminView, registrationView, children }: { route: RouteId; adminView: ReactNode; registrationView: ReactNode; children: ReactNode }) {
   const gate = useLeagueStore((s) => s.settings.gate);
   const unlocked = useUiStore((s) => s.adminUnlocked);
   const timed = gate.mode === 'countdown' && gate.autoOpen && gateTarget(gate) !== null;
@@ -47,7 +47,8 @@ export function GateSwitch({ route, adminView, children }: { route: RouteId; adm
     );
   }
 
-  if (route === 'admin') {
+  // Presidents register their teams before the launch: their portal stays open behind the countdown.
+  if (route === 'admin' || route === 'registration') {
     return (
       <div className="min-h-dvh">
         <div className="px-4 pt-4 sm:px-6">
@@ -55,7 +56,7 @@ export function GateSwitch({ route, adminView, children }: { route: RouteId; adm
             ← Torna
           </a>
         </div>
-        {adminView}
+        {route === 'admin' ? adminView : registrationView}
       </div>
     );
   }
