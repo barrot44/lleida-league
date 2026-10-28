@@ -21,7 +21,7 @@ function seoPlugin(env: Record<string, string | undefined>): Plugin {
         '@context': 'https://schema.org',
         '@type': 'SportsOrganization',
         name: 'Lleida League',
-        alternateName: 'LLEIDA LEAGUE',
+        alternateName: ['LLEIDA LEAGUE', 'LleidaLeague', 'Lleida League Futbol Sala'],
         slogan: 'Més que un joc, una batalla presidencial',
         sport: 'Futsal',
         foundingDate: '2023-02-27',
@@ -30,8 +30,11 @@ function seoPlugin(env: Record<string, string | undefined>): Plugin {
         sameAs: SOCIALS,
         ...(siteUrl ? { url: siteUrl, logo: `${siteUrl}/logo.png` } : {}),
       };
+      // Google takes the name it shows above the result ("site name") from this WebSite block.
+      const website = siteUrl ? { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Lleida League', alternateName: ['LleidaLeague', 'LLEIDA LEAGUE'], url: `${siteUrl}/`, inLanguage: 'ca' } : null;
       return [
         { tag: 'script', attrs: { type: 'application/ld+json' }, children: JSON.stringify(jsonLd), injectTo: 'head' as const },
+        ...(website ? [{ tag: 'script', attrs: { type: 'application/ld+json' }, children: JSON.stringify(website), injectTo: 'head' as const }] : []),
         ...(siteUrl
           ? [
               { tag: 'link', attrs: { rel: 'canonical', href: `${siteUrl}/` }, injectTo: 'head' as const },
