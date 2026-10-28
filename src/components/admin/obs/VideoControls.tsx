@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Clapperboard, Link2, Loader2, Megaphone, Play, Square, Trash2, Upload, Volume1 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, Clapperboard, Link2, ListChecks, Loader2, Megaphone, Play, Square, Trash2, Upload, Volume1 } from 'lucide-react';
 import type { ObsVideoItem } from '@/obs/types';
 import { useObsStore } from '@/obs/useObsStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -29,6 +29,8 @@ export function VideoControls({ actions }: { actions: Actions }) {
   const [link, setLink] = useState('');
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<ObsVideoItem | null>(null);
+  /** Ticked rows, played with «Seleccionats» in the order of the lists. */
+  const [picked, setPicked] = useState<string[]>([]);
 
   const set = (fn: (v: typeof videos) => typeof videos) => actions.update((s) => ({ ...s, videos: fn(s.videos) }));
   const play = (items: ObsVideoItem[]) => set((v) => ({ ...v, playing: { id: uid('play'), at: Date.now() + VIDEO_LEAD_MS, items } }));
@@ -43,6 +45,10 @@ export function VideoControls({ actions }: { actions: Actions }) {
   const lib = videos.library;
   const ads = lib.filter((v) => v.kind === 'ad');
   const clips = lib.filter((v) => v.kind === 'video');
+  const order = [...clips, ...ads];
+  const selected = order.filter((v) => picked.includes(v.id));
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const count = (items: ObsVideoItem[]) => `${items.length} · ${fmtSeconds(totalSeconds(items))}`;
 
   const addFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -95,6 +101,7 @@ export function VideoControls({ actions }: { actions: Actions }) {
 
   const remove = async (item: ObsVideoItem) => {
     set((v) => ({ ...v, library: v.library.filter((x) => x.id !== item.id) }));
+    setPicked((p) => p.filter((x) => x !== item.id));
     try {
       await deleteVideoFile(item.url);
       toast('Vídeo esborrat.', 'info');
@@ -105,8 +112,19 @@ export function VideoControls({ actions }: { actions: Actions }) {
 
   const row = (item: ObsVideoItem, i: number, list: ObsVideoItem[]) => {
     const live = current?.id === item.id && onAir;
+    const on = picked.includes(item.id);
     return (
-      <li key={item.id} className={cn('flex items-center gap-2 rounded-2xl border px-3 py-2', live ? 'border-red-500/50 bg-red-500/[0.08]' : 'border-white/10 bg-white/[0.03]')}>
+      <li key={item.id} className={cn('flex items-center gap-2 rounded-2xl border px-3 py-2', live ? 'border-red-500/50 bg-red-500/[0.08]' : on ? 'border-amber-400/50 bg-amber-400/[0.06]' : 'border-white/10 bg-white/[0.03]')}>
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={on}
+          aria-label={`Selecciona ${item.title}`}
+          onClick={() => toggle(item.id)}
+          className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 transition', on ? 'border-amber-400 bg-amber-400 text-slate-950' : 'border-white/25 hover:border-amber-300')}
+        >
+          {on && <Check size={14} strokeWidth={3} />}
+        </button>
         {item.kind === 'ad' ? <Megaphone size={16} className="shrink-0 text-amber-300" /> : <Clapperboard size={16} className="shrink-0 text-cyan-300" />}
         <input className="min-w-0 flex-1 bg-transparent text-sm font-bold text-white outline-none focus:text-amber-200" value={item.title} onChange={(e) => rename(item.id, e.target.value)} aria-label="Nom del vídeo" />
         <span className="shrink-0 font-mono text-xs text-slate-400">{fmtSeconds(item.seconds)}</span>
@@ -151,10 +169,30 @@ export function VideoControls({ actions }: { actions: Actions }) {
         </div>
       )}
 
-      {ads.length > 0 && (
-        <button className="btn-gold mb-4 w-full" onClick={() => play(ads)}>
-          <Megaphone size={16} /> Tanda d’anuncis · {ads.length} {ads.length === 1 ? 'anunci' : 'anuncis'} · {fmtSeconds(totalSeconds(ads))}
-        </button>
+      {lib.length > 0 && (
+        <div className="mb-4 space-y-2">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button className="btn-gold" onClick={() => play(order)}>
+              <Play size={16} /> Reprodueix-ho tot · {count(order)}
+            </button>
+            <button className={cn('btn', selected.length ? 'bg-cyan-400 text-slate-950 hover:bg-cyan-300' : 'btn-ghost')} disabled={!selected.length} onClick={() => play(selected)}>
+              <ListChecks size={16} /> {selected.length ? `Seleccionats · ${count(selected)}` : 'Marca’n per reproduir-los'}
+            </button>
+          </div>
+          {ads.length > 0 && (
+            <button className="btn-ghost w-full !py-2 text-xs" onClick={() => play(ads)}>
+              <Megaphone size={14} /> Només la tanda d’anuncis · {count(ads)}
+            </button>
+          )}
+          <div className="flex justify-end gap-3 text-[11px] font-bold uppercase tracking-wider">
+            <button className="text-slate-400 hover:text-white" onClick={() => setPicked(order.map((v) => v.id))}>
+              Marca’ls tots
+            </button>
+            <button className="text-slate-400 hover:text-white disabled:opacity-40" disabled={!picked.length} onClick={() => setPicked([])}>
+              Desmarca’ls
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="space-y-4">

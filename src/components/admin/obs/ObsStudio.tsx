@@ -186,7 +186,6 @@ export function ObsStudio() {
         </div>
         <div className="min-w-0 space-y-6">
           <SituationsControls actions={actions} />
-          <VideoControls actions={actions} />
           <MusicControls actions={actions} />
           <StatsControls actions={actions} />
           <PowerCardsControls actions={actions} />
@@ -201,6 +200,7 @@ export function ObsStudio() {
           <TickerControls actions={actions} />
           <BrandControls actions={actions} />
           <NotifyControls actions={actions} />
+          <VideoControls actions={actions} />
         </div>
       </div>
     </div>
