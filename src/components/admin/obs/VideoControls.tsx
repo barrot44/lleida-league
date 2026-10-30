@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Check, Clapperboard, Link2, ListChecks, Loader2, Megaphone, Play, Square, Trash2, Upload, Volume1 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, Clapperboard, Coffee, Link2, ListChecks, Loader2, Megaphone, Play, Square, Trash2, Upload, Volume1 } from 'lucide-react';
 import type { ObsVideoItem } from '@/obs/types';
 import { useObsStore } from '@/obs/useObsStore';
 import { useUiStore } from '@/store/useUiStore';
@@ -8,7 +8,8 @@ import { SectionCard } from '@/components/admin/fields';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import type { useObsActions } from '@/components/admin/obs/useObsActions';
 import { supabaseEnabled } from '@/lib/supabase';
-import { MAX_VIDEO_MB, VIDEO_LEAD_MS, deleteVideoFile, fmtSeconds, newVideoItem, readDuration, totalSeconds, uploadVideo, videoPosition } from '@/lib/videos';
+import { Toggle } from '@/components/admin/obs/Toggle';
+import { MAX_VIDEO_MB, VIDEO_LEAD_MS, deleteVideoFile, fmtSeconds, halftimeItems, newVideoItem, readDuration, totalSeconds, uploadVideo, videoPosition } from '@/lib/videos';
 import { cn, uid } from '@/lib/utils';
 
 type Actions = ReturnType<typeof useObsActions>;
@@ -48,6 +49,9 @@ export function VideoControls({ actions }: { actions: Actions }) {
   const order = [...clips, ...ads];
   const selected = order.filter((v) => picked.includes(v.id));
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const ht = videos.halftime;
+  const htItems = halftimeItems(videos);
+  const setHt = (patch: Partial<typeof ht>) => set((v) => ({ ...v, halftime: { ...v.halftime, ...patch } }));
   const count = (items: ObsVideoItem[]) => `${items.length} · ${fmtSeconds(totalSeconds(items))}`;
 
   const addFiles = async (files: FileList | null) => {
@@ -194,6 +198,35 @@ export function VideoControls({ actions }: { actions: Actions }) {
           </div>
         </div>
       )}
+
+      <div className="mb-4 rounded-2xl border border-purple-400/30 bg-purple-400/[0.06] p-3">
+        <Toggle checked={ht.auto} onChange={(v) => setHt({ auto: v })} label="Descans automàtic" hint="En prémer «Descans» (Situacions del partit) sonen sols; després queda la pantalla de descans i entra la música." />
+        {ht.auto && (
+          <>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {(
+                [
+                  ['ads', 'Només els anuncis'],
+                  ['all', 'Tots els vídeos'],
+                  ['picked', 'Els marcats'],
+                ] as const
+              ).map(([m, label]) => (
+                <button key={m} onClick={() => setHt(m === 'picked' ? { mode: m, ids: picked.length ? picked : ht.ids } : { mode: m })} className={cn('rounded-lg border px-3 py-1.5 text-xs font-bold transition', ht.mode === m ? 'border-purple-300 bg-purple-400/20 text-purple-100' : 'border-white/10 text-slate-400 hover:text-white')}>
+                  {label}
+                </button>
+              ))}
+              {ht.mode === 'picked' && (
+                <button className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40" disabled={!picked.length} onClick={() => setHt({ ids: picked })}>
+                  Desa els marcats ara ({picked.length})
+                </button>
+              )}
+            </div>
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-purple-100/80">
+              <Coffee size={13} /> Al descans: {htItems.length ? `${htItems.map((v) => v.title).join(' → ')} · ${fmtSeconds(totalSeconds(htItems))}` : 'cap vídeo (tria’n o marca’n)'}
+            </p>
+          </>
+        )}
+      </div>
 
       <div className="space-y-4">
         <div>

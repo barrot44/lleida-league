@@ -154,7 +154,7 @@ Els administradors identificats sempre veuen la web (amb un avís groc) i `/admi
 | Gol! | Animació gran amb el golejador, el minut i el nou resultat (també gol en pròpia) |
 | Targetes i temps morts | Avís animat sota el marcador |
 | Alineació | Quintet inicial sobre una pista animada + suplents, o la plantilla sencera |
-| Prèvia | Els dos equips cara a cara amb posició, punts, ratxa, data i pavelló |
+| Prèvia | Els dos equips cara a cara amb posició, punts, ratxa, data i pavelló. Dues versions: clàssica o a pantalla completa (els colors xoquen, els escuts entren volant i el VS cau amb una ona i espurnes) |
 | Jugador destacat / MVP | Targeta amb foto, valoració i estadístiques de la temporada i del partit |
 | Classificació, golejadors, resultats i resum | Taules animades amb els equips del partit ressaltats |
 | Rètol, barra inferior, marca i patrocinadors | Lower third, ticker amb resultats, «Directe» + @lleidaleague i logos rotatius |
@@ -210,6 +210,8 @@ a executar `supabase/schema.sql` el primer cop) o s'hi enganxa un enllaç direct
 - **Emet** posa un vídeo; **Reprodueix-ho tot** els passa tots seguits; **Seleccionats** només els que tinguis marcats; **Només la
   tanda d'anuncis**, els anuncis. Amb anuncis surt «Publicitat · Tornem en 0:25» a la cantonada; entre un vídeo i el següent hi ha 0,8 s de negre.
   L'apartat és al final del panell.
+- **Descans automàtic**: activa'l a «Anuncis i vídeos» i tria què sona (només anuncis, tots o els marcats). En prémer
+  «Descans» a Situacions sonen sols, després queda la pantalla de descans i entra la música. Qualsevol altra situació els atura.
 - La reproducció va pel rellotge: si es recarrega la capa a mig vídeo, continua pel mateix punt. «Neteja la pantalla» l'atura.
 - Perquè el so vagi al directe, a la font de navegador d'OBS marca **«Controla l'àudio mitjançant OBS»**.
 - Els vídeos promocionals es generen amb Remotion a `videos-promo/` (vegeu el seu README).

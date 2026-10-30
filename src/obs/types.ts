@@ -136,7 +136,7 @@ export interface ObsSummaryEvent {
 
 export type ObsGraphic =
   | { kind: 'lineup'; team: ObsTeam; starters: ObsPlayer[]; bench: ObsPlayer[]; title: string }
-  | { kind: 'preview'; home: ObsTeam; away: ObsTeam; matchday: number | null; date: string; time: string; venue: string; categoryLabel: string; homeRow: ObsStandingRow | null; awayRow: ObsStandingRow | null }
+  | { kind: 'preview'; home: ObsTeam; away: ObsTeam; matchday: number | null; date: string; time: string; venue: string; categoryLabel: string; homeRow: ObsStandingRow | null; awayRow: ObsStandingRow | null; /** 'epic' = full-screen animated version. */ style?: 'classic' | 'epic' }
   | { kind: 'player'; player: ObsPlayer; team: ObsTeam; title: string; stats: ObsPlayerStats; matchLine: string }
   | { kind: 'standings'; categoryLabel: string; rows: ObsStandingRow[]; highlight: string[]; playoffSpots: number; relegationSpots: number; totalTeams: number }
   | { kind: 'scorers'; categoryLabel: string; rows: { player: ObsPlayer; team: ObsTeam; goals: number; assists: number }[] }
@@ -256,6 +256,8 @@ export interface ObsVideos {
   playing: { id: string; at: number; items: ObsVideoItem[] } | null;
   /** 0–1. */
   volume: number;
+  /** Half-time on autopilot: the «Descans» situation plays these videos (then the music comes in). */
+  halftime: { auto: boolean; mode: 'all' | 'ads' | 'picked'; ids: string[] };
 }
 
 export interface ObsCardDef {

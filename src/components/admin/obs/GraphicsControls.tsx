@@ -191,6 +191,8 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
     });
   };
 
+  const [previewStyle, setPreviewStyle] = useState<'classic' | 'epic'>('epic');
+
   const showPreview = () => {
     if (!homeTeam || !awayTeam) return needTeams();
     const table = buildStandings({ teams, matches }, homeTeam.category);
@@ -205,6 +207,7 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
       categoryLabel: categoryLabel(homeTeam.category),
       homeRow: table.find((r) => r.team.id === homeTeam.id) ?? null,
       awayRow: table.find((r) => r.team.id === awayTeam.id) ?? null,
+      style: previewStyle,
     });
   };
 
@@ -291,6 +294,18 @@ export function GraphicsControls({ actions }: { actions: Actions }) {
       <div className="grid gap-3 md:grid-cols-2">
         <Tile icon={<Swords size={18} />} title="Prèvia del partit" active={onAir('preview')} onShow={showPreview}>
           <p className="text-xs text-slate-400">Els dos escuts cara a cara, posició a la taula, ratxa i data del partit.</p>
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-white/10 bg-pitch/60 p-1">
+            {(
+              [
+                ['epic', 'Pantalla completa'],
+                ['classic', 'Clàssica'],
+              ] as const
+            ).map(([k, label]) => (
+              <button key={k} onClick={() => setPreviewStyle(k)} className={cn('rounded-lg px-2 py-1.5 text-xs font-bold transition', previewStyle === k ? 'bg-amber-400 text-slate-950' : 'text-slate-400 hover:text-white')}>
+                {label}
+              </button>
+            ))}
+          </div>
         </Tile>
         <Tile icon={<Crown size={18} />} title="Cara a cara de presidents" active={onAir('presidents')} onShow={showPresidents}>
           <p className="text-xs text-slate-400">Els dos presidents amb Lleidalitos, títols, posició, ratxa i els seus duels anteriors. La foto es posa a Equips.</p>

@@ -106,6 +106,18 @@ export function videoPosition(playing: ObsVideos['playing'], now: number): { ind
   return null;
 }
 
+/** The library in the order the panel shows it: videos first, then the ads. */
+export const libraryOrder = (v: ObsVideos) => [...v.library.filter((x) => x.kind === 'video'), ...v.library.filter((x) => x.kind === 'ad')];
+
+/** What the «Descans» situation plays (empty when it is off). */
+export function halftimeItems(v: ObsVideos): ObsVideoItem[] {
+  if (!v.halftime.auto) return [];
+  const order = libraryOrder(v);
+  if (v.halftime.mode === 'ads') return order.filter((x) => x.kind === 'ad');
+  if (v.halftime.mode === 'picked') return order.filter((x) => v.halftime.ids.includes(x.id));
+  return order;
+}
+
 export const fmtSeconds = (s: number) => {
   const t = Math.max(0, Math.round(s));
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;

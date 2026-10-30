@@ -10,6 +10,7 @@ import { useMusic, useScenes } from '@/components/admin/obs/useScenes';
 import { autoNotify } from '@/components/admin/obs/autoNotify';
 import type { useObsActions } from '@/components/admin/obs/useObsActions';
 import { cn, uid } from '@/lib/utils';
+import { VIDEO_LEAD_MS, halftimeItems, totalSeconds } from '@/lib/videos';
 
 type Actions = ReturnType<typeof useObsActions>;
 
@@ -25,7 +26,7 @@ export const SITUATIONS: Situation[] = [
   { id: 'prepartit', label: 'Prepartit', hint: 'Pantalla «Comencem aviat» i barra inferior', icon: Hourglass, color: '#38BDF8' },
   { id: 'partit', label: 'Partit', hint: 'Marcador en pantalla, fora pantalles (del descans passa a la 2a part)', icon: Play, color: '#22C55E' },
   { id: 'temps-mort', label: 'Temps mort', hint: 'Atura el rellotge i deixa el marcador en pantalla', icon: Timer, color: '#F59E0B' },
-  { id: 'descans', label: 'Descans', hint: 'Període de descans i pantalla de descans', icon: Coffee, color: '#A855F7' },
+  { id: 'descans', label: 'Descans', hint: 'Pantalla de descans (i els vídeos del descans automàtic, si està activat)', icon: Coffee, color: '#A855F7' },
   { id: 'entrevista', label: 'Entrevista', hint: 'Treu el marcador i posa el rètol d’entrevista', icon: Mic, color: '#EF4444' },
   { id: 'final', label: 'Final', hint: 'Període final i atura el rellotge', icon: Flag, color: '#FBBF24' },
 ];
@@ -49,7 +50,8 @@ export function SituationsControls({ actions }: { actions: Actions }) {
 
     actions.update((s) => {
       const hidden = { main: { ...s.main, visible: false }, interview: { ...s.interview, visible: false }, screen: { ...s.screen, visible: false } };
-      const base: ObsState = { ...s, ...hidden, situations: { ...s.situations, active: x.id } };
+      // Any new situation stops a video on air; «Descans» may start the half-time videos.
+      const base: ObsState = { ...s, ...hidden, situations: { ...s.situations, active: x.id }, videos: { ...s.videos, playing: null } };
       switch (x.id) {
         case 'prepartit':
           return {
@@ -62,8 +64,14 @@ export function SituationsControls({ actions }: { actions: Actions }) {
           return { ...base, scoreboard: { ...s.scoreboard, visible: true }, lower: { ...s.lower, visible: false } };
         case 'temps-mort':
           return { ...base, scoreboard: { ...s.scoreboard, visible: true, clock: pauseClock(s.scoreboard.clock, now) } };
-        case 'descans':
-          return { ...base, screen: { ...s.screen, visible: true, kind: 'halftime', title: SCREEN_DEFAULTS.halftime.title, subtitle: SCREEN_DEFAULTS.halftime.subtitle } };
+        case 'descans': {
+          const items = halftimeItems(s.videos);
+          return {
+            ...base,
+            screen: { ...s.screen, visible: true, kind: 'halftime', title: SCREEN_DEFAULTS.halftime.title, subtitle: SCREEN_DEFAULTS.halftime.subtitle },
+            videos: { ...s.videos, playing: items.length ? { id: uid('play'), at: now + VIDEO_LEAD_MS, items } : null },
+          };
+        }
         case 'entrevista':
           return { ...base, scoreboard: { ...s.scoreboard, visible: false }, lower: { ...s.lower, visible: false }, interview: { ...s.interview, visible: !!s.interview.name.trim(), id: uid('iv') } };
         case 'final':
@@ -74,10 +82,20 @@ export function SituationsControls({ actions }: { actions: Actions }) {
     });
 
     // Music on before the match, at half-time and at the end; off while playing or talking.
+    // At half-time with videos, the music waits until they are over (it would sound on top of them).
+    const breakItems = x.id === 'descans' ? halftimeItems(st.videos) : [];
     if (st.music.auto && music.canControl) {
-      const want = x.id === 'prepartit' || x.id === 'descans' || x.id === 'final';
+      const want = x.id === 'prepartit' || (x.id === 'descans' && !breakItems.length) || x.id === 'final';
       if (want !== st.music.on) music.setOn(want).catch((e: unknown) => toast(e instanceof Error ? e.message : 'Música: error.', 'error'));
+      if (breakItems.length) {
+        const playId = useObsStore.getState().state.videos.playing?.id;
+        window.setTimeout(() => {
+          const now2 = useObsStore.getState().state;
+          if (now2.situations.active === 'descans' && now2.videos.playing?.id === playId) music.setOn(true).catch(() => {});
+        }, VIDEO_LEAD_MS + totalSeconds(breakItems) * 1000 + 500);
+      }
     }
+    if (breakItems.length) toast(`Descans: sonen ${breakItems.length} ${breakItems.length === 1 ? 'vídeo' : 'vídeos'} i després la pantalla de descans.`, 'info');
     if (x.id === 'prepartit' && st.situations.active !== 'prepartit') autoNotify('start', useObsStore.getState().state);
     if (x.id === 'final' && st.situations.active !== 'final') autoNotify('final', useObsStore.getState().state);
     if (x.id === 'entrevista' && !st.interview.name.trim()) toast('Escriu qui parla a «Mode entrevista» i el rètol sortirà.', 'info');

@@ -68,7 +68,7 @@ export function defaultObsState(): ObsState {
     interview: { visible: false, id: '', name: '', role: '', team: null, question: '', sponsors: true },
     music: { app: 'Spotify.exe', on: false, volume: 0.7, auto: true },
     notify: { auto: true },
-    videos: { library: [], playing: null, volume: 1 },
+    videos: { library: [], playing: null, volume: 1, halftime: { auto: false, mode: 'ads', ids: [] } },
   };
 }
 
@@ -117,6 +117,7 @@ export function normalizeObsState(raw: unknown): ObsState {
       ...r.videos,
       library: Array.isArray(r.videos?.library) ? r.videos.library : [],
       playing: r.videos?.playing && Array.isArray(r.videos.playing.items) ? r.videos.playing : null,
+      halftime: { ...base.videos.halftime, ...r.videos?.halftime, ids: Array.isArray(r.videos?.halftime?.ids) ? r.videos.halftime.ids : [] },
     },
   };
 }

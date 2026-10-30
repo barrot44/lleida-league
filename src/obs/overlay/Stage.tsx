@@ -14,6 +14,7 @@ import { FitInside, boardMotion } from '@/obs/overlay/kit';
 import { InterviewLayer } from '@/obs/overlay/Interview';
 import { UnderBug } from '@/obs/overlay/UnderBug';
 import { VideoLayer } from '@/obs/overlay/VideoLayer';
+import { VersusEpic } from '@/obs/overlay/Versus';
 import { totalSeconds } from '@/lib/videos';
 
 export const STAGE_W = 1920;
@@ -78,7 +79,9 @@ export function Stage({ state, now, layers = null, scale = 1, fx, preview }: Pro
       <AnimatePresence>{showReplay && <ReplayTag key="replay" info={fx?.replay} />}</AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {showMain && main.graphic && (
+        {showMain && main.graphic?.kind === 'preview' && main.graphic.style === 'epic' ? (
+          <VersusEpic key={main.id} g={main.graphic} accent={state.accent} />
+        ) : showMain && main.graphic && (
           <motion.div key={main.id} {...boardMotion} className="absolute inset-x-[60px]" style={{ top: showScore ? 150 : 60, bottom: showTicker ? 96 : 50 }}>
             <FitInside className="h-full w-full">
               <MainGraphic graphic={main.graphic} accent={state.accent} />
