@@ -10,7 +10,7 @@ import { useMusic, useScenes } from '@/components/admin/obs/useScenes';
 import { autoNotify } from '@/components/admin/obs/autoNotify';
 import type { useObsActions } from '@/components/admin/obs/useObsActions';
 import { cn, uid } from '@/lib/utils';
-import { VIDEO_LEAD_MS, halftimeItems, totalSeconds } from '@/lib/videos';
+import { VIDEO_LEAD_MS, halftimeItems, kickoffItem, totalSeconds } from '@/lib/videos';
 
 type Actions = ReturnType<typeof useObsActions>;
 
@@ -24,7 +24,7 @@ interface Situation {
 
 export const SITUATIONS: Situation[] = [
   { id: 'prepartit', label: 'Prepartit', hint: 'Pantalla «Comencem aviat» i barra inferior', icon: Hourglass, color: '#38BDF8' },
-  { id: 'partit', label: 'Partit', hint: 'Marcador en pantalla, fora pantalles (del descans passa a la 2a part)', icon: Play, color: '#22C55E' },
+  { id: 'partit', label: 'Partit', hint: 'Marcador en pantalla, fora pantalles (des de Prepartit, amb la intro del directe si l’has triada)', icon: Play, color: '#22C55E' },
   { id: 'temps-mort', label: 'Temps mort', hint: 'Atura el rellotge i deixa el marcador en pantalla', icon: Timer, color: '#F59E0B' },
   { id: 'descans', label: 'Descans', hint: 'Pantalla de descans (i els vídeos del descans automàtic, si està activat)', icon: Coffee, color: '#A855F7' },
   { id: 'entrevista', label: 'Entrevista', hint: 'Treu el marcador i posa el rètol d’entrevista', icon: Mic, color: '#EF4444' },
@@ -60,8 +60,16 @@ export function SituationsControls({ actions }: { actions: Actions }) {
             ticker: { ...s.ticker, visible: s.ticker.items.some((t) => t.trim()) },
             screen: { ...s.screen, visible: true, kind: 'starting', title: SCREEN_DEFAULTS.starting.title, subtitle: SCREEN_DEFAULTS.starting.subtitle },
           };
-        case 'partit':
-          return { ...base, scoreboard: { ...s.scoreboard, visible: true }, lower: { ...s.lower, visible: false } };
+        case 'partit': {
+          // From «Prepartit», the live intro (if chosen) plays first, over the match scene.
+          const intro = s.situations.active === 'prepartit' ? kickoffItem(s.videos) : null;
+          return {
+            ...base,
+            scoreboard: { ...s.scoreboard, visible: true },
+            lower: { ...s.lower, visible: false },
+            videos: { ...s.videos, playing: intro ? { id: uid('play'), at: now + VIDEO_LEAD_MS, items: [intro] } : null },
+          };
+        }
         case 'temps-mort':
           return { ...base, scoreboard: { ...s.scoreboard, visible: true, clock: pauseClock(s.scoreboard.clock, now) } };
         case 'descans': {

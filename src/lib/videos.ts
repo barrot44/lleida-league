@@ -109,6 +109,9 @@ export function videoPosition(playing: ObsVideos['playing'], now: number): { ind
 /** The library in the order the panel shows it: videos first, then the ads. */
 export const libraryOrder = (v: ObsVideos) => [...v.library.filter((x) => x.kind === 'video'), ...v.library.filter((x) => x.kind === 'ad')];
 
+/** The intro played when the match starts (from «Prepartit»), or null. */
+export const kickoffItem = (v: ObsVideos): ObsVideoItem | null => (v.kickoff.auto ? (v.library.find((x) => x.id === v.kickoff.id) ?? null) : null);
+
 /** What the «Descans» situation plays (empty when it is off). */
 export function halftimeItems(v: ObsVideos): ObsVideoItem[] {
   if (!v.halftime.auto) return [];

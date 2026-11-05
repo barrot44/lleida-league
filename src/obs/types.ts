@@ -258,6 +258,8 @@ export interface ObsVideos {
   volume: number;
   /** Half-time on autopilot: the «Descans» situation plays these videos (then the music comes in). */
   halftime: { auto: boolean; mode: 'all' | 'ads' | 'picked'; ids: string[] };
+  /** The live intro: going from «Prepartit» to «Partit» plays this video first. */
+  kickoff: { auto: boolean; id: string | null };
 }
 
 export interface ObsCardDef {

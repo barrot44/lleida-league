@@ -199,6 +199,20 @@ export function VideoControls({ actions }: { actions: Actions }) {
         </div>
       )}
 
+      <div className="mb-3 rounded-2xl border border-amber-400/30 bg-amber-400/[0.06] p-3">
+        <Toggle checked={videos.kickoff.auto} onChange={(v) => set((x) => ({ ...x, kickoff: { ...x.kickoff, auto: v, id: x.kickoff.id ?? clips[0]?.id ?? null } }))} label="Intro del directe en començar el partit" hint="En passar de «Prepartit» a «Partit» (Situacions del partit) sona aquest vídeo i després queda el partit." />
+        {videos.kickoff.auto && (
+          <select className="input mt-3 !py-2 text-sm" value={videos.kickoff.id ?? ''} onChange={(e) => set((x) => ({ ...x, kickoff: { ...x.kickoff, id: e.target.value || null } }))} aria-label="Vídeo de la intro">
+            <option value="">— Tria el vídeo —</option>
+            {lib.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.title} · {fmtSeconds(v.seconds)}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
       <div className="mb-4 rounded-2xl border border-purple-400/30 bg-purple-400/[0.06] p-3">
         <Toggle checked={ht.auto} onChange={(v) => setHt({ auto: v })} label="Descans automàtic" hint="En prémer «Descans» (Situacions del partit) sonen sols; després queda la pantalla de descans i entra la música." />
         {ht.auto && (
