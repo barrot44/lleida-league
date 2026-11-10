@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { CategoryId } from '@/types';
 import { getAdminPassword, isAdminSession, setAdminSession } from '@/lib/auth';
+import { normalizeCategory } from '@/config/site';
 import { signInAdmin, signOutAdmin, supabaseEnabled } from '@/lib/supabase';
 
 export type ModalState =
@@ -99,7 +100,9 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'lleida-league:ui',
-      version: 1,
+      version: 2,
+      // v1 could remember the old single Junior League.
+      migrate: (persisted) => ({ category: normalizeCategory((persisted as { category?: unknown } | null)?.category) }) as UiState,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({ category: s.category }),
     },

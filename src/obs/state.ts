@@ -1,6 +1,6 @@
 import type { CategoryId, LeagueData, Match, Player, Team } from '@/types';
 import type { ObsClock, ObsPeriod, ObsPlayer, ObsPlayerStats, ObsResult, ObsStandingRow, ObsState, ObsSummaryEvent, ObsTeam } from '@/obs/types';
-import { CATEGORY_BY_ID, isKeeper } from '@/config/site';
+import { CATEGORY_BY_ID, isKeeper, normalizeCategory } from '@/config/site';
 import { DEFAULT_DECK, mergeDeck } from '@/obs/cards';
 import { computeStandings, playerRating, type StandingRow } from '@/lib/standings';
 import { matchTimestamp } from '@/lib/utils';
@@ -83,7 +83,7 @@ export function normalizeObsState(raw: unknown): ObsState {
     ...base,
     ...r,
     v: 1,
-    scoreboard: { ...base.scoreboard, ...r.scoreboard, clock: { ...base.scoreboard.clock, ...r.scoreboard?.clock } },
+    scoreboard: { ...base.scoreboard, ...r.scoreboard, category: normalizeCategory(r.scoreboard?.category ?? base.scoreboard.category), clock: { ...base.scoreboard.clock, ...r.scoreboard?.clock } },
     lower: { ...base.lower, ...r.lower },
     ticker: { ...base.ticker, ...r.ticker, items: Array.isArray(r.ticker?.items) ? r.ticker.items : [] },
     main: staleMain ? base.main : { ...base.main, ...r.main },
@@ -263,4 +263,4 @@ export function tickerResultLines(data: Pick<LeagueData, 'teams' | 'matches'>, c
   return [...live, ...done, ...next].map(label);
 }
 
-export const categoryLabel = (c: CategoryId) => CATEGORY_BY_ID[c].label;
+export const categoryLabel = (c: CategoryId) => CATEGORY_BY_ID[normalizeCategory(c)].label;

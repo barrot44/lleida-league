@@ -23,6 +23,7 @@ export function rightsDocHtml(data: RegData, category: CategoryId): string {
       const minor = age !== null && age < 18;
       return `<tr><td class="c">${p.dorsal ?? ''}</td><td>${esc(fullName(p))}</td><td class="c">${p.birthDate ? p.birthDate.split('-').reverse().join('/') : ''}</td><td></td><td class="${minor ? '' : 'na'}">${minor ? '' : '—'}</td></tr>`;
     }),
+    ...data.staff.filter((s) => s.name.trim()).map((s) => `<tr><td class="c">Staff</td><td>${esc(s.name.trim())} <small>(${esc(s.role)})</small></td><td></td><td></td><td class="na">—</td></tr>`),
     ...Array.from({ length: blanks }, () => '<tr><td></td><td></td><td></td><td></td><td></td></tr>'),
   ].join('');
 
@@ -54,7 +55,7 @@ export function rightsDocHtml(data: RegData, category: CategoryId): string {
 </div>
 ${RIGHTS_TEXT.map((t) => `<p>${esc(t)}</p>`).join('')}
 <table>
-  <thead><tr><th>Dorsal</th><th>Nom i cognoms</th><th>Naixement</th><th>Signatura del jugador/a</th><th>Menors: nom i signatura del pare, mare o tutor/a</th></tr></thead>
+  <thead><tr><th>Dorsal</th><th>Nom i cognoms</th><th>Naixement</th><th>Signatura</th><th>Menors: nom i signatura del pare, mare o tutor/a</th></tr></thead>
   <tbody>${rows}</tbody>
 </table>
 <div class="sign"><div>Signatura del president/a</div><div>Lloc i data</div></div>

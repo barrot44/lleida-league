@@ -6,11 +6,11 @@ const BASE_TITLE = 'Lleida League · Futbol sala';
 const META: Record<RouteId, { title: string; description: string }> = {
   home: {
     title: `${BASE_TITLE} · Més que un joc, una batalla presidencial`,
-    description: 'Lleida League: el torneig presidencial de futbol sala de les terres de Lleida. Classificació en directe, resultats, golejadors, MVPs, galeria i vídeos de la Senior, Juvenil, Junior i Femenina.',
+    description: 'Lleida League: el torneig presidencial de futbol sala de les terres de Lleida. Classificació en directe, resultats, golejadors, MVPs, galeria i vídeos de la Senior, Juvenil, Junior (Infantil i Cadet) i Femenina.',
   },
   standings: {
     title: `Classificació · ${BASE_TITLE}`,
-    description: 'Classificació en directe de la Lleida League: punts, gols, ratxa dels equips i evolució jornada a jornada de la Senior, Juvenil, Junior i Femenina.',
+    description: 'Classificació en directe de la Lleida League: punts, gols, ratxa dels equips i evolució jornada a jornada de la Senior, Juvenil, Junior (Infantil i Cadet) i Femenina.',
   },
   calendar: {
     title: `Calendari i resultats · ${BASE_TITLE}`,

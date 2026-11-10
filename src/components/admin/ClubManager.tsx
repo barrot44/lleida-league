@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Pencil, Plus, Save, Trash2, X } from 'lucide-react';
-import type { CategoryId, Champion, Referee, Sponsor } from '@/types';
+import type { Champion, ChampionCategory, Referee, Sponsor } from '@/types';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Field, ImageInput, SectionCard } from '@/components/admin/fields';
-import { CATEGORIES, CATEGORY_BY_ID } from '@/config/site';
+import { CHAMPION_CATEGORIES, championCategoryMeta } from '@/config/site';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { uid } from '@/lib/utils';
@@ -84,8 +84,8 @@ export function ClubManager() {
       >
         <div className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_110px_110px_1.5fr_auto]">
           <Field label="Competició">
-            <select className="input" value={champs.form.category} onChange={(e) => champs.patch({ category: e.target.value as CategoryId })}>
-              {CATEGORIES.map((c) => (
+            <select className="input" value={champs.form.category} onChange={(e) => champs.patch({ category: e.target.value as ChampionCategory })}>
+              {CHAMPION_CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.label}
                 </option>
@@ -114,7 +114,7 @@ export function ClubManager() {
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-white">{c.team}</p>
                 <p className="text-xs text-slate-500">
-                  {CATEGORY_BY_ID[c.category].label} · {c.edition}a edició
+                  {championCategoryMeta(c.category).label} · {c.edition}a edició
                 </p>
               </div>
               <button className={iconBtn} aria-label={`Edita ${c.team}`} onClick={() => { champs.setForm(c); champs.setEditing(true); }}>

@@ -80,6 +80,19 @@ function normalizeMatch(m: Match): Match {
 
 const isArray = (v: unknown): v is unknown[] => Array.isArray(v);
 
+/** Before 2026-27 the Junior League was one competition (`'junior'`); now it is Infantil + Cadet. Old data goes to Infantil. */
+const fixCat = <T extends { category?: string }>(x: T): T => (x.category === 'junior' ? { ...x, category: 'infantil' } : x);
+export function migrateJunior<T extends Partial<LeagueData>>(d: T): T {
+  return {
+    ...d,
+    ...(isArray(d.teams) ? { teams: d.teams.map(fixCat) } : {}),
+    ...(isArray(d.matches) ? { matches: d.matches.map(fixCat) } : {}),
+    ...(isArray(d.gallery) ? { gallery: d.gallery.map(fixCat) } : {}),
+    ...(isArray(d.news) ? { news: d.news.map(fixCat) } : {}),
+    ...(isArray(d.videos) ? { videos: d.videos.map(fixCat) } : {}),
+  };
+}
+
 export const useLeagueStore = create<LeagueStore>()(
   persist(
     (set, get) => ({
@@ -160,7 +173,7 @@ export const useLeagueStore = create<LeagueStore>()(
 
       importData: (raw) => {
         if (!raw || typeof raw !== 'object') return false;
-        const d = raw as Partial<Record<keyof LeagueData, unknown>>;
+        const d = migrateJunior(raw as Partial<LeagueData>) as Partial<Record<keyof LeagueData, unknown>>;
         if (!isArray(d.teams) || !isArray(d.players) || !isArray(d.matches) || !isArray(d.gallery) || !isArray(d.news)) return false;
         const matches = d.matches as Match[];
         const players = (d.players as Player[]).map((p) => ({ ...p, adjustments: p.adjustments ?? emptyStats(), stats: p.stats ?? emptyStats() }));
@@ -184,11 +197,11 @@ export const useLeagueStore = create<LeagueStore>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => pickData(s),
-      // v1 stored the old demo league; v2 ships the real Senior teams, so start from the new seed.
-      migrate: () => ({}) as LeagueData,
+      // v1 stored the old demo league (start from the new seed); v2 still had the single Junior League.
+      migrate: (persisted, version) => (version < 2 || !persisted ? ({} as LeagueData) : migrateJunior(persisted as LeagueData)),
     },
   ),
 );

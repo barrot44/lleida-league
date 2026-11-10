@@ -17,7 +17,7 @@ golejadors i MVPs, galeria, club, **generador d'imatges per a xarxes** i un taul
 
 ## Què és
 
-**Lleida League** (des del 2023) organitza quatre competicions de futbol sala — **Senior, Juvenil, Junior i Femenina** — amb
+**Lleida League** (des del 2023) organitza competicions de futbol sala — **Senior, Juvenil, Junior (dividida en Infantil i Cadet) i Femenina** — amb
 un to propi: cada equip té un *president* i cada jornada és una *batalla presidencial*.
 
 Aquesta app substitueix la [web antiga de Wix](https://lleidaleague.wixsite.com/lleidaleague) per una **SPA moderna i ràpida**, en **català**, amb
@@ -229,13 +229,20 @@ des de **Directe → Avisos al mòbil**). Necessita:
 ## Inscripció d'equips (presidents)
 
 Cada president entra a **`/inscripcio`** amb el correu i la contrasenya que li dona l'organització i omple només el seu equip:
-escut, nom, sigles i colors; les seves dades; i els jugadors (nom, dorsal, porter o jugador, data de naixement, foto de cara
+escut, nom, sigles i colors; les seves dades; el cos tècnic (fins a 4 persones: nom, càrrec i telèfon); i els jugadors (de 5 a 14: nom, dorsal, porter o jugador, data de naixement, foto de cara
 tipus DNI i foto del DNI). També imprimeix el paper de drets d'imatge (ja surt amb els jugadors), el fa signar i en puja la foto.
 La pàgina s'obre encara que el comptador de llançament estigui actiu.
 
 - **Públic**: escut, nom de l'equip, president i la seva foto, i de cada jugador el nom, el dorsal, el rol i la foto de cara.
 - **Privat** (només l'organització): DNI, dates de naixement, telèfon i papers signats, en el bucket privat `privat` de Supabase.
   Des de la inscripció, «Esborra els DNI» els elimina un cop comprovada l'edat.
+
+Cada equip té **1 president, fins a 4 persones de staff i fins a 14 jugadors**; la inscripció no es pot enviar si se'n passa.
+
+La **Junior League** són dues competicions, **Infantil** (1r-2n ESO) i **Cadet** (3r-4t ESO), cadascuna amb la seva
+inscripció, classificació, calendari i estadístiques; a la web surten juntes sota la pestanya «Junior». Les dades antigues amb
+la categoria `junior` passen a Infantil (a la revisió d'una inscripció es pot canviar de competició), i el palmarès conserva
+els campions de la Junior d'abans de dividir-la.
 
 Al tauler, **Inscripcions**: «Dona d'alta un president» (correu + categoria + contrasenya generada) crea l'accés i et prepara el
 missatge per enviar-li. Després revises cada inscripció, mires els DNI i els papers, i l'aproves (l'equip i els jugadors passen a

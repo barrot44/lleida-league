@@ -1,5 +1,6 @@
 import type { CategoryId } from '@/types';
 import { getSupabase, supabaseEnabled } from '@/lib/supabase';
+import { normalizeCategory } from '@/config/site';
 import { blobToDataUrl, loadImage, shrink, uploadImage } from '@/lib/upload';
 import { uid } from '@/lib/utils';
 
@@ -35,9 +36,19 @@ export interface RegPlayer {
   dniChecked?: boolean;
 }
 
+/** Technical staff (coach, delegate…): up to `MAX_STAFF` people besides the president. */
+export interface RegStaff {
+  id: string;
+  name: string;
+  role: string;
+  /** Private: only for the organization. */
+  phone: string;
+}
+
 export interface RegData {
   team: { name: string; shortName: string; logoUrl: string; primaryColor: string; secondaryColor: string };
   president: { name: string; phone: string; photoUrl: string };
+  staff: RegStaff[];
   players: RegPlayer[];
   /** Private paths of the signed image-rights papers (photos or PDF). */
   rightsDocs: string[];
@@ -55,8 +66,11 @@ export interface Registration {
   updatedAt: string;
 }
 
+/** Every team: one president, up to 4 people of staff and between 5 and 14 players. */
 export const MIN_PLAYERS = 5;
-export const MAX_PLAYERS = 20;
+export const MAX_PLAYERS = 14;
+export const MAX_STAFF = 4;
+export const STAFF_ROLES = ['Entrenador/a', 'Segon entrenador/a', 'Delegat/ada', 'Preparador/a físic', 'Fisioterapeuta', 'Altres'];
 
 export const STATUS_LABEL: Record<RegStatus, string> = {
   draft: 'Esborrany',
@@ -68,6 +82,7 @@ export const STATUS_LABEL: Record<RegStatus, string> = {
 export const emptyData = (): RegData => ({
   team: { name: '', shortName: '', logoUrl: '', primaryColor: '#F59E0B', secondaryColor: '#111827' },
   president: { name: '', phone: '', photoUrl: '' },
+  staff: [],
   players: [],
   rightsDocs: [],
   confirm: { truth: false, rights: false },
@@ -80,6 +95,7 @@ export function normalizeData(raw: unknown): RegData {
   return {
     team: { ...base.team, ...(d.team ?? {}) },
     president: { ...base.president, ...(d.president ?? {}) },
+    staff: Array.isArray(d.staff) ? d.staff.map((s) => ({ ...newStaff(), ...s })) : [],
     players: Array.isArray(d.players) ? d.players.map((p) => ({ ...newPlayer(), ...p })) : [],
     rightsDocs: Array.isArray(d.rightsDocs) ? d.rightsDocs : [],
     confirm: { ...base.confirm, ...(d.confirm ?? {}) },
@@ -98,6 +114,16 @@ export const newPlayer = (): RegPlayer => ({
   photoUrl: '',
   dniPath: '',
 });
+
+export const newStaff = (): RegStaff => ({ id: uid('st'), name: '', role: STAFF_ROLES[0], phone: '' });
+
+/** What is still missing for one person of the staff (empty = complete). */
+export function staffIssues(s: RegStaff): string[] {
+  const out: string[] = [];
+  if (s.name.trim().split(/\s+/).length < 2) out.push('nom i cognoms');
+  if (!s.role.trim()) out.push('càrrec');
+  return out;
+}
 
 export const fullName = (p: Pick<RegPlayer, 'firstName' | 'lastName'>) => `${p.firstName.trim()} ${p.lastName.trim()}`.trim();
 
@@ -136,8 +162,11 @@ export function regIssues(d: RegData): string[] {
   if (!d.team.logoUrl) out.push('L’escut de l’equip');
   if (!d.president.name.trim()) out.push('El nom del president');
   if (d.president.phone.replace(/\D/g, '').length < 9) out.push('El telèfon del president');
+  if (d.staff.length > MAX_STAFF) out.push(`Com a màxim ${MAX_STAFF} persones al cos tècnic (n’hi ha ${d.staff.length})`);
+  const staffMissing = d.staff.filter((s) => staffIssues(s).length).length;
+  if (staffMissing) out.push(`${staffMissing} ${staffMissing === 1 ? 'persona del cos tècnic té' : 'persones del cos tècnic tenen'} dades per completar`);
   if (d.players.length < MIN_PLAYERS) out.push(`Com a mínim ${MIN_PLAYERS} jugadors (n’hi ha ${d.players.length})`);
-  if (d.players.length > MAX_PLAYERS) out.push(`Com a màxim ${MAX_PLAYERS} jugadors`);
+  if (d.players.length > MAX_PLAYERS) out.push(`Com a màxim ${MAX_PLAYERS} jugadors (n’hi ha ${d.players.length}: en sobren ${d.players.length - MAX_PLAYERS})`);
   if (d.players.length && !d.players.some((p) => p.role === 'porter')) out.push('Com a mínim un porter');
   const incomplete = d.players.filter((p) => playerIssues(p, d.players).length);
   if (incomplete.length) out.push(`${incomplete.length} ${incomplete.length === 1 ? 'jugador té' : 'jugadors tenen'} dades per completar`);
@@ -216,7 +245,7 @@ function readFiles(): Record<string, string> {
   }
 }
 
-const strip = ({ password: _pw, ...row }: LocalRow): Registration => ({ ...row, data: normalizeData(row.data) });
+const strip = ({ password: _pw, ...row }: LocalRow): Registration => ({ ...row, category: normalizeCategory(row.category), data: normalizeData(row.data) });
 
 // ───────────────────────── Supabase rows ─────────────────────────
 
@@ -233,7 +262,8 @@ interface Row {
 
 const fromRow = (r: Row): Registration => ({
   email: r.email,
-  category: r.category,
+  // Rows created before the Junior League was split say `junior`: they show as Infantil until the admin changes them.
+  category: normalizeCategory(r.category),
   status: r.status,
   data: normalizeData(r.data),
   adminNote: r.admin_note ?? '',

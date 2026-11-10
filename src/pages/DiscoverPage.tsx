@@ -6,13 +6,13 @@ import { Lightbox } from '@/components/gallery/Lightbox';
 import { EmptyState, PageHeader } from '@/components/ui/Section';
 import { SmartImage } from '@/components/ui/SmartImage';
 import { TeamCrest } from '@/components/ui/TeamCrest';
-import { CATEGORIES, CATEGORY_BY_ID, SITE } from '@/config/site';
+import { CATEGORIES, SITE, championCategoryMeta } from '@/config/site';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUiStore } from '@/store/useUiStore';
 import { celebrate } from '@/lib/confetti';
 import { KIND_LABEL, balances, newestFirst, signed, usesLleidalitos } from '@/lib/lleidalitos';
 import { cn, formatDateShort } from '@/lib/utils';
-import type { CategoryId } from '@/types';
+import type { ChampionCategory } from '@/types';
 
 type SectionId = 'qui-som' | 'palmares' | 'grada' | 'collaboradors' | 'arbitres' | 'moneda';
 
@@ -56,7 +56,7 @@ function QuiSom() {
           2024 al pavelló Manel Bosch de Torrefarrera, amb 24 presidents, i va estrenar els <strong className="text-amber-300">Lleidalitos</strong>, la moneda virtual que els equips poden gastar per ajudar-se als partits.
         </p>
         <p>
-          A més de la Senior, la <strong className="text-white">Lleida League Junior</strong>, per a estudiants d’ESO, es juga per Nadal, i la <strong className="text-white">Lleida League Juvenil</strong> és per a jugadors fins
+          A més de la Senior, la <strong className="text-white">Lleida League Junior</strong>, per a estudiants d’ESO, es juga per Nadal en dues categories, <strong className="text-white">Infantil</strong> (1r i 2n d’ESO) i <strong className="text-white">Cadet</strong> (3r i 4t d’ESO), i la <strong className="text-white">Lleida League Juvenil</strong> és per a jugadors fins
           a 19 anys.
         </p>
         <div className="card flex flex-wrap items-center gap-x-8 gap-y-3 p-5 text-base">
@@ -92,9 +92,10 @@ function QuiSom() {
 
 function Palmares() {
   const champions = useLeagueStore((s) => s.champions);
-  const order: CategoryId[] = ['senior', 'femenina', 'juvenil', 'junior'];
+  // The old single Junior League keeps its own list; from now on Infantil and Cadet have their own champions.
+  const order: ChampionCategory[] = ['senior', 'femenina', 'juvenil', 'cadet', 'infantil', 'junior'];
   const groups = order
-    .map((id) => ({ cat: CATEGORY_BY_ID[id], items: champions.filter((c) => c.category === id).sort((a, b) => b.year - a.year || b.edition - a.edition) }))
+    .map((id) => ({ cat: championCategoryMeta(id), items: champions.filter((c) => c.category === id).sort((a, b) => b.year - a.year || b.edition - a.edition) }))
     .filter((g) => g.items.length > 0);
 
   if (groups.length === 0) return <EmptyState icon={<Trophy />} title="Encara sense campions" hint="El palmarès apareixerà aquí quan s’afegeixin els campions des del tauler d’administració." />;

@@ -30,6 +30,8 @@ import { useUiStore } from '@/store/useUiStore';
 import { supabaseEnabled } from '@/lib/supabase';
 import { emptyStats } from '@/lib/standings';
 import {
+  MAX_PLAYERS,
+  MAX_STAFF,
   STATUS_LABEL,
   ageOf,
   createPresident,
@@ -262,6 +264,7 @@ function Review({ reg, onClose, onChanged }: { reg: Registration; onClose: () =>
   const upsertPlayer = useLeagueStore((s) => s.upsertPlayer);
   const deletePlayer = useLeagueStore((s) => s.deletePlayer);
   const [note, setNote] = useState(reg.adminNote);
+  const [cat, setCat] = useState<CategoryId>(reg.category);
   const [busy, setBusy] = useState(false);
   const [doc, setDoc] = useState<{ path: string; title: string } | null>(null);
   const [confirm, setConfirm] = useState<'delete' | 'dni' | null>(null);
@@ -285,6 +288,11 @@ function Review({ reg, onClose, onChanged }: { reg: Registration; onClose: () =>
     }
   };
 
+  const moveTo = (c: CategoryId) => {
+    setCat(c);
+    void act(() => updateRegistration(reg.email, { category: c }), `Inscripció passada a ${CATEGORY_BY_ID[c].label}. Si ja era a la lliga, torna-la a passar perquè l’equip també hi canviï.`);
+  };
+
   /** Adds (or updates) the team and its players in the league. */
   const approve = () =>
     act(async () => {
@@ -300,7 +308,7 @@ function Review({ reg, onClose, onChanged }: { reg: Registration; onClose: () =>
         logoUrl: d.team.logoUrl,
         primaryColor: d.team.primaryColor,
         secondaryColor: d.team.secondaryColor,
-        category: reg.category,
+        category: cat,
         history: existing?.history ?? '',
         presidentPhotoUrl: d.president.photoUrl || existing?.presidentPhotoUrl,
       });
@@ -349,8 +357,15 @@ function Review({ reg, onClose, onChanged }: { reg: Registration; onClose: () =>
           <TeamCrest team={{ name: d.team.name || '?', shortName: d.team.shortName || '?', primaryColor: d.team.primaryColor, secondaryColor: d.team.secondaryColor, logoUrl: d.team.logoUrl }} size={72} />
           <div className="min-w-0 flex-1">
             <p className="font-display text-2xl font-black uppercase text-white">{d.team.name || 'Sense nom'} <span className="text-amber-300">{d.team.shortName}</span></p>
-            <p className="text-sm text-slate-400">
-              {CATEGORY_BY_ID[reg.category]?.label} · {reg.email}
+            <p className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+              <select className="input !w-auto !py-1 text-sm" value={cat} onChange={(e) => moveTo(e.target.value as CategoryId)} aria-label="Competició de la inscripció" disabled={busy}>
+                {CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <span>{reg.email}</span>
             </p>
           </div>
           <span className={cn('rounded-full border px-3 py-1 text-xs font-bold uppercase', STATUS_TONE[reg.status])}>{STATUS_LABEL[reg.status]}</span>
@@ -377,6 +392,24 @@ function Review({ reg, onClose, onChanged }: { reg: Registration; onClose: () =>
                 )}
               </div>
             </div>
+            <p className="label mt-4">Cos tècnic ({d.staff.length}/{MAX_STAFF})</p>
+            {d.staff.length ? (
+              <ul className="space-y-1 text-sm">
+                {d.staff.map((st) => (
+                  <li key={st.id} className="flex flex-wrap items-center gap-x-2">
+                    <span className="font-bold text-white">{st.name || '—'}</span>
+                    <span className="text-slate-400">{st.role}</span>
+                    {st.phone && (
+                      <a href={`tel:${st.phone.replace(/\s/g, '')}`} className="flex items-center gap-1 text-amber-300">
+                        <Phone size={12} /> {st.phone}
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-slate-500">Sense cos tècnic.</p>
+            )}
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
             <p className="label">Drets d’imatge signats</p>
@@ -396,7 +429,7 @@ function Review({ reg, onClose, onChanged }: { reg: Registration; onClose: () =>
         </div>
 
         <div>
-          <p className="label">Jugadors ({players.length})</p>
+          <p className="label">Jugadors ({players.length}/{MAX_PLAYERS})</p>
           <div className="overflow-x-auto rounded-2xl border border-white/10">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-white/[0.04] text-left text-[11px] uppercase tracking-wider text-slate-400">

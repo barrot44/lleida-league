@@ -1,4 +1,10 @@
-export type CategoryId = 'senior' | 'juvenil' | 'junior' | 'femenina';
+export type CategoryId = 'senior' | 'juvenil' | 'infantil' | 'cadet' | 'femenina';
+
+/** Competitions shown together under one name: the Junior League is played in two age groups (Infantil and Cadet). */
+export type CategoryGroupId = 'junior';
+
+/** The palmarès keeps the champions of the old single Junior League (before it was split). */
+export type ChampionCategory = CategoryId | 'junior';
 
 export type Position = 'Portero' | 'Cierre' | 'Ala' | 'Pívot';
 
@@ -103,7 +109,7 @@ export interface NewsItem {
 
 export interface Champion {
   id: string;
-  category: CategoryId;
+  category: ChampionCategory;
   /** Edition number (1st, 2nd…). */
   edition: number;
   year: number;
@@ -192,4 +198,6 @@ export interface CategoryMeta {
   /** Number of bottom positions flagged as the danger zone. */
   relegationSpots: number;
   accent: string;
+  /** Shown together with the other competitions of the same group (e.g. Junior → Infantil / Cadet). */
+  group?: CategoryGroupId;
 }

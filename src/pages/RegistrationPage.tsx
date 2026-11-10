@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ClipboardList,
+  ClipboardCheck,
   Crown,
   Eye,
   FileSignature,
@@ -31,13 +32,17 @@ import { CATEGORY_BY_ID, SITE } from '@/config/site';
 import { useUiStore } from '@/store/useUiStore';
 import {
   MAX_PLAYERS,
+  MAX_STAFF,
   MIN_PLAYERS,
+  STAFF_ROLES,
   STATUS_LABEL,
   ageOf,
   deletePrivate,
   fullName,
   loadMine,
   newPlayer,
+  newStaff,
+  staffIssues,
   playerIssues,
   presidentSession,
   presidentSignIn,
@@ -49,6 +54,7 @@ import {
   type PresidentSession,
   type RegData,
   type RegPlayer,
+  type RegStaff,
   type Registration,
 } from '@/lib/registration';
 import { RIGHTS_TEXT, rightsDocHtml } from '@/lib/rightsDoc';
@@ -136,7 +142,7 @@ function Login({ note, onDone }: { note?: string; onDone: () => void }) {
             items={[
               <>L’organització et dona un <strong>correu i una contrasenya</strong>. Si no en tens, escriu-nos a <a className="text-amber-300 underline" href={`mailto:${SITE.email}`}>{SITE.email}</a>.</>,
               <>Posa el <strong>nom i l’escut</strong> de l’equip i les teves dades com a president.</>,
-              <>Afegeix els <strong>jugadors</strong>: dorsal, porter o jugador, una foto de cara i una foto del DNI.</>,
+              <>Afegeix el <strong>cos tècnic</strong> (fins a {MAX_STAFF} persones) i els <strong>jugadors</strong> (fins a {MAX_PLAYERS}): dorsal, porter o jugador, una foto de cara i una foto del DNI.</>,
               <>Imprimeix el paper de <strong>drets d’imatge</strong>, feu-lo signar i puja’n una foto.</>,
               <>Envia-la. La revisem i, quan l’aprovem, el teu equip ja surt a la web.</>,
               <>Tot <strong>es desa sol</strong>: no cal fer-ho d’una tirada, pots tornar a entrar un altre dia i continuar on ho vas deixar.</>,
@@ -237,6 +243,7 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
 
   const setTeam = (p: Partial<RegData['team']>) => change((d) => ({ ...d, team: { ...d.team, ...p } }));
   const setPresident = (p: Partial<RegData['president']>) => change((d) => ({ ...d, president: { ...d.president, ...p } }));
+  const setStaff = (id: string, p: Partial<RegStaff>) => change((d) => ({ ...d, staff: d.staff.map((s) => (s.id === id ? { ...s, ...p } : s)) }));
 
   const send = async () => {
     if (issues.length) return toast('Encara falten coses: mira la llista de sota.', 'error');
@@ -268,6 +275,13 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
       />
 
       <StatusBanner status={status} note={initial.adminNote} />
+
+      {/* The squad limits, always in sight */}
+      <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
+        <Limit label="President" value={data.president.name.trim() ? 1 : 0} max={1} />
+        <Limit label="Cos tècnic" value={data.staff.length} max={MAX_STAFF} />
+        <Limit label="Jugadors" value={data.players.length} max={MAX_PLAYERS} min={MIN_PLAYERS} />
+      </div>
 
       <fieldset disabled={!editable} className="space-y-6 disabled:opacity-90">
         {/* 1. Team */}
@@ -318,11 +332,65 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
           </div>
         </Card>
 
-        {/* 3. Players */}
+        {/* 3. Staff */}
         <Card
           n={3}
-          title={`Jugadors (${data.players.length})`}
-          done={data.players.length >= MIN_PLAYERS && data.players.every((p) => !playerIssues(p, data.players).length) && data.players.some((p) => p.role === 'porter')}
+          title={`Cos tècnic (${data.staff.length}/${MAX_STAFF})`}
+          done={data.staff.length <= MAX_STAFF && data.staff.every((s) => !staffIssues(s).length)}
+          actions={
+            editable && (
+              <button className="btn-ghost" disabled={data.staff.length >= MAX_STAFF} onClick={() => change((d) => ({ ...d, staff: [...d.staff, newStaff()] }))}>
+                <Plus size={16} /> Afegeix staff
+              </button>
+            )
+          }
+        >
+          <p className="mb-4 text-sm text-slate-400">
+            Entrenador, delegat… Fins a {MAX_STAFF} persones a més de tu, que ja ets el president. És opcional. El telèfon és privat.
+          </p>
+          {data.staff.length === 0 ? (
+            <p className="flex items-center gap-2 rounded-2xl border border-dashed border-white/10 px-4 py-5 text-sm text-slate-500">
+              <ClipboardCheck size={18} /> Encara no hi ha ningú al cos tècnic.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {data.staff.map((s, i) => {
+                const missing = staffIssues(s);
+                return (
+                  <li key={s.id} className={cn('grid gap-3 rounded-2xl border p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-end', missing.length ? 'border-amber-400/30 bg-amber-400/[0.04]' : 'border-white/10 bg-white/[0.03]')}>
+                    <Field label={`Staff ${i + 1} · nom i cognoms`}>
+                      <input className="input" value={s.name} maxLength={60} onChange={(e) => setStaff(s.id, { name: e.target.value })} placeholder="Marta Solé" />
+                    </Field>
+                    <Field label="Càrrec">
+                      <select className="input" value={s.role} onChange={(e) => setStaff(s.id, { role: e.target.value })}>
+                        {STAFF_ROLES.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Telèfon (opcional)">
+                      <input className="input" type="tel" inputMode="tel" value={s.phone} onChange={(e) => setStaff(s.id, { phone: e.target.value })} placeholder="600 000 000" />
+                    </Field>
+                    {editable && (
+                      <button type="button" className="btn-ghost !p-2.5 hover:!text-red-300 sm:mb-0.5" aria-label={`Treu ${s.name || 'aquesta persona'}`} onClick={() => change((d) => ({ ...d, staff: d.staff.filter((x) => x.id !== s.id) }))}>
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                    {missing.length > 0 && <span className="text-xs text-amber-200 sm:col-span-4">Falta: {missing.join(', ')}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
+
+        {/* 4. Players */}
+        <Card
+          n={4}
+          title={`Jugadors (${data.players.length}/${MAX_PLAYERS})`}
+          done={data.players.length >= MIN_PLAYERS && data.players.length <= MAX_PLAYERS && data.players.every((p) => !playerIssues(p, data.players).length) && data.players.some((p) => p.role === 'porter')}
           actions={
             editable && (
               <button className="btn-gold" disabled={data.players.length >= MAX_PLAYERS} onClick={() => setEditing({ player: newPlayer(), isNew: true })}>
@@ -332,7 +400,8 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
           }
         >
           <p className="mb-4 text-sm text-slate-400">
-            Entre {MIN_PLAYERS} i {MAX_PLAYERS} jugadors, amb un porter com a mínim. Per a cadascun: foto de cara (pública) i foto del DNI (privada).
+            Entre {MIN_PLAYERS} i {MAX_PLAYERS} jugadors com a màxim, amb un porter com a mínim. Per a cadascun: foto de cara (pública) i foto del DNI (privada).
+            {data.players.length > MAX_PLAYERS && <strong className="mt-1 block text-red-300">En sobren {data.players.length - MAX_PLAYERS}: treu-ne abans d’enviar la inscripció.</strong>}
           </p>
           {players.length === 0 ? (
             <button type="button" onClick={() => setEditing({ player: newPlayer(), isNew: true })} className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-white/10 py-10 text-slate-400 transition hover:border-amber-400/50 hover:text-amber-200">
@@ -385,8 +454,8 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
           )}
         </Card>
 
-        {/* 4. Image rights */}
-        <Card n={4} title="Drets d’imatge" done={data.rightsDocs.length > 0}>
+        {/* 5. Image rights */}
+        <Card n={5} title="Drets d’imatge" done={data.rightsDocs.length > 0}>
           <div className="space-y-2 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-relaxed text-slate-300">
             {RIGHTS_TEXT.map((t) => (
               <p key={t}>{t}</p>
@@ -423,7 +492,7 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
             <p className="mb-2 flex items-center gap-2 font-display text-lg font-black uppercase text-sky-200">
               <Globe2 size={18} /> Ho veurà tothom
             </p>
-            <p className="text-sm text-slate-300">Nom i escut de l’equip, nom del president i la seva foto, i de cada jugador: nom (o àlies), dorsal, porter o jugador i la foto de cara.</p>
+            <p className="text-sm text-slate-300">Nom i escut de l’equip, nom del president i la seva foto, el cos tècnic (nom i càrrec) i, de cada jugador: nom (o àlies), dorsal, porter o jugador i la foto de cara.</p>
           </div>
           <div className="rounded-3xl border border-emerald-400/20 bg-emerald-400/[0.05] p-5">
             <p className="mb-2 flex items-center gap-2 font-display text-lg font-black uppercase text-emerald-200">
@@ -433,9 +502,9 @@ function RegistrationForm({ session, initial, onSignOut }: { session: PresidentS
           </div>
         </section>
 
-        {/* 5. Send */}
+        {/* 6. Send */}
         {editable && (
-          <Card n={5} title="Revisa i envia" done={!issues.length}>
+          <Card n={6} title="Revisa i envia" done={!issues.length}>
             <div className="space-y-2">
               <Check checked={data.confirm.truth} onChange={(v) => change((d) => ({ ...d, confirm: { ...d.confirm, truth: v } }))}>
                 Confirmo que les dades són certes i que tots els jugadors saben que els inscric a la {SITE.name}.
@@ -552,6 +621,20 @@ function Card({ n, title, done, actions, children }: { n: number; title: string;
       </div>
       {children}
     </section>
+  );
+}
+
+function Limit({ label, value, max, min }: { label: string; value: number; max: number; min?: number }) {
+  const over = value > max;
+  const ok = !over && value >= (min ?? 0) && value > 0;
+  return (
+    <div className={cn('rounded-2xl border px-3 py-2.5 text-center', over ? 'border-red-400/50 bg-red-500/10' : ok ? 'border-emerald-400/30 bg-emerald-400/[0.06]' : 'border-white/10 bg-white/[0.03]')}>
+      <p className={cn('digital text-2xl leading-none sm:text-3xl', over ? 'text-red-300' : ok ? 'text-emerald-300' : 'text-slate-200')}>
+        {value}
+        <span className="text-base text-slate-500 sm:text-lg">/{max}</span>
+      </p>
+      <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+    </div>
   );
 }
 

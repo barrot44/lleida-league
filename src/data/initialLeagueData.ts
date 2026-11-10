@@ -126,13 +126,22 @@ const TEAM_SEEDS: Record<CategoryId, TeamSeed[]> = {
     { id: 'juv-rufea', name: 'Rufea Lions', shortName: 'RUF', president: 'Èric Boldú', primary: '#EAB308', secondary: '#1A1500', strength: 0.8, history: 'Cabellera al vent i caràcter. Una plantilla molt jove que creix partit a partit.' },
     { id: 'juv-noguera', name: 'Noguera Tigers', shortName: 'NOG', president: 'Sara Ibars', primary: '#F97316', secondary: '#1C0F05', strength: 0.7, history: 'Arriben des de la comarca amb ganes de donar la sorpresa. Forts a casa, a prova fora.' },
   ],
-  junior: [
+  // Junior League: Infantil (1r-2n ESO) i Cadet (3r-4t ESO).
+  infantil: [
     { id: 'jun-balafia', name: 'Balàfia Phoenix', shortName: 'BAL', president: 'Aleix Mateu', primary: '#EF4444', secondary: '#1F0B0B', strength: 1.35, history: 'Ressorgeixen de cada derrota. Intensitat, ritme alt i molta fe en l’últim minut.' },
     { id: 'jun-ciutatjardi', name: 'Ciutat Jardí FS', shortName: 'CIU', president: 'Berta Prat', primary: '#10B981', secondary: '#04201A', strength: 1.15, history: 'Tècnics, descarats i amb un tancament que dirigeix l’orquestra. Gaudeixen jugant.' },
     { id: 'jun-llotja', name: 'Llotja Dragons', shortName: 'LLO', president: 'Gerard Sala', primary: '#8B5CF6', secondary: '#1A1035', strength: 1.0, history: 'Foc a la pista i poques paraules fora d’ella. La seva arma: el 4-0 en moviment.' },
     { id: 'jun-butsenit', name: 'Butsènit Rangers', shortName: 'BUT', president: 'Judit Roca', primary: '#3B82F6', secondary: '#0B1426', strength: 0.9, history: 'Equip de poble gran, treball dur i cames llargues. No regalen ni una pilota.' },
     { id: 'jun-seca', name: 'Secà Sharks', shortName: 'SEC', president: 'Adrià Vilà', primary: '#06B6D4', secondary: '#051B20', strength: 0.8, history: 'Pressionen en grup i ensumen l’error rival. Un equip incòmode per a qualsevol.' },
     { id: 'jun-xalets', name: 'Xalets Blaugrana', shortName: 'XAL', president: 'Roger Font', primary: '#F59E0B', secondary: '#1B1204', strength: 0.7, history: 'Molt de cor, molt de color i una afició que viatja a tots els pavellons.' },
+  ],
+  cadet: [
+    { id: 'cad-pardinyes', name: 'Pardinyes Wolves', shortName: 'PAR', president: 'Núria Bosch', primary: '#3B82F6', secondary: '#0B1426', strength: 1.3, history: 'Pressió alta i transicions ràpides: no deixen respirar ningú.' },
+    { id: 'cad-cappont', name: 'Cappont Titans', shortName: 'CAP', president: 'Oriol Farré', primary: '#F59E0B', secondary: '#1B1204', strength: 1.15, history: 'Físics i ordenats. Quan es posen per davant, costa molt remuntar-los.' },
+    { id: 'cad-mariola', name: 'Mariola United', shortName: 'MAR', president: 'Laura Sanuy', primary: '#EF4444', secondary: '#1F0B0B', strength: 1.0, history: 'Un vestidor de barri que s’ho passa bé jugant i ho contagia a la grada.' },
+    { id: 'cad-escorxador', name: 'Escorxador FS', shortName: 'ESC', president: 'Jordi Pons', primary: '#8B5CF6', secondary: '#1A1035', strength: 0.9, history: 'Tècnica de sala de tota la vida: rondos, paret i una altra paret.' },
+    { id: 'cad-turo', name: 'Turó Gardeny Hawks', shortName: 'TUR', president: 'Mònica Baró', primary: '#06B6D4', secondary: '#051B20', strength: 0.8, history: 'Juguen des del pal: porter-jugador i paciència fins a trobar l’escletxa.' },
+    { id: 'cad-bordeta', name: 'La Bordeta Bulls', shortName: 'BOR', president: 'Xavi Gual', primary: '#84CC16', secondary: '#1A2E05', strength: 0.7, history: 'Valents i incansables. El partit no s’acaba fins que ho diu l’àrbitre.' },
   ],
   femenina: [
     { id: 'fem-valkyries', name: 'Valkyries FS', shortName: 'VAL', president: 'Irene Montoya', primary: '#EC4899', secondary: '#2A0F20', strength: 1.4, history: 'Les campiones a batre. Molt de talent, molta pissarra i la millor parella ala-pivot de la lliga.' },
@@ -229,11 +238,12 @@ interface CategorySchedule {
 const SCHEDULE: Record<CategoryId, CategorySchedule> = {
   senior: { finishedMatchdays: 6, offsetDays: 0, slots: ['19:00', '20:00', '21:00', '22:00'], doubleRound: false, venues: SENIOR_VENUES },
   juvenil: { finishedMatchdays: 5, offsetDays: 2, slots: ['10:00', '11:30', '13:00'], doubleRound: true, venues: GENERIC_VENUES },
-  junior: { finishedMatchdays: 4, offsetDays: 3, slots: ['17:00', '18:30', '20:00'], doubleRound: true, venues: GENERIC_VENUES },
+  infantil: { finishedMatchdays: 4, offsetDays: 3, slots: ['17:00', '18:30', '20:00'], doubleRound: true, venues: GENERIC_VENUES },
+  cadet: { finishedMatchdays: 4, offsetDays: 4, slots: ['17:00', '18:30', '20:00'], doubleRound: true, venues: GENERIC_VENUES },
   femenina: { finishedMatchdays: 5, offsetDays: 1, slots: ['11:00', '12:30', '14:00'], doubleRound: true, venues: GENERIC_VENUES },
 };
 
-const CAT_CODE: Record<CategoryId, string> = { senior: 'sen', juvenil: 'juv', junior: 'jun', femenina: 'fem' };
+const CAT_CODE: Record<CategoryId, string> = { senior: 'sen', juvenil: 'juv', infantil: 'inf', cadet: 'cad', femenina: 'fem' };
 
 function roundRobin(ids: string[], doubleRound: boolean): [string, string][][] {
   const n = ids.length;
@@ -420,10 +430,10 @@ function buildGallery(now: Date): GalleryItem[] {
     { title: 'La pilota de la jornada', matchday: 6, imageUrl: photo('1486286701208-1d58e9338013'), category: 'senior', date: day(1), caption: 'La pilota oficial de la Lleida League, a punt per a una altra batalla presidencial.', tags: ['pilota', 'oficial'] },
     { title: 'Duel a mitja pista', matchday: 5, imageUrl: photo('1553778263-73a83bab9b0c'), category: 'senior', date: day(8), caption: 'Cama forta i pilota dividida: així es guanya una jornada.', tags: ['acció', 'senior'] },
     { title: 'Xut de bandera', matchday: 5, imageUrl: photo('1517466787929-bc90951d0974'), category: 'juvenil', teamId: 'juv-gardeny', date: day(8), caption: 'La pedrera també sap de remats impossibles.', tags: ['acció', 'juvenil'] },
-    { title: 'Concentració abans del xiulet', matchday: 4, imageUrl: photo('1574629810360-7efbbe195018'), category: 'junior', teamId: 'jun-balafia', date: day(15), caption: 'Última ullada a la pilota abans de començar el partit.', tags: ['prèvia', 'junior'] },
+    { title: 'Concentració abans del xiulet', matchday: 4, imageUrl: photo('1574629810360-7efbbe195018'), category: 'infantil', teamId: 'jun-balafia', date: day(15), caption: 'Última ullada a la pilota abans de començar el partit.', tags: ['prèvia', 'junior'] },
     { title: 'Entrenament a porta tancada', matchday: 3, imageUrl: photo('1518604666860-9ed391f76460'), category: 'femenina', teamId: 'fem-valkyries', date: day(22), caption: 'Les Valkyries preparen el derbi amb pilotes per tot arreu.', tags: ['entrenament', 'femenina'] },
     { title: 'Línia de banda', matchday: 3, imageUrl: photo('1459865264687-595d652de67e'), category: 'general', date: day(22), caption: 'On comença tot: la línia, la gespa i el xiulet.', tags: ['pista'] },
-    { title: 'Esperant el xiulet', matchday: 2, imageUrl: photo('1551958219-acbc608c6377'), category: 'junior', date: day(29), caption: 'Tres pilotes, un sol campió.', tags: ['pilota', 'junior'] },
+    { title: 'Esperant el xiulet', matchday: 2, imageUrl: photo('1551958219-acbc608c6377'), category: 'cadet', date: day(29), caption: 'Tres pilotes, un sol campió.', tags: ['pilota', 'cadet'] },
     { title: 'Botes de campiona', matchday: 2, imageUrl: photo('1579952363873-27f3bade9f55'), category: 'femenina', date: day(29), caption: 'Ajustant els tacs abans del xiulet inicial.', tags: ['prèvia', 'femenina'] },
     { title: 'Remat a l’aire', matchday: 1, imageUrl: photo('1560272564-c83b66b1ad12'), category: 'senior', date: day(36), caption: 'La primera jornada ja va deixar imatges per al record.', tags: ['acció', 'inici'] },
     { title: 'Pista sota les estrelles', matchday: 1, imageUrl: photo('1487466365202-1afdb86c764e'), category: 'general', date: day(36), caption: 'La lliga arrenca en una nit de gala.', tags: ['ambient', 'inici'] },
@@ -449,7 +459,7 @@ function buildNews(teams: Team[], now: Date): NewsItem[] {
     { id: 'n-03', headline: 'El Comitè sanciona amb dos partits una conducta antiesportiva', summary: 'Després de revisar l’acta de l’última jornada, el Comitè de Competició castiga un jugador amb dos partits de suspensió.', date: day(3), badge: 'Sanció', category: 'senior' },
     { id: 'n-04', headline: 'Femenina League: rècord d’assistència a la jornada 5', summary: `El derbi entre ${name('fem-valkyries')} i ${name('fem-cappontqueens')} va omplir el pavelló i va marcar el rècord de públic de la temporada.`, date: day(5), badge: 'Oficial', category: 'femenina' },
     { id: 'n-05', headline: 'Nou premi presidencial: MVP de cada jornada', summary: 'L’organització premiarà el millor jugador de cada jornada amb la targeta daurada i una menció especial a les xarxes de la lliga.', date: day(9), badge: 'Oficial' },
-    { id: 'n-06', headline: 'Fitxatge sorpresa a la Junior League', summary: `${name('jun-llotja')} reforça la seva línia ofensiva amb una ala esquerrana procedent de la pedrera local. Debutarà a la propera jornada.`, date: day(11), badge: 'Mercat', category: 'junior' },
+    { id: 'n-06', headline: 'Fitxatge sorpresa a la Junior League Infantil', summary: `${name('jun-llotja')} reforça la seva línia ofensiva amb una ala esquerrana procedent de la pedrera local. Debutarà a la propera jornada.`, date: day(11), badge: 'Mercat', category: 'infantil' },
   ];
 }
 
